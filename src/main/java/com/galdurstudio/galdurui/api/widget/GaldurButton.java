@@ -58,16 +58,17 @@ public class GaldurButton extends AbstractWidget {
 
     /**
      * Vrai entre l'enfoncement et le relâchement du bouton de souris sur ce widget. Repasse à
-     * faux uniquement dans {@link #onRelease}, que l'action soit déclenchée ou non, et par
-     * {@link #clearHeld()} quand l'écran retire le bouton.
+     * faux dans {@link #onRelease}, que l'action soit déclenchée ou non, à chaque image où le
+     * bouton gauche n'est plus enfoncé ({@link #renderWidget}), et par {@link #clearHeld()}.
      *
      * <p>Surtout pas dans {@code setFocused(false)} : à chaque clic, Minecraft retire puis
      * redonne le focus au bouton déjà ciblé, entre l'appui et le relâchement
      * ({@code AbstractContainerEventHandler.setFocused}), ce qui effacerait l'appui.</p>
      *
-     * <p>Si le relâchement part vers un autre widget (Tab pendant l'appui), {@code held} reste
-     * vrai jusqu'au prochain clic sur ce bouton ; l'affichage ne s'y fie donc pas seul
-     * (voir {@code currentState()}).</p>
+     * <p>Si le relâchement part vers un autre widget (Tab pendant l'appui), {@link #onRelease}
+     * n'est jamais appelée sur ce bouton. Sans la remise à faux au rendu, {@code held} resterait
+     * vrai : le bouton s'afficherait enfoncé au retour du focus, et un appui ailleurs suivi d'un
+     * relâchement sur lui déclencherait l'action.</p>
      */
     private boolean held;
 
@@ -150,11 +151,9 @@ public class GaldurButton extends AbstractWidget {
             return State.DISABLED;
         }
         // Un appui en cours a toujours le focus : Minecraft le donne au bouton juste après
-        // onClick. Si le focus est parti pendant l'appui (Tab bouton maintenu), le relâchement
-        // ira à un autre widget et held restera vrai : on exige donc aussi que le bouton de
-        // souris soit réellement enfoncé, sans quoi l'état enfoncé réapparaîtrait au retour
-        // du focus.
-        if (held && isHovered() && isFocused() && GaldurInput.isLeftMouseDown()) {
+        // onClick. Si le focus est parti pendant l'appui (Tab bouton maintenu), on n'affiche
+        // plus l'état enfoncé : le relâchement ira à un autre widget.
+        if (held && isHovered() && isFocused()) {
             return State.PRESSED;
         }
         return isHovered() || isKeyboardFocused() ? State.HOVERED : State.NORMAL;
@@ -194,6 +193,12 @@ public class GaldurButton extends AbstractWidget {
 
     @Override
     protected void renderWidget(GuiGraphics guiGraphics, int mouseX, int mouseY, float partialTick) {
+        // Souris relâchée : l'appui est terminé, même si onRelease n'a pas été appelée sur ce
+        // bouton (relâchement parti vers un autre widget). Un clic rapide n'est pas concerné :
+        // appui et relâchement sont traités avant l'image suivante.
+        if (held && !GaldurInput.isLeftMouseDown()) {
+            held = false;
+        }
         State state = currentState();
         GaldurRender.drawNineSlice(guiGraphics, sprite(state), getX(), getY(), getWidth(), getHeight(), tint(state));
 
