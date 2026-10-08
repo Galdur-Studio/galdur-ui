@@ -17,6 +17,20 @@ Bibliothèque d'interface de Galdur Studio : thème, composants et écrans pour 
 
 En jeu, la commande `/galdurui test` ouvre l'écran de test (environnement de développement uniquement).
 
+## Sprites
+
+Les sprites 9-slice (`panel`, `button`, `button_hover`, `button_pressed`, `button_disabled`,
+16×16, bordure 4) de `assets/galdurui/textures/gui/sprites/` sont générés à partir des
+couleurs de `assets/galdurui/theme.json`. Pour retoucher la charte, on modifie `theme.json`
+puis on régénère, plutôt que d'éditer les images à la main :
+
+```powershell
+.\gradlew.bat generateSprites
+```
+
+Le générateur (`tools/GenerateSprites.java`) est compilé dans un source set séparé : il ne
+tourne pas au build et n'est pas inclus dans le jar du mod.
+
 ## Structure
 
 - `com.galdurstudio.galdurui.api` : API publique et stable, utilisée par nos mods.
