@@ -2,6 +2,7 @@ package com.galdurstudio.galdurui.api.layout;
 
 import com.galdurstudio.galdurui.api.theme.GaldurTheme;
 import com.galdurstudio.galdurui.api.widget.GaldurPanel;
+import java.util.OptionalInt;
 import java.util.function.Consumer;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.Renderable;
@@ -26,16 +27,15 @@ import net.minecraft.resources.ResourceLocation;
  * FrameLayout.centerInRectangle(panneau, getRectangle());
  * }</pre>
  *
- * <p>Sans {@link #padding(int)} explicite, le padding est relu dans le thème
- * ({@code spacing.panel_padding}) à chaque {@link #arrangeElements()}.</p>
+ * <p>Sans {@link #padding(int)} explicite (ou après {@link #useThemePadding()}), le padding est
+ * relu dans le thème ({@code spacing.panel_padding}) à chaque {@link #arrangeElements()}.</p>
  */
 public class GaldurPanelLayout extends AbstractLayout implements Renderable {
-    /** Valeur de {@link #padding} signifiant « lire le thème ». */
-    private static final int THEME_PADDING = -1;
-
     private final LayoutElement child;
     private final GaldurPanel background = new GaldurPanel(0, 0, 0, 0);
-    private int padding = THEME_PADDING;
+
+    /** Padding imposé ; vide = suivre le thème. */
+    private OptionalInt padding = OptionalInt.empty();
 
     /**
      * Crée un panneau autour de {@code child}.
@@ -52,9 +52,24 @@ public class GaldurPanelLayout extends AbstractLayout implements Renderable {
      *
      * @param padding marge entre le bord du panneau et l'enfant, en pixels d'interface
      * @return ce layout, pour chaîner les appels
+     * @throws IllegalArgumentException si {@code padding} est négatif
      */
     public GaldurPanelLayout padding(int padding) {
-        this.padding = padding;
+        if (padding < 0) {
+            throw new IllegalArgumentException("Le padding d'un GaldurPanelLayout doit être positif ou nul, reçu : "
+                    + padding + ". Pour suivre le thème, utiliser useThemePadding().");
+        }
+        this.padding = OptionalInt.of(padding);
+        return this;
+    }
+
+    /**
+     * Revient au padding du thème ({@code spacing.panel_padding}), relu à chaque arrangement.
+     *
+     * @return ce layout, pour chaîner les appels
+     */
+    public GaldurPanelLayout useThemePadding() {
+        this.padding = OptionalInt.empty();
         return this;
     }
 
@@ -71,7 +86,7 @@ public class GaldurPanelLayout extends AbstractLayout implements Renderable {
 
     /** {@return le padding effectif, en pixels d'interface} */
     public int getPadding() {
-        return padding == THEME_PADDING ? GaldurTheme.panelPadding() : padding;
+        return padding.orElseGet(GaldurTheme::panelPadding);
     }
 
     /** {@return l'élément entouré par le panneau} */
