@@ -1,4 +1,4 @@
-# This is an example neoforge.mods.toml file. It contains the data relating to the loading mods.
+# Mod metadata for Galdur UI. Placeholders are expanded from gradle.properties by the generateModMetadata task.
 # There are several mandatory fields (#mandatory), and many more that are optional (#optional).
 # The overall format is standard TOML format, v0.5.0.
 # Note that there are a couple of TOML lists in this file.
@@ -10,8 +10,7 @@ modLoader="javafml" #mandatory
 # A version range to match for said mod loader - for regular FML @Mod it will be the FML version. This is currently 2.
 loaderVersion="${loader_version_range}" #mandatory
 
-# The license for you mod. This is mandatory metadata and allows for easier comprehension of your redistributive properties.
-# Review your options at https://choosealicense.com/. All rights reserved is the default copyright stance, and is thus the default here.
+# The license for the mod. This is mandatory metadata and allows for easier comprehension of your redistributive properties.
 license="${mod_license}"
 
 # A URL to refer people to when problems occur with this mod
@@ -36,18 +35,16 @@ displayName="${mod_name}" #mandatory
 #displayURL="https://change.me.to.your.mods.homepage.example.invalid/" #optional
 
 # A file name (in the root of the mod JAR) containing a logo for display
-#logoFile="examplemod.png" #optional
+#logoFile="${mod_id}.png" #optional
 
 # A text field displayed in the mod UI
 #credits="" #optional
 
 # The authors of the mod, displayed in the mod UI (optional)
-#authors=""
+authors="${mod_authors}"
 
 # The description text for the mod (multi line!) (#mandatory)
-description='''
-Example mod description.
-'''
+description='''${mod_description}'''
 
 # The [[mixins]] block allows you to declare your mixin config to FML so that it gets loaded.
 #[[mixins]]
@@ -86,8 +83,7 @@ Example mod description.
     ordering="NONE"
     side="BOTH"
 
-# Features are specific properties of the game environment, that you may want to declare you require. This example declares
-# that your mod requires GL version 3.2 or higher. Other features will be added. They are side aware so declaring this won't
-# stop your mod loading on the server for example.
+# Features are specific properties of the game environment, that you may want to declare you require (e.g. a minimum GL version).
+# They are side aware so declaring this won't stop your mod loading on the server for example.
 #[features.${mod_id}]
 #openGLVersion="[3.2,)"
