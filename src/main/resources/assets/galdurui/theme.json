@@ -1,0 +1,15 @@
+{
+  "_comment": "Charte Galdur Studio. Modifiable à chaud : F3+T recharge les ressources et donc ce fichier.",
+
+  "background": "#2A2420",
+  "surface": "#352E29",
+
+  "text": "#F8F3E8",
+  "text_muted": "#C9BEAD",
+
+  "accent": "#B8341F",
+  "accent_hover": "#D9573D",
+  "accent_pressed": "#952A18",
+
+  "ember": "#D98A1F"
+}
