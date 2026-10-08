@@ -1,6 +1,7 @@
 package com.galdurstudio.galdurui.api.widget;
 
 import com.galdurstudio.galdurui.api.theme.GaldurTheme;
+import com.galdurstudio.galdurui.internal.input.GaldurInput;
 import com.galdurstudio.galdurui.internal.render.GaldurRender;
 import com.galdurstudio.galdurui.internal.render.GaldurSprites;
 import net.minecraft.client.Minecraft;
@@ -63,6 +64,10 @@ public class GaldurButton extends AbstractWidget {
      * <p>Surtout pas dans {@code setFocused(false)} : à chaque clic, Minecraft retire puis
      * redonne le focus au bouton déjà ciblé, entre l'appui et le relâchement
      * ({@code AbstractContainerEventHandler.setFocused}), ce qui effacerait l'appui.</p>
+     *
+     * <p>Si le relâchement part vers un autre widget (Tab pendant l'appui), {@code held} reste
+     * vrai jusqu'au prochain clic sur ce bouton ; l'affichage ne s'y fie donc pas seul
+     * (voir {@code currentState()}).</p>
      */
     private boolean held;
 
@@ -146,8 +151,10 @@ public class GaldurButton extends AbstractWidget {
         }
         // Un appui en cours a toujours le focus : Minecraft le donne au bouton juste après
         // onClick. Si le focus est parti pendant l'appui (Tab bouton maintenu), le relâchement
-        // ira à un autre widget : on n'affiche plus l'état enfoncé, sans toucher à held.
-        if (held && isHovered() && isFocused()) {
+        // ira à un autre widget et held restera vrai : on exige donc aussi que le bouton de
+        // souris soit réellement enfoncé, sans quoi l'état enfoncé réapparaîtrait au retour
+        // du focus.
+        if (held && isHovered() && isFocused() && GaldurInput.isLeftMouseDown()) {
             return State.PRESSED;
         }
         return isHovered() || isKeyboardFocused() ? State.HOVERED : State.NORMAL;
