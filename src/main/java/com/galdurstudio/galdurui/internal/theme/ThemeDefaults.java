@@ -1,42 +1,67 @@
 package com.galdurstudio.galdurui.internal.theme;
 
-import java.util.Collections;
-import java.util.LinkedHashMap;
+import com.galdurstudio.galdurui.GaldurUI;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.io.Reader;
+import java.nio.charset.StandardCharsets;
 import java.util.Map;
 
 /**
- * Valeurs de secours de la charte Galdur Studio.
+ * Valeurs par défaut du thème : le {@code theme.json} embarqué dans le jar de Galdur UI.
  *
- * <p>Ces valeurs sont utilisées tant que {@code theme.json} n'a pas été chargé, et servent
- * également de repli clé par clé lorsque le fichier est absent, illisible ou incomplet.
- * La bibliothèque doit toujours pouvoir dessiner, même sans thème valide.</p>
+ * <p>Ces valeurs sont utilisées tant que le gestionnaire de ressources n'a pas chargé le thème,
+ * et servent de repli clé par clé lorsque le {@code theme.json} des ressources (éventuellement
+ * remplacé par un pack) est absent, illisible ou incomplet. Elles sont lues directement dans le
+ * jar, avec {@link ThemeParser} : {@code theme.json} reste la seule source de la charte.</p>
+ *
+ * <p>Si même ce fichier est illisible, un repli minimal neutre (gris lisibles, espacements
+ * courants) est utilisé, avec un avertissement : la bibliothèque doit toujours pouvoir
+ * dessiner.</p>
  */
 public final class ThemeDefaults {
-    /** Couleurs par défaut, en ARGB opaque. L'ordre d'insertion est conservé pour les logs. */
-    public static final Map<String, Integer> COLORS;
+    /** Emplacement du thème dans le jar. */
+    private static final String EMBEDDED_THEME = "/assets/galdurui/theme.json";
+
+    /** Repli neutre, utilisé seulement si le thème embarqué est illisible. Pas la charte. */
+    private static final ThemeParser.Theme FALLBACK = new ThemeParser.Theme(
+            Map.of(
+                    "background", 0xFF202020,
+                    "surface", 0xFF303030,
+                    "text", 0xFFFFFFFF,
+                    "text_muted", 0xFFA0A0A0,
+                    "accent", 0xFF606060,
+                    "accent_hover", 0xFF707070,
+                    "accent_pressed", 0xFF505050,
+                    "ember", 0xFF808080),
+            Map.of(
+                    "panel_padding", 16,
+                    "gap", 8,
+                    "button_padding_x", 6,
+                    "button_min_width", 40,
+                    "button_height", 20));
+
+    private static final ThemeParser.Theme EMBEDDED = loadEmbedded();
+
+    /** Couleurs par défaut, en ARGB. Ordre du fichier conservé. */
+    public static final Map<String, Integer> COLORS = EMBEDDED.colors();
 
     /** Espacements et tailles par défaut, en pixels d'interface (section {@code "spacing"}). */
-    public static final Map<String, Integer> SPACING;
+    public static final Map<String, Integer> SPACING = EMBEDDED.spacing();
 
-    static {
-        Map<String, Integer> defaults = new LinkedHashMap<>();
-        defaults.put("background", 0xFF2A2420);
-        defaults.put("surface", 0xFF352E29);
-        defaults.put("text", 0xFFF8F3E8);
-        defaults.put("text_muted", 0xFFC9BEAD);
-        defaults.put("accent", 0xFFB8341F);
-        defaults.put("accent_hover", 0xFFD9573D);
-        defaults.put("accent_pressed", 0xFF952A18);
-        defaults.put("ember", 0xFFD98A1F);
-        COLORS = Collections.unmodifiableMap(defaults);
-
-        Map<String, Integer> spacing = new LinkedHashMap<>();
-        spacing.put("panel_padding", 16);
-        spacing.put("gap", 8);
-        spacing.put("button_padding_x", 6);
-        spacing.put("button_min_width", 40);
-        spacing.put("button_height", 20);
-        SPACING = Collections.unmodifiableMap(spacing);
+    private static ThemeParser.Theme loadEmbedded() {
+        InputStream stream = ThemeDefaults.class.getResourceAsStream(EMBEDDED_THEME);
+        if (stream == null) {
+            GaldurUI.LOGGER.warn("{} introuvable dans le jar : repli sur un thème neutre minimal.", EMBEDDED_THEME);
+            return FALLBACK;
+        }
+        try (Reader reader = new InputStreamReader(stream, StandardCharsets.UTF_8)) {
+            return ThemeParser.parse(reader, message -> GaldurUI.LOGGER.warn("Thème embarqué : {}", message));
+        } catch (IOException | RuntimeException exception) {
+            GaldurUI.LOGGER.warn("Lecture de {} impossible : repli sur un thème neutre minimal.", EMBEDDED_THEME, exception);
+            return FALLBACK;
+        }
     }
 
     private ThemeDefaults() {
