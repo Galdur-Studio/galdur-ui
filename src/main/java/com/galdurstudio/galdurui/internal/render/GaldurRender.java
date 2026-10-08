@@ -32,8 +32,12 @@ public final class GaldurRender {
      * hauteur) : les coins ne se chevauchent pas, mais ils sont rognés.</p>
      *
      * <p>Implémentation 1.21.1 : {@link GuiGraphics#setColor} (qui vide le tampon en attente
-     * puis règle la couleur du shader) et blending activé, comme {@code AbstractButton} ; la
-     * couleur est remise à blanc après le dessin pour ne pas teinter la suite.</p>
+     * puis règle la couleur du shader), puis le même état que {@code AbstractButton.renderWidget}
+     * (blending et test de profondeur activés) ; {@code blitSprite} sans couleur ne règle aucun
+     * de ces états lui-même. La fonction de mélange standard est rétablie, comme le fait
+     * {@code AbstractSliderButton}, car la transparence des coins et l'alpha de la teinte en
+     * dépendent. La couleur est remise à blanc après le dessin pour ne pas teinter la suite ;
+     * comme en vanilla, blending et profondeur restent activés.</p>
      *
      * @param graphics contexte de rendu fourni par l'écran
      * @param sprite   identifiant du sprite dans l'atlas d'interface
@@ -46,6 +50,8 @@ public final class GaldurRender {
     public static void drawNineSlice(GuiGraphics graphics, ResourceLocation sprite, int x, int y, int width, int height, int argb) {
         graphics.setColor(channel(argb, 16), channel(argb, 8), channel(argb, 0), channel(argb, 24));
         RenderSystem.enableBlend();
+        RenderSystem.defaultBlendFunc();
+        RenderSystem.enableDepthTest();
         graphics.blitSprite(sprite, x, y, width, height);
         graphics.setColor(1.0F, 1.0F, 1.0F, 1.0F);
     }
