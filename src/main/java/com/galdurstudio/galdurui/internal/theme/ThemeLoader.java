@@ -24,17 +24,20 @@ import net.neoforged.neoforge.client.event.RegisterClientReloadListenersEvent;
  * sans redémarrer le jeu. Comme le fichier vit dans {@code assets/}, un pack de ressources
  * peut le remplacer pour retoucher la charte.</p>
  *
- * <p>Format attendu : un objet plat de noms de couleurs vers des chaînes hexadécimales
+ * <p>Format attendu : un objet de noms de couleurs vers des chaînes hexadécimales
  * {@code "#RRGGBB"} ou {@code "#AARRGGBB"} (le {@code #} est optionnel, un entier JSON est
- * également accepté).</p>
+ * également accepté), plus une section {@code "spacing"} d'entiers en pixels d'interface.</p>
  *
  * <pre>{@code
- * { "background": "#2A2420", "accent": "#B8341F" }
+ * { "background": "#2A2420", "accent": "#B8341F", "spacing": { "gap": 8 } }
  * }</pre>
  */
 public final class ThemeLoader implements ResourceManagerReloadListener {
     /** Emplacement du thème, résolu en {@code assets/galdurui/theme.json}. */
     private static final ResourceLocation THEME = ResourceLocation.fromNamespaceAndPath(GaldurUI.MODID, "theme.json");
+
+    /** Nom de la section des espacements dans {@code theme.json}. */
+    private static final String SPACING = "spacing";
 
     /**
      * Enregistre le chargeur sur le gestionnaire de ressources client.
@@ -62,8 +65,10 @@ public final class ThemeLoader implements ResourceManagerReloadListener {
                 ThemeStore.resetToDefaults();
                 return;
             }
-            ThemeStore.apply(readColors(root.getAsJsonObject()));
-            GaldurUI.LOGGER.debug("Thème Galdur UI chargé ({} couleurs).", ThemeStore.all().size());
+            JsonObject json = root.getAsJsonObject();
+            ThemeStore.apply(readColors(json), readSpacing(json));
+            GaldurUI.LOGGER.debug("Thème Galdur UI chargé ({} couleurs, {} espacements).",
+                    ThemeStore.all().size(), ThemeStore.allSpacing().size());
         } catch (IOException | RuntimeException exception) {
             // Un thème cassé ne doit jamais empêcher le jeu de démarrer : on se rabat sur la charte.
             GaldurUI.LOGGER.warn("Lecture de theme.json impossible : utilisation des couleurs par défaut.", exception);
@@ -81,8 +86,8 @@ public final class ThemeLoader implements ResourceManagerReloadListener {
         Map<String, Integer> colors = new LinkedHashMap<>();
         for (Map.Entry<String, JsonElement> entry : json.entrySet()) {
             String key = entry.getKey();
-            // Clé réservée aux commentaires du fichier, pas une couleur.
-            if (key.startsWith("_")) {
+            // Clé réservée aux commentaires du fichier, ou section d'espacements : pas une couleur.
+            if (key.startsWith("_") || key.equals(SPACING)) {
                 continue;
             }
             try {
@@ -92,6 +97,36 @@ public final class ThemeLoader implements ResourceManagerReloadListener {
             }
         }
         return colors;
+    }
+
+    /**
+     * Lit la section {@code "spacing"} : des entiers en pixels d'interface.
+     *
+     * <p>Section absente : tous les espacements retombent sur la charte. Comme pour les
+     * couleurs, une entrée invalide est ignorée seule, avec un avertissement.</p>
+     */
+    private static Map<String, Integer> readSpacing(JsonObject json) {
+        Map<String, Integer> spacing = new LinkedHashMap<>();
+        if (!json.has(SPACING)) {
+            return spacing;
+        }
+        if (!json.get(SPACING).isJsonObject()) {
+            GaldurUI.LOGGER.warn("La section '{}' de theme.json n'est pas un objet : espacements par défaut.", SPACING);
+            return spacing;
+        }
+        for (Map.Entry<String, JsonElement> entry : json.getAsJsonObject(SPACING).entrySet()) {
+            String key = entry.getKey();
+            if (key.startsWith("_")) {
+                continue;
+            }
+            JsonElement value = entry.getValue();
+            if (value.isJsonPrimitive() && value.getAsJsonPrimitive().isNumber() && value.getAsInt() >= 0) {
+                spacing.put(key, value.getAsInt());
+            } else {
+                GaldurUI.LOGGER.warn("Espacement '{}' invalide dans theme.json ({}) : entrée ignorée.", key, value);
+            }
+        }
+        return spacing;
     }
 
     /** {@return la couleur ARGB décrite par {@code element}} */

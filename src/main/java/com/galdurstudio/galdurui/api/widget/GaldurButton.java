@@ -20,8 +20,11 @@ import net.minecraft.resources.ResourceLocation;
  * désactivé.</p>
  *
  * <pre>{@code
- * addRenderableWidget(new GaldurButton(x, y, 120, 20, Component.literal("Valider"), bouton -> valider()));
+ * layout.addChild(GaldurButton.of(Component.literal("Valider"), bouton -> valider()));
  * }</pre>
+ *
+ * <p>{@link #of(Component, OnPress)} dimensionne le bouton d'après son libellé et le thème ;
+ * le constructeur complet reste disponible pour une position et une taille imposées.</p>
  *
  * <p>Désactiver un bouton se fait par le champ {@code active} hérité d'{@link AbstractWidget} :
  * {@code bouton.active = false;}</p>
@@ -30,9 +33,6 @@ import net.minecraft.resources.ResourceLocation;
  * immédiatement ses couleurs à jour.</p>
  */
 public class GaldurButton extends AbstractWidget {
-    /** Marge horizontale minimale entre le bord du bouton et son libellé, en pixels. */
-    private static final int LABEL_PADDING = 6;
-
     /** Action déclenchée quand le bouton est activé. */
     @FunctionalInterface
     public interface OnPress {
@@ -70,6 +70,31 @@ public class GaldurButton extends AbstractWidget {
     }
 
     /**
+     * Crée un bouton dimensionné d'après son libellé, à placer dans un layout.
+     *
+     * <p>Largeur : celle du libellé plus {@code spacing.button_padding_x} de chaque côté, sans
+     * descendre sous {@code spacing.button_min_width}. Hauteur : {@code spacing.button_height}.
+     * La position est laissée à {@code (0, 0)} : c'est le layout qui la fixe.</p>
+     *
+     * <pre>{@code
+     * ligne.addChild(GaldurButton.of(Component.literal("Valider"), bouton -> valider()));
+     * }</pre>
+     *
+     * @param label   libellé affiché au centre
+     * @param onPress action déclenchée à l'activation
+     * @return le bouton créé
+     */
+    public static GaldurButton of(Component label, OnPress onPress) {
+        int width = Math.max(GaldurTheme.buttonMinWidth(), preferredWidth(label));
+        return new GaldurButton(0, 0, width, GaldurTheme.buttonHeight(), label, onPress);
+    }
+
+    /** {@return la largeur du libellé augmentée de la marge intérieure du thème, des deux côtés} */
+    private static int preferredWidth(Component label) {
+        return GaldurRender.textWidth(label) + 2 * GaldurTheme.buttonPaddingX();
+    }
+
+    /**
      * Remplace le jeu de sprites du bouton, par exemple pour qu'un mod utilise le sien.
      *
      * @param normal   sprite au repos
@@ -93,7 +118,7 @@ public class GaldurButton extends AbstractWidget {
      * <p>Pratique pour dimensionner un bouton d'après son texte plutôt qu'en dur.</p>
      */
     public int getPreferredWidth() {
-        return GaldurRender.textWidth(getMessage()) + 2 * LABEL_PADDING;
+        return preferredWidth(getMessage());
     }
 
     /** {@return le sprite correspondant à l'état courant du bouton} */

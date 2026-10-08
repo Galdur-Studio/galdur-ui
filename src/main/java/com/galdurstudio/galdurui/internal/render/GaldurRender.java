@@ -39,6 +39,23 @@ public final class GaldurRender {
     }
 
     /**
+     * Dessine une ligne de texte alignée à gauche.
+     *
+     * <p>Seul appel à {@link GuiGraphics#drawString} de la bibliothèque : les autres méthodes
+     * de texte passent par ici.</p>
+     *
+     * @param graphics contexte de rendu
+     * @param text     texte à dessiner
+     * @param x        abscisse du premier caractère
+     * @param y        ordonnée du haut de la ligne
+     * @param argb     couleur du texte, en ARGB empaqueté
+     * @param shadow   {@code true} pour dessiner l'ombre portée
+     */
+    public static void text(GuiGraphics graphics, Component text, int x, int y, int argb, boolean shadow) {
+        graphics.drawString(font(), text, x, y, argb, shadow);
+    }
+
+    /**
      * Dessine une ligne de texte avec ombre portée, alignée à gauche.
      *
      * @param graphics contexte de rendu
@@ -48,7 +65,7 @@ public final class GaldurRender {
      * @param argb     couleur du texte, en ARGB empaqueté
      */
     public static void drawText(GuiGraphics graphics, Component text, int x, int y, int argb) {
-        graphics.drawString(font(), text, x, y, argb);
+        text(graphics, text, x, y, argb, true);
     }
 
     /**
@@ -61,7 +78,7 @@ public final class GaldurRender {
      * @param argb     couleur du texte, en ARGB empaqueté
      */
     public static void drawCenteredText(GuiGraphics graphics, Component text, int centerX, int y, int argb) {
-        graphics.drawCenteredString(font(), text, centerX, y, argb);
+        text(graphics, text, centerX - textWidth(text) / 2, y, argb, true);
     }
 
     /**
@@ -73,6 +90,11 @@ public final class GaldurRender {
      */
     public static int textWidth(Component text) {
         return font().width(text);
+    }
+
+    /** {@return la hauteur d'une ligne de texte de la police courante, en pixels d'interface} */
+    public static int lineHeight() {
+        return font().lineHeight;
     }
 
     /** {@return la police d'interface courante} */

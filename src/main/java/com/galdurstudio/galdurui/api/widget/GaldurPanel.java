@@ -18,6 +18,10 @@ import net.minecraft.resources.ResourceLocation;
  * addRenderableOnly(fond);
  * }</pre>
  *
+ * <p>Pour entourer un layout, préférer
+ * {@link com.galdurstudio.galdurui.api.layout.GaldurPanelLayout}, qui dimensionne et place ce
+ * fond tout seul.</p>
+ *
  * <p>Les coins du sprite ne sont pas étirés : prévoir au moins 8 px de côté, sous peine de
  * les voir se chevaucher.</p>
  */

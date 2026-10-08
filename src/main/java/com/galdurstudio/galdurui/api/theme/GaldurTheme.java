@@ -3,7 +3,7 @@ package com.galdurstudio.galdurui.api.theme;
 import com.galdurstudio.galdurui.internal.theme.ThemeStore;
 
 /**
- * Accès aux couleurs du thème Galdur UI.
+ * Accès aux couleurs et aux espacements du thème Galdur UI.
  *
  * <p>Point d'entrée stable pour les mods qui utilisent la bibliothèque. Les couleurs sont
  * définies dans {@code assets/galdurui/theme.json} et rechargées avec les ressources du jeu
@@ -34,6 +34,19 @@ public final class GaldurTheme {
     public static final String ACCENT_PRESSED = "accent_pressed";
     /** Couleur chaude secondaire, pour les mises en avant (braise). */
     public static final String EMBER = "ember";
+
+    // Espacements (section "spacing" de theme.json), en pixels d'interface.
+
+    /** Marge intérieure d'un panneau, entre son bord et son contenu. */
+    public static final String PANEL_PADDING = "panel_padding";
+    /** Écart entre deux éléments voisins d'un layout. */
+    public static final String GAP = "gap";
+    /** Marge horizontale entre le bord d'un bouton et son libellé. */
+    public static final String BUTTON_PADDING_X = "button_padding_x";
+    /** Largeur minimale d'un bouton dimensionné d'après son texte. */
+    public static final String BUTTON_MIN_WIDTH = "button_min_width";
+    /** Hauteur par défaut d'un bouton. */
+    public static final String BUTTON_HEIGHT = "button_height";
 
     /**
      * {@return la couleur ARGB associée à {@code key}}
@@ -97,6 +110,44 @@ public final class GaldurTheme {
     /** {@return la couleur chaude secondaire, en ARGB} */
     public static int ember() {
         return color(EMBER);
+    }
+
+    /**
+     * {@return l'espacement associé à {@code key}, en pixels d'interface}
+     *
+     * <p>Lu dans la section {@code "spacing"} de {@code theme.json}. Comme les couleurs, il est
+     * rechargé avec les ressources (F3+T) : le relire à chaque {@code init()} plutôt que de le
+     * garder dans un {@code static final}. Une clé inconnue renvoie {@code 0}.</p>
+     *
+     * @param key nom de l'espacement ; voir les constantes de cette classe
+     */
+    public static int spacing(String key) {
+        return ThemeStore.spacing(key);
+    }
+
+    /** {@return la marge intérieure d'un panneau, en pixels} */
+    public static int panelPadding() {
+        return spacing(PANEL_PADDING);
+    }
+
+    /** {@return l'écart entre deux éléments voisins d'un layout, en pixels} */
+    public static int gap() {
+        return spacing(GAP);
+    }
+
+    /** {@return la marge horizontale entre le bord d'un bouton et son libellé, en pixels} */
+    public static int buttonPaddingX() {
+        return spacing(BUTTON_PADDING_X);
+    }
+
+    /** {@return la largeur minimale d'un bouton, en pixels} */
+    public static int buttonMinWidth() {
+        return spacing(BUTTON_MIN_WIDTH);
+    }
+
+    /** {@return la hauteur par défaut d'un bouton, en pixels} */
+    public static int buttonHeight() {
+        return spacing(BUTTON_HEIGHT);
     }
 
     private GaldurTheme() {

@@ -11,5 +11,14 @@
   "accent_hover": "#D9573D",
   "accent_pressed": "#952A18",
 
-  "ember": "#D98A1F"
+  "ember": "#D98A1F",
+
+  "spacing": {
+    "_comment": "Espacements et tailles, en pixels d'interface.",
+    "panel_padding": 16,
+    "gap": 8,
+    "button_padding_x": 6,
+    "button_min_width": 40,
+    "button_height": 20
+  }
 }
