@@ -17,11 +17,11 @@ public final class ThemeDefaults {
 
     static {
         Map<String, Integer> defaults = new LinkedHashMap<>();
-        defaults.put("background", 0xFF2A2420);     // charbon
+        defaults.put("background", 0xFF2A2420);
         defaults.put("surface", 0xFF352E29);
-        defaults.put("text", 0xFFF8F3E8);           // crème
+        defaults.put("text", 0xFFF8F3E8);
         defaults.put("text_muted", 0xFFC9BEAD);
-        defaults.put("accent", 0xFFB8341F);         // redstone
+        defaults.put("accent", 0xFFB8341F);
         defaults.put("accent_hover", 0xFFD9573D);
         defaults.put("accent_pressed", 0xFF952A18);
         defaults.put("ember", 0xFFD98A1F);
