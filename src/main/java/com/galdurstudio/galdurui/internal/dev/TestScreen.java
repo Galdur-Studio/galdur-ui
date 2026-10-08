@@ -1,8 +1,11 @@
 package com.galdurstudio.galdurui.internal.dev;
 
+import com.galdurstudio.galdurui.api.theme.GaldurTheme;
 import com.galdurstudio.galdurui.api.widget.GaldurButton;
 import com.galdurstudio.galdurui.api.widget.GaldurPanel;
 import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.components.StringWidget;
+import net.minecraft.client.gui.layouts.LayoutSettings;
 import net.minecraft.client.gui.layouts.LinearLayout;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.network.chat.Component;
@@ -36,10 +39,13 @@ public class TestScreen extends Screen {
     @Override
     protected void init() {
         LinearLayout layout = LinearLayout.vertical().spacing(8);
+        LayoutSettings layoutSettings = layout.defaultCellSetting();
         GaldurPanel panel = new GaldurPanel(0, 0, 0, 0);
+        StringWidget title = new StringWidget(getTitle(), font).setColor(GaldurTheme.text());
         // Ajouté en premier : les éléments suivants se dessineront par-dessus.
         addRenderableOnly(panel);
-
+        layoutSettings.alignHorizontallyCenter();
+        layout.addChild(title, settings -> settings.padding(PADDING));
         layout.addChild(new GaldurButton(0, 0, BUTTON_WIDTH, BUTTON_HEIGHT,
                 Component.literal("Cliquer"), button -> clicks++));
 
@@ -71,9 +77,9 @@ public class TestScreen extends Screen {
         // Dessine le fond d'écran, le panneau puis les boutons.
         super.render(guiGraphics, mouseX, mouseY, partialTick);
 
-//        GaldurRender.drawCenteredText(guiGraphics, getTitle(), panel.getCenterX(), titleY, GaldurTheme.text());
-//        GaldurRender.drawCenteredText(guiGraphics, Component.literal("Clics : " + clicks),
-//                panel.getCenterX(), counterY, GaldurTheme.textMuted());
+/*        GaldurRender.drawCenteredText(guiGraphics, getTitle(), panel.getCenterX(), titleY, GaldurTheme.text());
+        GaldurRender.drawCenteredText(guiGraphics, Component.literal("Clics : " + clicks),
+                panel.getCenterX(), counterY, GaldurTheme.textMuted());*/
     }
 
     @Override
