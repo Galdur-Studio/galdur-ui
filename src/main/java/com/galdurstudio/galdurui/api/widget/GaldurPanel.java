@@ -1,5 +1,6 @@
 package com.galdurstudio.galdurui.api.widget;
 
+import com.galdurstudio.galdurui.api.theme.GaldurTheme;
 import com.galdurstudio.galdurui.internal.render.GaldurRender;
 import com.galdurstudio.galdurui.internal.render.GaldurSprites;
 import net.minecraft.client.gui.GuiGraphics;
@@ -8,6 +9,9 @@ import net.minecraft.resources.ResourceLocation;
 
 /**
  * Panneau de fond aux couleurs de la charte, dessiné avec un sprite 9-slice.
+ *
+ * <p>Le sprite est en niveaux de gris et teinté au rendu avec la couleur {@code background}
+ * du thème, relue à chaque image.</p>
  *
  * <p>Élément purement décoratif : il ne reçoit ni clic ni focus, et sert de support aux
  * widgets posés dessus. Comme il implémente {@link Renderable}, on l'ajoute à un écran avec
@@ -52,6 +56,9 @@ public class GaldurPanel implements Renderable {
 
     /**
      * Remplace le sprite de fond, par exemple pour qu'un mod utilise le sien.
+     *
+     * <p>Le sprite est lui aussi teinté avec {@code background} : le fournir en niveaux de
+     * gris (le blanc prend exactement la couleur du thème).</p>
      *
      * @param sprite identifiant d'un sprite d'interface, idéalement découpé en 9-slice
      * @return ce panneau, pour chaîner les appels
@@ -117,7 +124,7 @@ public class GaldurPanel implements Renderable {
     @Override
     public void render(GuiGraphics guiGraphics, int mouseX, int mouseY, float partialTick) {
         if (visible) {
-            GaldurRender.drawNineSlice(guiGraphics, sprite, x, y, width, height);
+            GaldurRender.drawNineSlice(guiGraphics, sprite, x, y, width, height, GaldurTheme.background());
         }
     }
 }

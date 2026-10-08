@@ -107,6 +107,16 @@ public final class GaldurTheme {
         return color(ACCENT);
     }
 
+    /** {@return la couleur d'accentuation au survol, en ARGB} */
+    public static int accentHover() {
+        return color(ACCENT_HOVER);
+    }
+
+    /** {@return la couleur d'accentuation pendant l'appui, en ARGB} */
+    public static int accentPressed() {
+        return color(ACCENT_PRESSED);
+    }
+
     /** {@return la couleur chaude secondaire, en ARGB} */
     public static int ember() {
         return color(EMBER);

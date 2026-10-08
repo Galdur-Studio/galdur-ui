@@ -1,8 +1,9 @@
 // Génère les sprites 9-slice de Galdur UI.
 //
-// Les PNG du dépôt sont volontairement minuscules (16x16) et entièrement décrits par ce
-// programme : pour retoucher la charte, on modifie assets/galdurui/theme.json et on
-// régénère, plutôt que d'éditer les images à la main.
+// Les sprites sont en niveaux de gris : la couleur vient du thème et est appliquée au rendu
+// (GaldurRender.drawNineSlice multiplie chaque pixel par la teinte). Un pixel blanc prend
+// exactement la couleur du thème, un pixel gris une version assombrie. Modifier theme.json
+// suffit donc à recolorer l'interface, sans régénérer les images.
 //
 //     .\gradlew.bat generateSprites
 //
@@ -18,8 +19,6 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 import javax.imageio.ImageIO;
 
 public final class GenerateSprites {
@@ -27,7 +26,15 @@ public final class GenerateSprites {
     private static final int RADIUS = 4;    // rayon des coins arrondis, égal à la bordure 9-slice
     private static final int BORDER = 4;    // bordure 9-slice
 
-    private static final Path ASSETS = Paths.get("src", "main", "resources", "assets", "galdurui");
+    // Niveaux de gris, en fraction du blanc. La teinte ne pouvant qu'assombrir, l'arête
+    // éclairée est blanche et le remplissage un peu en dessous, pour garder le relief.
+    private static final double LIGHT = 1.0;          // arête éclairée
+    private static final double FILL = 0.9;           // remplissage
+    private static final double DARK = FILL * 0.75;   // arête dans l'ombre
+    private static final double OUTLINE = FILL * 0.45; // liseré sombre : détache le widget du fond
+
+    private static final Path OUT = Paths.get("src", "main", "resources", "assets", "galdurui",
+            "textures", "gui", "sprites");
 
     private static final String MCMETA = """
             {
@@ -43,44 +50,35 @@ public final class GenerateSprites {
             """.formatted(SIZE, SIZE, BORDER);
 
     /**
-     * Nom du sprite, clé de sa couleur de remplissage dans theme.json, relief inversé.
+     * Nom du sprite et relief inversé. La couleur de chaque sprite est choisie au rendu
+     * (voir GaldurPanel et GaldurButton).
      * « inset » inverse le relief : la lumière passe en bas, le widget paraît enfoncé.
      */
-    private record Sprite(String name, String themeKey, boolean inset) {}
+    private record Sprite(String name, boolean inset) {}
 
     private static final Sprite[] SPRITES = {
-            new Sprite("panel", "background", false),          // charbon
-            new Sprite("button", "accent", false),             // redstone
-            new Sprite("button_hover", "accent_hover", false),
-            new Sprite("button_pressed", "accent_pressed", true),
-            new Sprite("button_disabled", "surface", false),
+            new Sprite("panel", false),
+            new Sprite("button", false),
+            new Sprite("button_hover", false),
+            new Sprite("button_pressed", true),
+            new Sprite("button_disabled", false),
     };
 
     public static void main(String[] args) throws IOException {
-        String theme = Files.readString(ASSETS.resolve("theme.json"), StandardCharsets.UTF_8);
-        Path out = ASSETS.resolve(Paths.get("textures", "gui", "sprites"));
-        Files.createDirectories(out);
+        Files.createDirectories(OUT);
         for (Sprite sprite : SPRITES) {
-            Path png = out.resolve(sprite.name() + ".png");
-            ImageIO.write(build(themeColor(theme, sprite.themeKey()), sprite.inset()), "PNG", png.toFile());
+            Path png = OUT.resolve(sprite.name() + ".png");
+            ImageIO.write(build(sprite.inset()), "PNG", png.toFile());
             Files.writeString(png.resolveSibling(sprite.name() + ".png.mcmeta"), MCMETA, StandardCharsets.UTF_8);
             System.out.println("écrit " + png);
         }
     }
 
-    /** Lit la couleur {@code "key": "#RRGGBB"} de theme.json (format plat, pas besoin d'un parseur JSON). */
-    private static int themeColor(String theme, String key) {
-        Matcher matcher = Pattern.compile("\"" + Pattern.quote(key) + "\"\\s*:\\s*\"#([0-9A-Fa-f]{6})\"").matcher(theme);
-        if (!matcher.find()) {
-            throw new IllegalStateException("couleur \"" + key + "\" introuvable dans theme.json");
-        }
-        return Integer.parseInt(matcher.group(1), 16);
-    }
-
-    private static BufferedImage build(int fill, boolean inset) {
-        int outline = scale(fill, 0.45);  // liseré sombre : détache le widget du fond
-        int light = scale(fill, 1.22);    // arête éclairée
-        int dark = scale(fill, 0.75);     // arête dans l'ombre
+    private static BufferedImage build(boolean inset) {
+        int fill = gray(FILL);
+        int outline = gray(OUTLINE);
+        int light = gray(LIGHT);
+        int dark = gray(DARK);
         int top = inset ? dark : light;
         int bottom = inset ? light : dark;
 
@@ -119,16 +117,10 @@ public final class GenerateSprites {
         return Math.hypot(px - cx, py - cy);
     }
 
-    /** Éclaircit (facteur > 1) ou assombrit (facteur < 1) une couleur RGB, en restant dans [0, 255]. */
-    private static int scale(int rgb, double factor) {
-        int r = clamp((int) Math.round(((rgb >> 16) & 0xFF) * factor));
-        int g = clamp((int) Math.round(((rgb >> 8) & 0xFF) * factor));
-        int b = clamp((int) Math.round((rgb & 0xFF) * factor));
-        return (r << 16) | (g << 8) | b;
-    }
-
-    private static int clamp(int value) {
-        return Math.max(0, Math.min(255, value));
+    /** {@return le gris RGB d'intensité {@code level} (0 = noir, 1 = blanc)} */
+    private static int gray(double level) {
+        int v = Math.max(0, Math.min(255, (int) Math.round(level * 255)));
+        return (v << 16) | (v << 8) | v;
     }
 
     private GenerateSprites() {

@@ -1,5 +1,6 @@
 package com.galdurstudio.galdurui.internal.render;
 
+import com.mojang.blaze3d.systems.RenderSystem;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Font;
 import net.minecraft.client.gui.GuiGraphics;
@@ -20,8 +21,11 @@ public final class GaldurRender {
     /** Hauteur d'une ligne de texte, en pixels d'interface. */
     public static final int TEXT_HEIGHT = 9;
 
+    /** Teinte neutre : blanc opaque, le sprite garde ses propres couleurs. */
+    public static final int NO_TINT = 0xFFFFFFFF;
+
     /**
-     * Dessine un sprite 9-slice dans le rectangle donné.
+     * Dessine un sprite 9-slice dans le rectangle donné, sans teinte.
      *
      * <p>Le découpage vient du {@code .png.mcmeta} du sprite : les coins gardent leur taille,
      * les bords et le centre sont étirés. Le rectangle doit donc être au moins aussi grand que
@@ -35,7 +39,39 @@ public final class GaldurRender {
      * @param height   hauteur voulue, en pixels d'interface
      */
     public static void drawNineSlice(GuiGraphics graphics, ResourceLocation sprite, int x, int y, int width, int height) {
+        drawNineSlice(graphics, sprite, x, y, width, height, NO_TINT);
+    }
+
+    /**
+     * Dessine un sprite 9-slice teinté.
+     *
+     * <p>Chaque pixel du sprite est multiplié par {@code argb} : un pixel blanc prend exactement
+     * la couleur demandée, un pixel gris une version plus sombre. Les sprites de Galdur UI sont
+     * donc en niveaux de gris, et leur couleur vient du thème à chaque image. L'alpha de
+     * {@code argb} rend le sprite translucide.</p>
+     *
+     * <p>Implémentation 1.21.1 : {@link GuiGraphics#setColor} (qui vide le tampon en attente
+     * puis règle la couleur du shader) et blending activé, comme {@code AbstractButton} ; la
+     * couleur est remise à blanc après le dessin pour ne pas teinter la suite.</p>
+     *
+     * @param graphics contexte de rendu fourni par l'écran
+     * @param sprite   identifiant du sprite dans l'atlas d'interface
+     * @param x        abscisse du coin supérieur gauche
+     * @param y        ordonnée du coin supérieur gauche
+     * @param width    largeur voulue, en pixels d'interface
+     * @param height   hauteur voulue, en pixels d'interface
+     * @param argb     teinte, en ARGB empaqueté ({@code 0xFFFFFFFF} = aucune teinte)
+     */
+    public static void drawNineSlice(GuiGraphics graphics, ResourceLocation sprite, int x, int y, int width, int height, int argb) {
+        graphics.setColor(channel(argb, 16), channel(argb, 8), channel(argb, 0), channel(argb, 24));
+        RenderSystem.enableBlend();
         graphics.blitSprite(sprite, x, y, width, height);
+        graphics.setColor(1.0F, 1.0F, 1.0F, 1.0F);
+    }
+
+    /** {@return la composante de {@code argb} décalée de {@code shift} bits, entre 0 et 1} */
+    private static float channel(int argb, int shift) {
+        return ((argb >>> shift) & 0xFF) / 255.0F;
     }
 
     /**

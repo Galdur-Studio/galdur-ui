@@ -15,9 +15,10 @@ import net.minecraft.resources.ResourceLocation;
 /**
  * Bouton aux couleurs de la charte, avec libellé centré.
  *
- * <p>Quatre états, chacun avec son sprite 9-slice : au repos, survolé (ou ciblé au clavier),
- * appuyé, et désactivé. Le libellé passe en {@code text_muted} quand le bouton est
- * désactivé.</p>
+ * <p>Quatre états, chacun avec son sprite 9-slice en niveaux de gris, teinté au rendu par une
+ * couleur du thème : au repos ({@code accent}), survolé ou ciblé au clavier
+ * ({@code accent_hover}), appuyé ({@code accent_pressed}) et désactivé ({@code surface}). Le
+ * libellé passe en {@code text_muted} quand le bouton est désactivé.</p>
  *
  * <pre>{@code
  * layout.addChild(GaldurButton.of(Component.literal("Valider"), bouton -> valider()));
@@ -97,6 +98,9 @@ public class GaldurButton extends AbstractWidget {
     /**
      * Remplace le jeu de sprites du bouton, par exemple pour qu'un mod utilise le sien.
      *
+     * <p>Ces sprites sont teintés comme ceux d'origine (couleur du thème selon l'état) : les
+     * fournir en niveaux de gris, le blanc prenant exactement la couleur du thème.</p>
+     *
      * @param normal   sprite au repos
      * @param hovered  sprite au survol ou au focus clavier
      * @param pressed  sprite pendant l'appui
@@ -121,21 +125,45 @@ public class GaldurButton extends AbstractWidget {
         return preferredWidth(getMessage());
     }
 
-    /** {@return le sprite correspondant à l'état courant du bouton} */
-    private ResourceLocation currentSprite() {
+    /** États visuels du bouton, chacun avec son sprite et sa teinte. */
+    private enum State { NORMAL, HOVERED, PRESSED, DISABLED }
+
+    /** {@return l'état visuel courant du bouton} */
+    private State currentState() {
         if (!active) {
-            return spriteDisabled;
+            return State.DISABLED;
         }
         if (held && isHovered()) {
-            return spritePressed;
+            return State.PRESSED;
         }
         // Le focus clavier reprend l'apparence du survol : une seule cible visuelle à suivre.
-        return isHovered() || isFocused() ? spriteHovered : spriteNormal;
+        return isHovered() || isFocused() ? State.HOVERED : State.NORMAL;
+    }
+
+    /** {@return le sprite de l'état {@code state}} */
+    private ResourceLocation sprite(State state) {
+        return switch (state) {
+            case NORMAL -> spriteNormal;
+            case HOVERED -> spriteHovered;
+            case PRESSED -> spritePressed;
+            case DISABLED -> spriteDisabled;
+        };
+    }
+
+    /** {@return la teinte ARGB de l'état {@code state}, relue dans le thème} */
+    private static int tint(State state) {
+        return switch (state) {
+            case NORMAL -> GaldurTheme.accent();
+            case HOVERED -> GaldurTheme.accentHover();
+            case PRESSED -> GaldurTheme.accentPressed();
+            case DISABLED -> GaldurTheme.surface();
+        };
     }
 
     @Override
     protected void renderWidget(GuiGraphics guiGraphics, int mouseX, int mouseY, float partialTick) {
-        GaldurRender.drawNineSlice(guiGraphics, currentSprite(), getX(), getY(), getWidth(), getHeight());
+        State state = currentState();
+        GaldurRender.drawNineSlice(guiGraphics, sprite(state), getX(), getY(), getWidth(), getHeight(), tint(state));
 
         int labelColor = active ? GaldurTheme.text() : GaldurTheme.textMuted();
         // Centrage vertical de la ligne de texte dans la hauteur du bouton.

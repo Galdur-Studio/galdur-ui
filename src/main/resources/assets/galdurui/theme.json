@@ -1,5 +1,5 @@
 {
-  "_comment": "Charte Galdur Studio. Modifiable à chaud : F3+T recharge les ressources et donc ce fichier.",
+  "_comment": "Charte Galdur Studio. Toutes les valeurs sont relues à chaque rechargement des ressources (F3+T, quand aucun écran n'est ouvert) : les sprites sont en niveaux de gris et teintés au rendu avec ces couleurs. Les espacements s'appliquent à la prochaine construction de l'écran.",
 
   "background": "#2A2420",
   "surface": "#352E29",
