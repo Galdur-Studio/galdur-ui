@@ -55,7 +55,10 @@ public class GaldurButton extends AbstractWidget {
     private ResourceLocation spritePressed = GaldurSprites.BUTTON_PRESSED;
     private ResourceLocation spriteDisabled = GaldurSprites.BUTTON_DISABLED;
 
-    /** Vrai entre l'enfoncement et le relâchement du bouton de souris sur ce widget. */
+    /**
+     * Vrai entre l'enfoncement et le relâchement du bouton de souris sur ce widget. Repasse à
+     * faux au relâchement ({@link #onRelease}) ou à la perte du focus ({@link #setFocused}).
+     */
     private boolean held;
 
     /**
@@ -139,8 +142,29 @@ public class GaldurButton extends AbstractWidget {
         if (held && isHovered()) {
             return State.PRESSED;
         }
-        // Le focus clavier reprend l'apparence du survol : une seule cible visuelle à suivre.
-        return isHovered() || isFocused() ? State.HOVERED : State.NORMAL;
+        return isHovered() || isKeyboardFocused() ? State.HOVERED : State.NORMAL;
+    }
+
+    /**
+     * {@return {@code true} si le bouton a le focus et que la dernière entrée vient du clavier}
+     *
+     * <p>Un clic souris donne aussi le focus au bouton. Sans ce filtre, il garderait
+     * l'apparence du survol une fois le curseur parti. Minecraft mémorise le type de la dernière
+     * entrée : Tab ou les flèches le passent en clavier, tout appui ou relâchement de bouton de
+     * souris le repasse en souris.</p>
+     */
+    private boolean isKeyboardFocused() {
+        return isFocused() && Minecraft.getInstance().getLastInputType().isKeyboard();
+    }
+
+    @Override
+    public void setFocused(boolean focused) {
+        super.setFocused(focused);
+        // Le relâchement de la souris n'est transmis qu'au widget qui a le focus : si le focus
+        // part ailleurs pendant l'appui (Tab bouton maintenu), ce bouton ne le verrait jamais.
+        if (!focused) {
+            held = false;
+        }
     }
 
     /** {@return le sprite de l'état {@code state}} */
