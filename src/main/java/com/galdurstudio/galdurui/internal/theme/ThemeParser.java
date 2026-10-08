@@ -31,7 +31,6 @@ import java.util.function.Consumer;
  * mal écrite ne fait pas perdre tout le fichier.</p>
  */
 public final class ThemeParser {
-    /** Nom de la section des espacements. */
     public static final String SPACING = "spacing";
 
     /** Octet alpha à 100 %, ajouté aux couleurs données sans alpha. */

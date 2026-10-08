@@ -24,7 +24,7 @@ import javax.imageio.ImageIO;
 public final class GenerateSprites {
     private static final int SIZE = 16;     // côté du sprite, en pixels
     private static final int RADIUS = 4;    // rayon des coins arrondis, égal à la bordure 9-slice
-    private static final int BORDER = 4;    // bordure 9-slice
+    private static final int BORDER = 4;
 
     // Niveaux de gris, en fraction du blanc. La teinte ne pouvant qu'assombrir, l'arête
     // éclairée est blanche et le remplissage un peu en dessous, pour garder le relief.

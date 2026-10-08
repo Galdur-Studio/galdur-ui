@@ -107,7 +107,6 @@ public final class GaldurRender {
         return font().lineHeight;
     }
 
-    /** {@return la police d'interface courante} */
     private static Font font() {
         return Minecraft.getInstance().font;
     }

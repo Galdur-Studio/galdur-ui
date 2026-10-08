@@ -145,7 +145,6 @@ public class GaldurButton extends AbstractWidget {
     /** États visuels du bouton, chacun avec son sprite et sa teinte. */
     private enum State { NORMAL, HOVERED, PRESSED, DISABLED }
 
-    /** {@return l'état visuel courant du bouton} */
     private State currentState() {
         if (!active) {
             return State.DISABLED;
@@ -171,7 +170,6 @@ public class GaldurButton extends AbstractWidget {
         return isFocused() && Minecraft.getInstance().getLastInputType().isKeyboard();
     }
 
-    /** {@return le sprite de l'état {@code state}} */
     private ResourceLocation sprite(State state) {
         return switch (state) {
             case NORMAL -> spriteNormal;
@@ -203,7 +201,6 @@ public class GaldurButton extends AbstractWidget {
         GaldurRender.drawNineSlice(guiGraphics, sprite(state), getX(), getY(), getWidth(), getHeight(), tint(state));
 
         int labelColor = active ? GaldurTheme.text() : GaldurTheme.textMuted();
-        // Centrage vertical de la ligne de texte dans la hauteur du bouton.
         int labelY = getY() + (getHeight() - GaldurRender.lineHeight()) / 2;
         GaldurRender.drawCenteredText(guiGraphics, getMessage(), getX() + getWidth() / 2, labelY, labelColor);
     }
@@ -250,12 +247,12 @@ public class GaldurButton extends AbstractWidget {
     /**
      * Réinitialise l'état d'appui.
      *
-     * <p>Minecraft ne prévient pas un widget quand il est retiré de l'écran : un écran qui garde
-     * ses boutons d'un {@link Screen#init()} à l'autre (en surchargeant
-     * {@code repositionElements()}), ou qui les réaffiche après avoir été fermé, doit appeler
-     * cette méthode pour oublier un appui dont il n'a pas vu le relâchement. Les écrans qui
-     * recréent leurs boutons dans {@code init()}, comme le fait {@code repositionElements()}
-     * par défaut, n'en ont pas besoin.</p>
+     * <p>Rarement nécessaire : un appui dont le relâchement n'a pas été vu (bouton retiré de
+     * l'écran, ou relâchement parti vers un autre widget) est oublié tout seul dès la première
+     * image où le bouton gauche de la souris n'est plus enfoncé. Cette méthode l'oublie tout de
+     * suite, par exemple pour un écran qui garde ses boutons d'un {@link Screen#init()} à
+     * l'autre (en surchargeant {@code repositionElements()}) et veut repartir d'un état propre
+     * avant la prochaine image.</p>
      */
     public void clearHeld() {
         held = false;
