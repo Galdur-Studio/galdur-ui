@@ -170,7 +170,7 @@ public class GaldurButton extends AbstractWidget {
 
         int labelColor = active ? GaldurTheme.text() : GaldurTheme.textMuted();
         // Centrage vertical de la ligne de texte dans la hauteur du bouton.
-        int labelY = getY() + (getHeight() - GaldurRender.TEXT_HEIGHT) / 2;
+        int labelY = getY() + (getHeight() - GaldurRender.lineHeight()) / 2;
         GaldurRender.drawCenteredText(guiGraphics, getMessage(), getX() + getWidth() / 2, labelY, labelColor);
     }
 

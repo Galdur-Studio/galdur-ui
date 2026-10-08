@@ -18,9 +18,6 @@ import net.minecraft.resources.ResourceLocation;
  * <p>Implémentation visant Minecraft 1.21.1.</p>
  */
 public final class GaldurRender {
-    /** Hauteur d'une ligne de texte, en pixels d'interface. */
-    public static final int TEXT_HEIGHT = 9;
-
     /** Teinte neutre : blanc opaque, le sprite garde ses propres couleurs. */
     public static final int NO_TINT = 0xFFFFFFFF;
 
@@ -89,19 +86,6 @@ public final class GaldurRender {
      */
     public static void text(GuiGraphics graphics, Component text, int x, int y, int argb, boolean shadow) {
         graphics.drawString(font(), text, x, y, argb, shadow);
-    }
-
-    /**
-     * Dessine une ligne de texte avec ombre portée, alignée à gauche.
-     *
-     * @param graphics contexte de rendu
-     * @param text     texte à dessiner
-     * @param x        abscisse du premier caractère
-     * @param y        ordonnée du haut de la ligne
-     * @param argb     couleur du texte, en ARGB empaqueté
-     */
-    public static void drawText(GuiGraphics graphics, Component text, int x, int y, int argb) {
-        text(graphics, text, x, y, argb, true);
     }
 
     /**
