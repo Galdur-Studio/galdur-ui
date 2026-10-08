@@ -26,6 +26,11 @@ public final class GaldurRender {
      * donc en niveaux de gris, et leur couleur vient du thème à chaque image. L'alpha de
      * {@code argb} rend le sprite translucide.</p>
      *
+     * <p>Le découpage vient du {@code .png.mcmeta} du sprite : les coins gardent leur taille,
+     * les bords et le centre sont étirés. Si le rectangle est plus petit que deux fois la
+     * bordure, Minecraft 1.21.1 réduit la bordure à la moitié de la largeur (ou de la
+     * hauteur) : les coins ne se chevauchent pas, mais ils sont rognés.</p>
+     *
      * <p>Implémentation 1.21.1 : {@link GuiGraphics#setColor} (qui vide le tampon en attente
      * puis règle la couleur du shader) et blending activé, comme {@code AbstractButton} ; la
      * couleur est remise à blanc après le dessin pour ne pas teinter la suite.</p>

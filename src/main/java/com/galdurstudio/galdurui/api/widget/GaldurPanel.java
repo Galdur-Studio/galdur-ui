@@ -26,8 +26,9 @@ import net.minecraft.resources.ResourceLocation;
  * {@link com.galdurstudio.galdurui.api.layout.GaldurPanelLayout}, qui dimensionne et place ce
  * fond tout seul.</p>
  *
- * <p>Les coins du sprite ne sont pas étirés : prévoir au moins 8 px de côté, sous peine de
- * les voir se chevaucher.</p>
+ * <p>Les coins du sprite ne sont pas étirés. Sous deux fois la bordure de côté (8 px pour le
+ * sprite livré), Minecraft réduit la bordure à la moitié de la taille : les coins ne se
+ * chevauchent pas, mais ils sont rognés.</p>
  */
 public class GaldurPanel implements Renderable {
     private int x;

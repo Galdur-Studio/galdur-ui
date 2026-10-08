@@ -6,9 +6,13 @@ import com.galdurstudio.galdurui.internal.theme.ThemeStore;
  * Accès aux couleurs et aux espacements du thème Galdur UI.
  *
  * <p>Point d'entrée stable pour les mods qui utilisent la bibliothèque. Les couleurs sont
- * définies dans {@code assets/galdurui/theme.json} et rechargées avec les ressources du jeu
- * (F3+T) ; il ne faut donc <strong>pas</strong> mettre une couleur en cache dans un champ
+ * définies dans {@code assets/galdurui/theme.json} et rechargées avec les ressources du jeu ;
+ * il ne faut donc <strong>pas</strong> mettre une couleur en cache dans un champ
  * {@code static final}, mais la relire à chaque image.</p>
+ *
+ * <p>Recharger les ressources : F3+T, mais Minecraft l'ignore tant qu'un écran est ouvert. Dans
+ * ce cas, utiliser le bouton « Recharger le thème » de {@code /galdurui test} (environnement de
+ * développement), qui appelle {@code Minecraft.reloadResourcePacks()}.</p>
  *
  * <p>Les couleurs sont renvoyées en ARGB empaqueté ({@code 0xAARRGGBB}), le format attendu
  * par les méthodes de rendu de Minecraft.</p>
@@ -129,7 +133,7 @@ public final class GaldurTheme {
      * {@return l'espacement associé à {@code key}, en pixels d'interface}
      *
      * <p>Lu dans la section {@code "spacing"} de {@code theme.json}. Comme les couleurs, il est
-     * rechargé avec les ressources (F3+T) : le relire à chaque {@code init()} plutôt que de le
+     * rechargé avec les ressources : le relire à chaque {@code init()} plutôt que de le
      * garder dans un {@code static final}. Une clé inconnue renvoie {@code 0}.</p>
      *
      * @param key nom de l'espacement ; voir les constantes de cette classe

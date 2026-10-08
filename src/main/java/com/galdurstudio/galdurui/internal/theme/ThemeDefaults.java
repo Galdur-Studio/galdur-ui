@@ -1,6 +1,7 @@
 package com.galdurstudio.galdurui.internal.theme;
 
 import com.galdurstudio.galdurui.GaldurUI;
+import com.galdurstudio.galdurui.api.theme.GaldurTheme;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
@@ -27,20 +28,20 @@ public final class ThemeDefaults {
     /** Repli neutre, utilisé seulement si le thème embarqué est illisible. Pas la charte. */
     private static final ThemeParser.Theme FALLBACK = new ThemeParser.Theme(
             Map.of(
-                    "background", 0xFF202020,
-                    "surface", 0xFF303030,
-                    "text", 0xFFFFFFFF,
-                    "text_muted", 0xFFA0A0A0,
-                    "accent", 0xFF606060,
-                    "accent_hover", 0xFF707070,
-                    "accent_pressed", 0xFF505050,
-                    "ember", 0xFF808080),
+                    GaldurTheme.BACKGROUND, 0xFF202020,
+                    GaldurTheme.SURFACE, 0xFF303030,
+                    GaldurTheme.TEXT, 0xFFFFFFFF,
+                    GaldurTheme.TEXT_MUTED, 0xFFA0A0A0,
+                    GaldurTheme.ACCENT, 0xFF606060,
+                    GaldurTheme.ACCENT_HOVER, 0xFF707070,
+                    GaldurTheme.ACCENT_PRESSED, 0xFF505050,
+                    GaldurTheme.EMBER, 0xFF808080),
             Map.of(
-                    "panel_padding", 16,
-                    "gap", 8,
-                    "button_padding_x", 6,
-                    "button_min_width", 40,
-                    "button_height", 20));
+                    GaldurTheme.PANEL_PADDING, 16,
+                    GaldurTheme.GAP, 8,
+                    GaldurTheme.BUTTON_PADDING_X, 6,
+                    GaldurTheme.BUTTON_MIN_WIDTH, 40,
+                    GaldurTheme.BUTTON_HEIGHT, 20));
 
     private static final ThemeParser.Theme EMBEDDED = loadEmbedded();
 

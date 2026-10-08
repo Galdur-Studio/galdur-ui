@@ -199,10 +199,11 @@ sourceSets {
     }
 }
 
-// Régénère les sprites 9-slice à partir de theme.json. À lancer à la main, pas lié au build.
+// Régénère les sprites 9-slice en niveaux de gris (la couleur vient du thème, au rendu).
+// À lancer à la main, pas lié au build ; la CI vérifie que les PNG commités sont à jour.
 tasks.register('generateSprites', JavaExec) {
     group = 'galdur'
-    description = 'Génère les sprites 9-slice (PNG + .mcmeta) à partir de theme.json.'
+    description = 'Génère les sprites 9-slice en niveaux de gris (PNG + .mcmeta), teintés au rendu par le thème.'
     classpath = sourceSets.tools.runtimeClasspath
     mainClass = 'GenerateSprites'
     workingDir = projectDir

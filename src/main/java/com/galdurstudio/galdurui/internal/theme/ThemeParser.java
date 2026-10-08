@@ -13,7 +13,7 @@ import java.util.function.Consumer;
 /**
  * Lecture du format {@code theme.json}, sans dépendance à Minecraft.
  *
- * <p>Utilisé par {@link ThemeLoader} (thème des ressources, rechargé avec F3+T) et par
+ * <p>Utilisé par {@link ThemeLoader} (thème des ressources, relu à chaque rechargement) et par
  * {@link ThemeDefaults} (thème embarqué dans le jar, servant de valeurs par défaut). Ne dépend
  * que de Gson, ce qui permet de le tester sans démarrer le jeu.</p>
  *

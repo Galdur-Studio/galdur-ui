@@ -15,8 +15,9 @@ import net.neoforged.neoforge.client.event.RegisterClientReloadListenersEvent;
  * Charge {@code assets/galdurui/theme.json} et alimente {@link ThemeStore}.
  *
  * <p>Branché sur le gestionnaire de ressources client : le thème est donc relu à chaque
- * rechargement des ressources, y compris via F3+T, ce qui permet d'ajuster les couleurs
- * sans redémarrer le jeu. Comme le fichier vit dans {@code assets/}, un pack de ressources
+ * rechargement des ressources, ce qui permet d'ajuster les couleurs sans redémarrer le jeu :
+ * F3+T quand aucun écran n'est ouvert (Minecraft l'ignore sinon), ou le bouton « Recharger le
+ * thème » de {@code /galdurui test}. Comme le fichier vit dans {@code assets/}, un pack de ressources
  * peut le remplacer pour retoucher la charte.</p>
  *
  * <p>Le format est décrit et lu par {@link ThemeParser}. Les clés absentes ou invalides
