@@ -39,6 +39,20 @@ class ThemeParserTest {
     }
 
     @Test
+    void force_l_alpha_d_un_entier_sur_24_bits_avec_un_avertissement() {
+        assertEquals(0xFFFF0000, parse("{\"accent\": 16711680}").colors().get("accent"));
+        assertEquals(1, warnings.size());
+        assertTrue(warnings.get(0).contains("#FF0000"), () -> "conseil #RRGGBB absent : " + warnings);
+    }
+
+    @Test
+    void garde_tel_quel_un_entier_avec_alpha() {
+        // 0x80B8341F écrit en décimal non signé, comme dans un fichier JSON.
+        assertEquals(0x80B8341F, parse("{\"accent\": " + Integer.toUnsignedString(0x80B8341F) + "}").colors().get("accent"));
+        assertTrue(warnings.isEmpty(), () -> "avertissements inattendus : " + warnings);
+    }
+
+    @Test
     void ignore_les_cles_commencant_par_un_tiret_bas() {
         ThemeParser.Theme theme = parse("""
                 {

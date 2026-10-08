@@ -18,9 +18,10 @@ import java.util.function.Consumer;
  * que de Gson, ce qui permet de le tester sans démarrer le jeu.</p>
  *
  * <p>Format : un objet de noms de couleurs vers des chaînes hexadécimales {@code "#RRGGBB"}
- * (alpha forcé à 100 %) ou {@code "#AARRGGBB"} (le {@code #} est optionnel, un entier JSON est
- * également accepté), plus une section {@code "spacing"} d'entiers positifs ou nuls, en pixels
- * d'interface. Les clés qui commencent par {@code _} sont des commentaires.</p>
+ * (alpha forcé à 100 %) ou {@code "#AARRGGBB"} (le {@code #} est optionnel ; un entier JSON est
+ * également accepté, et lu comme {@code RRGGBB} opaque s'il tient sur 24 bits), plus une
+ * section {@code "spacing"} d'entiers positifs ou nuls, en pixels d'interface. Les clés qui
+ * commencent par {@code _} sont des commentaires.</p>
  *
  * <pre>{@code
  * { "background": "#2A2420", "accent": "#B8341F", "spacing": { "gap": 8 } }
@@ -32,6 +33,11 @@ import java.util.function.Consumer;
 public final class ThemeParser {
     /** Nom de la section des espacements. */
     public static final String SPACING = "spacing";
+
+    /** Octet alpha à 100 %, ajouté aux couleurs données sans alpha. */
+    private static final int OPAQUE = 0xFF000000;
+    /** Plus grande couleur sans octet alpha ({@code RRGGBB}). */
+    private static final int RGB_MASK = 0xFFFFFF;
 
     /**
      * Thème lu : couleurs en ARGB et espacements en pixels, dans l'ordre du fichier.
@@ -73,7 +79,7 @@ public final class ThemeParser {
                 continue;
             }
             try {
-                colors.put(key, parseColor(entry.getValue()));
+                colors.put(key, parseColor(key, entry.getValue(), warn));
             } catch (RuntimeException exception) {
                 warn.accept("Couleur '" + key + "' invalide dans theme.json (" + entry.getValue() + ") : entrée ignorée.");
             }
@@ -114,14 +120,26 @@ public final class ThemeParser {
         return spacing;
     }
 
-    /** {@return la couleur ARGB décrite par {@code element}} */
-    private static int parseColor(JsonElement element) {
+    /**
+     * {@return la couleur ARGB décrite par {@code element}}
+     *
+     * <p>Un entier qui tient sur 24 bits ({@code <= 0xFFFFFF}) n'a pas d'octet alpha : il est lu
+     * comme {@code RRGGBB} opaque, avec un avertissement, plutôt que de donner une couleur
+     * invisible. Un entier plus grand est pris tel quel ({@code AARRGGBB}).</p>
+     */
+    private static int parseColor(String key, JsonElement element, Consumer<String> warn) {
         if (!element.isJsonPrimitive()) {
             throw new IllegalArgumentException("couleur attendue sous forme de chaîne ou d'entier");
         }
         JsonPrimitive primitive = element.getAsJsonPrimitive();
         if (primitive.isNumber()) {
-            return primitive.getAsInt();
+            int value = primitive.getAsInt();
+            if (value >= 0 && value <= RGB_MASK) {
+                warn.accept("Couleur '" + key + "' donnée en entier sans alpha dans theme.json (" + element
+                        + ") : alpha forcé à FF. Écrire plutôt \"#" + String.format("%06X", value) + "\".");
+                return OPAQUE | value;
+            }
+            return value;
         }
 
         String raw = primitive.getAsString().trim();
@@ -130,7 +148,7 @@ public final class ThemeParser {
         }
         // 6 chiffres : on complète l'alpha à 100 %. 8 chiffres : alpha explicite (AARRGGBB).
         return switch (raw.length()) {
-            case 6 -> 0xFF000000 | Integer.parseInt(raw, 16);
+            case 6 -> OPAQUE | Integer.parseInt(raw, 16);
             case 8 -> (int) Long.parseLong(raw, 16);
             default -> throw new IllegalArgumentException("longueur hexadécimale inattendue : " + raw.length());
         };

@@ -26,6 +26,10 @@ tant qu'un écran est ouvert : dans `/galdurui test`, utiliser le bouton « Rech
 Le même fichier, lu dans le jar, sert de valeurs par défaut quand un pack de ressources fournit
 un `theme.json` incomplet.
 
+Couleurs : écrire `"#RRGGBB"` (opaque) ou `"#AARRGGBB"`. Un entier JSON est accepté ; s'il tient
+sur 24 bits (≤ `0xFFFFFF`, donc sans octet alpha), il est lu comme `RRGGBB` opaque, avec un
+avertissement dans le journal, plutôt que de donner une couleur invisible.
+
 ## Sprites
 
 Les sprites 9-slice (`panel`, `button`, `button_hover`, `button_pressed`, `button_disabled`,
