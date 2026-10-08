@@ -18,27 +18,6 @@ import net.minecraft.resources.ResourceLocation;
  * <p>Implémentation visant Minecraft 1.21.1.</p>
  */
 public final class GaldurRender {
-    /** Teinte neutre : blanc opaque, le sprite garde ses propres couleurs. */
-    public static final int NO_TINT = 0xFFFFFFFF;
-
-    /**
-     * Dessine un sprite 9-slice dans le rectangle donné, sans teinte.
-     *
-     * <p>Le découpage vient du {@code .png.mcmeta} du sprite : les coins gardent leur taille,
-     * les bords et le centre sont étirés. Le rectangle doit donc être au moins aussi grand que
-     * deux fois la bordure, sinon les coins se chevauchent.</p>
-     *
-     * @param graphics contexte de rendu fourni par l'écran
-     * @param sprite   identifiant du sprite dans l'atlas d'interface
-     * @param x        abscisse du coin supérieur gauche
-     * @param y        ordonnée du coin supérieur gauche
-     * @param width    largeur voulue, en pixels d'interface
-     * @param height   hauteur voulue, en pixels d'interface
-     */
-    public static void drawNineSlice(GuiGraphics graphics, ResourceLocation sprite, int x, int y, int width, int height) {
-        drawNineSlice(graphics, sprite, x, y, width, height, NO_TINT);
-    }
-
     /**
      * Dessine un sprite 9-slice teinté.
      *
