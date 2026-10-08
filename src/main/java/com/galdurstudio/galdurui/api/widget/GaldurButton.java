@@ -57,7 +57,12 @@ public class GaldurButton extends AbstractWidget {
 
     /**
      * Vrai entre l'enfoncement et le relâchement du bouton de souris sur ce widget. Repasse à
-     * faux au relâchement ({@link #onRelease}) ou à la perte du focus ({@link #setFocused}).
+     * faux uniquement dans {@link #onRelease}, que l'action soit déclenchée ou non, et par
+     * {@link #clearHeld()} quand l'écran retire le bouton.
+     *
+     * <p>Surtout pas dans {@code setFocused(false)} : à chaque clic, Minecraft retire puis
+     * redonne le focus au bouton déjà ciblé, entre l'appui et le relâchement
+     * ({@code AbstractContainerEventHandler.setFocused}), ce qui effacerait l'appui.</p>
      */
     private boolean held;
 
@@ -139,7 +144,10 @@ public class GaldurButton extends AbstractWidget {
         if (!active) {
             return State.DISABLED;
         }
-        if (held && isHovered()) {
+        // Un appui en cours a toujours le focus : Minecraft le donne au bouton juste après
+        // onClick. Si le focus est parti pendant l'appui (Tab bouton maintenu), le relâchement
+        // ira à un autre widget : on n'affiche plus l'état enfoncé, sans toucher à held.
+        if (held && isHovered() && isFocused()) {
             return State.PRESSED;
         }
         return isHovered() || isKeyboardFocused() ? State.HOVERED : State.NORMAL;
@@ -155,16 +163,6 @@ public class GaldurButton extends AbstractWidget {
      */
     private boolean isKeyboardFocused() {
         return isFocused() && Minecraft.getInstance().getLastInputType().isKeyboard();
-    }
-
-    @Override
-    public void setFocused(boolean focused) {
-        super.setFocused(focused);
-        // Le relâchement de la souris n'est transmis qu'au widget qui a le focus : si le focus
-        // part ailleurs pendant l'appui (Tab bouton maintenu), ce bouton ne le verrait jamais.
-        if (!focused) {
-            held = false;
-        }
     }
 
     /** {@return le sprite de l'état {@code state}} */
@@ -240,8 +238,12 @@ public class GaldurButton extends AbstractWidget {
     /**
      * Réinitialise l'état d'appui.
      *
-     * <p>À appeler si un écran reprend la main sans que le relâchement ait été vu, par exemple
-     * après un {@link Screen#init()} déclenché par un redimensionnement de la fenêtre.</p>
+     * <p>Minecraft ne prévient pas un widget quand il est retiré de l'écran : un écran qui garde
+     * ses boutons d'un {@link Screen#init()} à l'autre (en surchargeant
+     * {@code repositionElements()}), ou qui les réaffiche après avoir été fermé, doit appeler
+     * cette méthode pour oublier un appui dont il n'a pas vu le relâchement. Les écrans qui
+     * recréent leurs boutons dans {@code init()}, comme le fait {@code repositionElements()}
+     * par défaut, n'en ont pas besoin.</p>
      */
     public void clearHeld() {
         held = false;
