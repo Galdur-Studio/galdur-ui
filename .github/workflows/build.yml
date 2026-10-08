@@ -31,10 +31,17 @@ jobs:
         run: ./gradlew build --no-daemon
 
       # Les PNG commités doivent être exactement ceux que produit tools/GenerateSprites.java.
+      # git status (et non git diff) voit aussi les fichiers nouveaux, non suivis.
       - name: Check sprites are up to date
         run: |
           ./gradlew generateSprites --no-daemon
-          git diff --exit-code
+          changes=$(git status --porcelain -- src/main/resources/assets/galdurui/textures)
+          if [ -n "$changes" ]; then
+            echo "Sprites non à jour (relancer ./gradlew generateSprites et commiter) :"
+            echo "$changes"
+            git diff --stat -- src/main/resources/assets/galdurui/textures
+            exit 1
+          fi
 
       - name: Upload jar
         uses: actions/upload-artifact@v7
