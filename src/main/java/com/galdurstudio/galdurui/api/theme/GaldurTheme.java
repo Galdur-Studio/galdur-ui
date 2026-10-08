@@ -51,8 +51,11 @@ public final class GaldurTheme {
     /**
      * {@return la couleur ARGB associée à {@code key}}
      *
-     * <p>Une clé inconnue renvoie un magenta vif plutôt que de lever une exception : le défaut
-     * saute aux yeux à l'écran sans interrompre le rendu.</p>
+     * <p>Une clé inconnue renvoie le magenta de débogage
+     * ({@link com.galdurstudio.galdurui.internal.theme.ThemeStore#MISSING_COLOR MISSING_COLOR},
+     * {@code 0xFFFF00FF}) plutôt que de lever une exception : le défaut saute aux yeux à l'écran
+     * sans interrompre le rendu. Un avertissement est écrit une fois par clé, jusqu'au prochain
+     * rechargement des ressources.</p>
      *
      * @param key nom de la couleur ; voir les constantes de cette classe
      */

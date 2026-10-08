@@ -15,6 +15,9 @@ import java.util.Map;
  * rendu ne puisse pas observer un thème à moitié chargé.</p>
  */
 public final class ThemeStore {
+    /** Couleur de débogage (magenta) renvoyée pour une couleur inconnue. */
+    public static final int MISSING_COLOR = 0xFFFF00FF;
+
     /** Instantané immuable du thème : couleurs ARGB et espacements en pixels. */
     private record Snapshot(Map<String, Integer> colors, Map<String, Integer> spacing) {}
 
@@ -22,6 +25,10 @@ public final class ThemeStore {
 
     /** Thème courant. Remplacé en bloc par {@link #apply(Map, Map)}. */
     private static volatile Snapshot current = DEFAULTS;
+
+    /** Clés inconnues déjà signalées : un avertissement par clé, pas un par image. */
+    private static final WarnOnce UNKNOWN_COLORS = new WarnOnce(GaldurUI.LOGGER::warn);
+    private static final WarnOnce UNKNOWN_SPACINGS = new WarnOnce(GaldurUI.LOGGER::warn);
 
     /**
      * Remplace le thème courant.
@@ -34,6 +41,7 @@ public final class ThemeStore {
      */
     public static void apply(Map<String, Integer> colors, Map<String, Integer> spacing) {
         current = new Snapshot(merge(ThemeDefaults.COLORS, colors), merge(ThemeDefaults.SPACING, spacing));
+        forgetWarnings();
     }
 
     private static Map<String, Integer> merge(Map<String, Integer> defaults, Map<String, Integer> values) {
@@ -45,22 +53,30 @@ public final class ThemeStore {
     /** Revient à la charte par défaut, par exemple quand {@code theme.json} est illisible. */
     public static void resetToDefaults() {
         current = DEFAULTS;
+        forgetWarnings();
+    }
+
+    /** Après un rechargement, une clé toujours inconnue doit pouvoir être signalée de nouveau. */
+    private static void forgetWarnings() {
+        UNKNOWN_COLORS.reset();
+        UNKNOWN_SPACINGS.reset();
     }
 
     /**
      * {@return la couleur ARGB associée à {@code key}}
      *
-     * <p>Une clé inconnue ne lève pas d'exception : on renvoie le magenta
-     * {@code 0xFFFF00FF}, visible immédiatement à l'écran, et on avertit dans le journal.
-     * Un écran qui s'affiche en couleurs fausses est plus facile à corriger qu'un plantage.</p>
+     * <p>Une clé inconnue ne lève pas d'exception : on renvoie {@link #MISSING_COLOR}, visible
+     * immédiatement à l'écran, et on avertit dans le journal, une fois par clé jusqu'au
+     * prochain rechargement. Un écran qui s'affiche en couleurs fausses est plus facile à
+     * corriger qu'un plantage.</p>
      *
      * @param key nom de la couleur, par exemple {@code "accent"}
      */
     public static int color(String key) {
         Integer value = current.colors().get(key);
         if (value == null) {
-            GaldurUI.LOGGER.warn("Couleur de thème inconnue : '{}'. Utilisation du magenta de débogage.", key);
-            return 0xFFFF00FF;
+            UNKNOWN_COLORS.warn(key, "Couleur de thème inconnue : '" + key + "'. Utilisation du magenta de débogage.");
+            return MISSING_COLOR;
         }
         return value;
     }
@@ -84,14 +100,15 @@ public final class ThemeStore {
     /**
      * {@return l'espacement associé à {@code key}, en pixels d'interface}
      *
-     * <p>Une clé inconnue renvoie {@code 0} avec un avertissement, sans interrompre le rendu.</p>
+     * <p>Une clé inconnue renvoie {@code 0} avec un avertissement (une fois par clé jusqu'au
+     * prochain rechargement), sans interrompre le rendu.</p>
      *
      * @param key nom de l'espacement, par exemple {@code "gap"}
      */
     public static int spacing(String key) {
         Integer value = current.spacing().get(key);
         if (value == null) {
-            GaldurUI.LOGGER.warn("Espacement de thème inconnu : '{}'. Utilisation de 0.", key);
+            UNKNOWN_SPACINGS.warn(key, "Espacement de thème inconnu : '" + key + "'. Utilisation de 0.");
             return 0;
         }
         return value;
