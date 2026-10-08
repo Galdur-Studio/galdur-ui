@@ -1,12 +1,12 @@
 package com.galdurstudio.galdurui.internal.dev;
 
-import com.galdurstudio.galdurui.api.theme.GaldurTheme;
 import com.galdurstudio.galdurui.api.widget.GaldurButton;
 import com.galdurstudio.galdurui.api.widget.GaldurPanel;
-import com.galdurstudio.galdurui.internal.render.GaldurRender;
 import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.layouts.LinearLayout;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.network.chat.Component;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * Écran de démonstration des widgets de Galdur UI.
@@ -20,17 +20,14 @@ import net.minecraft.network.chat.Component;
  * d'interface choisie.</p>
  */
 public class TestScreen extends Screen {
-    private static final int PANEL_WIDTH = 220;
-    private static final int PANEL_HEIGHT = 140;
     private static final int BUTTON_WIDTH = 120;
     private static final int BUTTON_HEIGHT = 20;
+    private static final int PADDING = 16;
 
-    /** Nombre de clics sur le bouton actif ; conservé d'un {@link #init()} à l'autre. */
+    /**
+     * Nombre de clics sur le bouton actif ; conservé d'un {@link #init()} à l'autre.
+     */
     private int clicks;
-
-    private GaldurPanel panel;
-    private int titleY;
-    private int counterY;
 
     public TestScreen() {
         super(Component.literal("Galdur UI — écran de test"));
@@ -38,34 +35,45 @@ public class TestScreen extends Screen {
 
     @Override
     protected void init() {
-        int panelX = (width - PANEL_WIDTH) / 2;
-        int panelY = (height - PANEL_HEIGHT) / 2;
-        panel = new GaldurPanel(panelX, panelY, PANEL_WIDTH, PANEL_HEIGHT);
+        LinearLayout layout = LinearLayout.vertical().spacing(8);
+        GaldurPanel panel = new GaldurPanel(0, 0, 0, 0);
         // Ajouté en premier : les éléments suivants se dessineront par-dessus.
         addRenderableOnly(panel);
 
-        int buttonX = panel.getCenterX() - BUTTON_WIDTH / 2;
-        titleY = panelY + 16;
-
-        addRenderableWidget(new GaldurButton(buttonX, panelY + 44, BUTTON_WIDTH, BUTTON_HEIGHT,
+        layout.addChild(new GaldurButton(0, 0, BUTTON_WIDTH, BUTTON_HEIGHT,
                 Component.literal("Cliquer"), button -> clicks++));
 
-        counterY = panelY + 76;
+        layout.addChild(new GaldurButton(0, 0, BUTTON_WIDTH, BUTTON_HEIGHT, Component.literal("Bouton de test"), button -> {
+        }));
 
-        GaldurButton disabled = new GaldurButton(buttonX, panelY + 98, BUTTON_WIDTH, BUTTON_HEIGHT,
-                Component.literal("Indisponible"), button -> {});
+        layout.addChild(new GaldurButton(0, 0, BUTTON_WIDTH, BUTTON_HEIGHT, Component.literal("Bouton de test2"), button -> {
+        }));
+
+
+        GaldurButton disabled = new GaldurButton(0, 0, BUTTON_WIDTH, BUTTON_HEIGHT,
+                Component.literal("Indisponible"), button -> {
+        });
         disabled.active = false;
-        addRenderableWidget(disabled);
+        layout.addChild(disabled);
+        layout.arrangeElements();
+        int panelW = layout.getWidth() + 2 * PADDING;
+        int panelH = layout.getHeight() + 2 * PADDING;
+        int panelX = (width - panelW) / 2;
+        int panelY = (height - panelH) / 2;
+        panel.setBounds(panelX, panelY, panelW, panelH);
+        layout.setX(panelX + PADDING);
+        layout.setY(panelY + PADDING);
+        layout.visitWidgets(this::addRenderableWidget);
     }
 
     @Override
-    public void render(GuiGraphics guiGraphics, int mouseX, int mouseY, float partialTick) {
+    public void render(@NotNull GuiGraphics guiGraphics, int mouseX, int mouseY, float partialTick) {
         // Dessine le fond d'écran, le panneau puis les boutons.
         super.render(guiGraphics, mouseX, mouseY, partialTick);
 
-        GaldurRender.drawCenteredText(guiGraphics, getTitle(), panel.getCenterX(), titleY, GaldurTheme.text());
-        GaldurRender.drawCenteredText(guiGraphics, Component.literal("Clics : " + clicks),
-                panel.getCenterX(), counterY, GaldurTheme.textMuted());
+//        GaldurRender.drawCenteredText(guiGraphics, getTitle(), panel.getCenterX(), titleY, GaldurTheme.text());
+//        GaldurRender.drawCenteredText(guiGraphics, Component.literal("Clics : " + clicks),
+//                panel.getCenterX(), counterY, GaldurTheme.textMuted());
     }
 
     @Override
