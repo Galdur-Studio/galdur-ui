@@ -23,8 +23,9 @@ import net.minecraft.network.chat.Component;
  * compteur.setText(Component.literal("Clics : 1"));  // met aussi la largeur à jour
  * }</pre>
  *
- * <p>La couleur est relue dans le thème à chaque image : un rechargement des ressources
- * (F3+T) la met immédiatement à jour.</p>
+ * <p>La couleur est relue dans le thème à chaque image : elle suit immédiatement un
+ * rechargement des ressources (F3+T n'est pris en compte par Minecraft que si aucun écran
+ * n'est ouvert).</p>
  */
 public class GaldurLabel extends AbstractWidget {
     /** Couleur ARGB, relue à chaque image pour suivre le thème. */

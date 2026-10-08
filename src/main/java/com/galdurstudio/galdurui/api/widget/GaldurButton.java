@@ -30,8 +30,11 @@ import net.minecraft.resources.ResourceLocation;
  * <p>Désactiver un bouton se fait par le champ {@code active} hérité d'{@link AbstractWidget} :
  * {@code bouton.active = false;}</p>
  *
- * <p>Comme le bouton lit le thème à chaque image, un rechargement des ressources (F3+T) met
- * immédiatement ses couleurs à jour.</p>
+ * <p>Les couleurs (teintes et libellé) sont relues dans le thème à chaque image : elles suivent
+ * immédiatement un rechargement des ressources. Attention, Minecraft ignore F3+T tant qu'un
+ * écran est ouvert ; le rechargement doit alors venir d'ailleurs, par exemple de
+ * {@code Minecraft.reloadResourcePacks()}. La taille, elle, est fixée à la construction
+ * ({@link #of(Component, OnPress)}) et ne suit le thème qu'à la reconstruction de l'écran.</p>
  */
 public class GaldurButton extends AbstractWidget {
     /** Action déclenchée quand le bouton est activé. */

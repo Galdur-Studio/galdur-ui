@@ -4,6 +4,7 @@ import com.galdurstudio.galdurui.api.layout.GaldurPanelLayout;
 import com.galdurstudio.galdurui.api.theme.GaldurTheme;
 import com.galdurstudio.galdurui.api.widget.GaldurButton;
 import com.galdurstudio.galdurui.api.widget.GaldurLabel;
+import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.layouts.FrameLayout;
 import net.minecraft.client.gui.layouts.LinearLayout;
 import net.minecraft.client.gui.screens.Screen;
@@ -18,8 +19,14 @@ import net.minecraft.network.chat.Component;
  *
  * <p>Aucune coordonnée n'est calculée ici : les layouts vanilla placent les widgets, le
  * {@link GaldurPanelLayout} les entoure, et l'ensemble est centré sur le rectangle de l'écran.
- * Un redimensionnement, un changement d'échelle d'interface ou un rechargement des ressources
- * (F3+T) repasse par {@link #init()} via {@code repositionElements()}, qui relit le thème.</p>
+ * Un redimensionnement de la fenêtre repasse par {@link #init()} via
+ * {@code repositionElements()}, qui relit le thème ; le nombre de clics est conservé.</p>
+ *
+ * <p>Minecraft ignore F3+T tant qu'un écran est ouvert. Le bouton « Recharger le thème »
+ * appelle donc {@code Minecraft.reloadResourcePacks()} lui-même : à la fin du rechargement,
+ * l'écran de chargement rappelle {@code init(...)} sur ce même écran, qui se reconstruit avec
+ * le nouveau thème. Changer l'échelle d'interface se fait depuis les options, donc écran de
+ * test fermé : le rouvrir crée un nouvel écran, compteur remis à zéro.</p>
  */
 public class TestScreen extends Screen {
     /** Nombre de clics sur le bouton actif ; conservé d'un {@link #init()} à l'autre. */
@@ -54,6 +61,10 @@ public class TestScreen extends Screen {
         }));
         demo.addChild(GaldurButton.of(Component.literal("Un libellé nettement plus long"), button -> {
         }));
+
+        // F3+T est ignoré tant qu'un écran est ouvert : ce bouton relance le même rechargement.
+        column.addChild(GaldurButton.of(Component.literal("Recharger le thème"),
+                button -> Minecraft.getInstance().reloadResourcePacks()));
 
         panel = new GaldurPanelLayout(column);
         // Ajouté en premier : les widgets, ajoutés ensuite, se dessinent par-dessus le fond.
