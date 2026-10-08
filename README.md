@@ -86,6 +86,10 @@ passe par l'API, moins il a de code à reprendre à chaque version de Minecraft.
   `GaldurButton.withSprites`, `getPreferredWidth`, `isHeld`, `clearHeld`,
   `GaldurLabel.getText`, `GaldurPanelLayout.withSprite`, `getChild`, etc. ne sont pas appelés
   dans ce dépôt mais sont gardés volontairement : ils font partie de l'API offerte à nos mods.
+- **Cinq sprites distincts, même si quatre sont identiques** : `panel`, `button`,
+  `button_hover` et `button_disabled` ont aujourd'hui les mêmes pixels (seule la teinte du thème
+  les distingue). Ils restent séparés pour qu'un pack de ressources puisse redessiner chaque état
+  indépendamment.
 
 ## Licence
 
