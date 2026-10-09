@@ -1,8 +1,8 @@
 /**
- * Widgets de Galdur UI : boutons, libellés et panneaux aux couleurs de la charte.
+ * Widgets de Galdur UI : boutons et libellés aux couleurs de la charte.
  *
  * <p>API publique, stable dans une même version majeure. Ces classes héritent de classes
- * vanilla ({@code AbstractWidget}, {@code Renderable}) pour s'intégrer aux écrans et aux layouts
+ * vanilla ({@code AbstractWidget}) pour s'intégrer aux écrans et aux layouts
  * du jeu : un changement de ces classes chez Mojang peut imposer une version majeure de
  * Galdur UI (voir la section « Compatibilité et versions » du README).</p>
  *

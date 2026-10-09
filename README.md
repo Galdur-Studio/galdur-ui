@@ -65,7 +65,6 @@ vanilla pour s'intégrer aux écrans et aux layouts du jeu.
 |---|---|
 | `api.widget.GaldurButton` | `AbstractWidget` |
 | `api.widget.GaldurLabel` | `AbstractWidget` |
-| `api.widget.GaldurPanel` | `Renderable` |
 | `api.layout.GaldurPanelLayout` | `AbstractLayout` (donc `Layout`), `Renderable` |
 
 Leurs méthodes de rendu reçoivent un `GuiGraphics` et celles de souris et de clavier suivent
@@ -86,8 +85,7 @@ passe par l'API, moins il a de code à reprendre à chaque version de Minecraft.
 - **Outils de développement dans le jar** : `TestScreen` et `GaldurDevCommands` sont livrés
   dans le jar, mais la commande `/galdurui test` n'est enregistrée qu'en développement
   (`!FMLEnvironment.production`) : inactifs en production. Assumé pour l'instant.
-- **Méthodes d'API non utilisées en interne** : les getters de `GaldurPanel`,
-  `GaldurButton.withSprites`, `getPreferredWidth`, `isHeld`, `clearHeld`,
+- **Méthodes d'API non utilisées en interne** : `GaldurButton.withSprites`, `getPreferredWidth`, `isHeld`, `clearHeld`,
   `GaldurLabel.getText`, `GaldurPanelLayout.withSprite`, `getChild`, etc. ne sont pas appelés
   dans ce dépôt mais sont gardés volontairement : ils font partie de l'API offerte à nos mods.
 - **Cinq sprites distincts, même si quatre sont identiques** : `panel`, `button`,

@@ -1,4 +1,4 @@
-package com.galdurstudio.galdurui.api.widget;
+package com.galdurstudio.galdurui.internal.widget;
 
 import com.galdurstudio.galdurui.api.theme.GaldurTheme;
 import com.galdurstudio.galdurui.internal.render.GaldurRender;
@@ -13,6 +13,10 @@ import net.minecraft.resources.ResourceLocation;
  * <p>Le sprite est en niveaux de gris et teinté au rendu avec la couleur {@code background}
  * du thème, relue à chaque image.</p>
  *
+ * <p><strong>Interne</strong> : seul {@link com.galdurstudio.galdurui.api.layout.GaldurPanelLayout}
+ * l'utilise. Il expose des coordonnées, ce que l'API publique évite : ne pas en dépendre depuis
+ * un autre mod.</p>
+ *
  * <p>Élément purement décoratif : il ne reçoit ni clic ni focus, et sert de support aux
  * widgets posés dessus. Comme il implémente {@link Renderable}, on l'ajoute à un écran avec
  * {@code addRenderableOnly(...)} — en premier, pour qu'il passe derrière le reste.</p>
@@ -22,7 +26,7 @@ import net.minecraft.resources.ResourceLocation;
  * addRenderableOnly(fond);
  * }</pre>
  *
- * <p>Pour entourer un layout, préférer
+ * <p>Pour entourer un layout, passer par
  * {@link com.galdurstudio.galdurui.api.layout.GaldurPanelLayout}, qui dimensionne et place ce
  * fond tout seul.</p>
  *

@@ -1,7 +1,7 @@
 package com.galdurstudio.galdurui.api.layout;
 
 import com.galdurstudio.galdurui.api.theme.GaldurTheme;
-import com.galdurstudio.galdurui.api.widget.GaldurPanel;
+import com.galdurstudio.galdurui.internal.widget.GaldurPanel;
 import java.util.OptionalInt;
 import java.util.function.Consumer;
 import net.minecraft.client.gui.GuiGraphics;
