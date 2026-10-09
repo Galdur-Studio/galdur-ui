@@ -14,6 +14,11 @@ group = mod_group_id
 
 repositories {
     mavenCentral() // JUnit et Gson pour les tests unitaires
+    maven {
+        // Mods publiés sur Modrinth (ex. Spark pour profiler en dev)
+        url = "https://api.modrinth.com/maven"
+        content { includeGroup "maven.modrinth" }
+    }
 }
 
 base {
@@ -72,6 +77,9 @@ dependencies {
     testImplementation 'org.junit.jupiter:junit-jupiter'
     testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
     testImplementation 'com.google.code.gson:gson:2.10.1'
+
+    // Profileur Spark (/sparkc) : uniquement en dev, ni dans notre jar ni transmis à nos mods.
+    localRuntime "maven.modrinth:spark:1.10.124-neoforge-1.21.1"
 }
 
 // Remplace les ${...} des gabarits de src/main/templates (neoforge.mods.toml) par les valeurs de
