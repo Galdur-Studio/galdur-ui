@@ -1,6 +1,7 @@
 package com.galdurstudio.galdurui.api.window;
 
 import com.galdurstudio.galdurui.internal.window.TextElement;
+import com.galdurstudio.galdurui.internal.window.TitleElement;
 import com.galdurstudio.galdurui.internal.window.WindowModel;
 import com.galdurstudio.galdurui.internal.window.WindowScreen;
 import net.minecraft.client.Minecraft;
@@ -35,12 +36,49 @@ public class GaldurWindow {
      * Ajoute une ligne de texte à la fin de la fenêtre.
      *
      * <p>Les éléments sont affichés de haut en bas, dans l'ordre des appels. À appeler avant
-     * {@link #open()}.</p>
+     * {@link #open()}. Le texte est aligné à gauche ; voir {@link #addText(Component, boolean)}
+     * pour le centrer.</p>
      *
      * @param text le texte à afficher
      */
     public void addText(Component text) {
-        TextElement element = new TextElement(text);
+        TextElement element = new TextElement(text, false);
+        model.add(element);
+    }
+
+    /**
+     * Ajoute une ligne de texte à la fin de la fenêtre, centrée ou alignée à gauche.
+     *
+     * @param text     le texte à afficher
+     * @param centered {@code true} pour le centrer dans la fenêtre, {@code false} pour l'aligner à gauche
+     */
+    public void addText(Component text, boolean centered) {
+        TextElement element = new TextElement(text, centered);
+        model.add(element);
+    }
+
+    /**
+     * Ajoute un titre à la fin de la fenêtre.
+     *
+     * <p>Un titre se distingue d'un simple texte par son style. Il se place en général en premier,
+     * mais rien ne l'impose : les éléments restent dans l'ordre des appels. Il est aligné à gauche ;
+     * voir {@link #addTitle(Component, boolean)} pour le centrer.</p>
+     *
+     * @param text le titre à afficher
+     */
+    public void addTitle(Component text) {
+        TitleElement element = new TitleElement(text, false);
+        model.add(element);
+    }
+
+    /**
+     * Ajoute un titre à la fin de la fenêtre, centré ou aligné à gauche.
+     *
+     * @param text     le titre à afficher
+     * @param centered {@code true} pour le centrer dans la fenêtre, {@code false} pour l'aligner à gauche
+     */
+    public void addTitle(Component text, boolean centered) {
+        TitleElement element = new TitleElement(text, centered);
         model.add(element);
     }
 }

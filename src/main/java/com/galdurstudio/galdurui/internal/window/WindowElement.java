@@ -1,6 +1,7 @@
 package com.galdurstudio.galdurui.internal.window;
 
 import net.minecraft.client.gui.layouts.LayoutElement;
+import net.minecraft.client.gui.layouts.LayoutSettings;
 
 /**
  * Description d'un élément de fenêtre (texte, bouton, case à cocher...).
@@ -23,4 +24,15 @@ public interface WindowElement {
      * @return le widget prêt à être placé dans une mise en page
      */
     LayoutElement createWidget();
+
+    /**
+     * Règle la façon dont l'élément est placé dans la mise en page (alignement, marges...).
+     *
+     * <p>{@link WindowScreen} appelle cette méthode pour chaque élément, au moment de l'ajouter
+     * au layout, en lui donnant ses réglages. Par défaut elle n'en change aucun : l'élément garde
+     * les réglages de Minecraft. Un élément ne redéfinit que les réglages qui le concernent.</p>
+     *
+     * @param settings les réglages de cet élément dans le layout, à modifier directement
+     */
+    default void adjustSettings(LayoutSettings settings) {}
 }

@@ -4,6 +4,7 @@ import com.galdurstudio.galdurui.api.layout.GaldurPanelLayout;
 import com.galdurstudio.galdurui.api.theme.GaldurTheme;
 import net.minecraft.client.gui.layouts.FrameLayout;
 import net.minecraft.client.gui.layouts.LayoutElement;
+import net.minecraft.client.gui.layouts.LayoutSettings;
 import net.minecraft.client.gui.layouts.LinearLayout;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.network.chat.Component;
@@ -33,7 +34,7 @@ public class WindowScreen extends Screen {
         addRenderableOnly(panel);
         for (WindowElement element : model.elements()) {
             LayoutElement widget = element.createWidget();
-            layout.addChild(widget);
+            layout.addChild(widget, element::adjustSettings);
         }
         panel.arrangeElements();
         FrameLayout.centerInRectangle(panel, getRectangle());

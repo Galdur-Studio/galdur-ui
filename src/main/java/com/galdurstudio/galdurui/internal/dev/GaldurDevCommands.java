@@ -47,10 +47,8 @@ public final class GaldurDevCommands {
                 }))
                 .then(Commands.literal("window").executes(context -> {
                     GaldurWindow window = GaldurLib.createWindow();
-                    window.addText(Component.literal("Salut la mif"));
-                    window.addText(Component.literal("Salut la mif2"));
-                    window.addText(Component.literal("Salut"));
-                    window.addText(Component.literal("Salut la mifffffffffffffffffffffffffffff"));
+                    window.addTitle(Component.literal("Inventaire"), true);
+                    window.addText(Component.literal("Salut"), true);
                     window.open();
                     return Command.SINGLE_SUCCESS;
                 }))
