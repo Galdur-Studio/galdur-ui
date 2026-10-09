@@ -33,10 +33,14 @@ avertissement dans le journal, plutôt que de donner une couleur invisible.
 ## Sprites
 
 Les sprites 9-slice (`panel`, `button`, `button_hover`, `button_pressed`, `button_disabled`,
-16×16, bordure 4) de `assets/galdurui/textures/gui/sprites/` sont en niveaux de gris : leur
+bordure 4 ; `panel` 256×256, boutons 64×64) de `assets/galdurui/textures/gui/sprites/` sont en niveaux de gris : leur
 couleur vient du thème et est appliquée au rendu (un pixel blanc prend exactement la couleur
 du thème). Modifier les couleurs de `theme.json` ne demande donc pas de régénérer les images.
-Seule la forme (coins, relief) est décrite par le générateur :
+Seule la forme (coins, relief) est décrite par le générateur. Les sprites sont volontairement
+grands : Minecraft 1.21.1 n'étire pas les bords et le centre d'un 9-slice, il les répète (une
+tuile = sprite − 2×bordure) à raison d'un quad par tuile, donc un petit sprite coûte des
+centaines d'appels de dessin sur un grand panneau. Bords et centre doivent rester uniformes,
+sinon la répétition se voit :
 
 ```powershell
 .\gradlew.bat generateSprites

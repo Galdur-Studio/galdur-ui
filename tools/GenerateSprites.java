@@ -8,8 +8,11 @@
 //     .\gradlew.bat generateSprites
 //
 // Chaque sprite est accompagné d'un .png.mcmeta en nine_slice (bordure de 4 px) : les
-// coins restent nets quelle que soit la taille du widget, seuls les bords et le centre
-// sont étirés.
+// coins restent nets quelle que soit la taille du widget. Les bords et le centre ne sont
+// PAS étirés en 1.21.1 : ils sont répétés par tuiles de (taille - 2 * bordure), à raison d'un
+// quad (donc d'un appel de dessin) par tuile. D'où des sprites grands (panel 256, boutons 64)
+// pour limiter les quads ; bords et centre doivent rester uniformes pour que la répétition
+// ne se voie pas.
 //
 // Ce fichier vit hors de src/main (source set Gradle « tools ») : il ne finit pas dans le jar.
 
@@ -22,7 +25,8 @@ import java.nio.file.Paths;
 import javax.imageio.ImageIO;
 
 public final class GenerateSprites {
-    private static final int SIZE = 16;     // côté du sprite, en pixels
+    private static final int SIZE_BUTTON = 64;     // côté du sprite, en pixels
+    private static final int SIZE_PANEL = 256;
     private static final int RADIUS = 4;    // rayon des coins arrondis, égal à la bordure 9-slice
     private static final int BORDER = 4;
 
@@ -36,7 +40,8 @@ public final class GenerateSprites {
     private static final Path OUT = Paths.get("src", "main", "resources", "assets", "galdurui",
             "textures", "gui", "sprites");
 
-    private static final String MCMETA = """
+    private static String mcmeta(int size) {
+        return """
             {
               "gui": {
                 "scaling": {
@@ -47,34 +52,35 @@ public final class GenerateSprites {
                 }
               }
             }
-            """.formatted(SIZE, SIZE, BORDER);
+            """.formatted(size, size, BORDER);
+    }
 
     /**
      * Nom du sprite et relief inversé. La couleur de chaque sprite est choisie au rendu
      * (voir GaldurPanel et GaldurButton).
      * « inset » inverse le relief : la lumière passe en bas, le widget paraît enfoncé.
      */
-    private record Sprite(String name, boolean inset) {}
+    private record Sprite(String name, boolean inset, int size) {}
 
     private static final Sprite[] SPRITES = {
-            new Sprite("panel", false),
-            new Sprite("button", false),
-            new Sprite("button_hover", false),
-            new Sprite("button_pressed", true),
-            new Sprite("button_disabled", false),
+            new Sprite("panel", false, SIZE_PANEL),
+            new Sprite("button", false, SIZE_BUTTON),
+            new Sprite("button_hover", false, SIZE_BUTTON),
+            new Sprite("button_pressed", true,  SIZE_BUTTON),
+            new Sprite("button_disabled", false,  SIZE_BUTTON),
     };
 
     public static void main(String[] args) throws IOException {
         Files.createDirectories(OUT);
         for (Sprite sprite : SPRITES) {
             Path png = OUT.resolve(sprite.name() + ".png");
-            ImageIO.write(build(sprite.inset()), "PNG", png.toFile());
-            Files.writeString(png.resolveSibling(sprite.name() + ".png.mcmeta"), MCMETA, StandardCharsets.UTF_8);
+            ImageIO.write(build(sprite.inset(), sprite.size()), "PNG", png.toFile());
+            Files.writeString(png.resolveSibling(sprite.name() + ".png.mcmeta"), mcmeta(sprite.size()), StandardCharsets.UTF_8);
             System.out.println("écrit " + png);
         }
     }
 
-    private static BufferedImage build(boolean inset) {
+    private static BufferedImage build(boolean inset, int size) {
         int fill = gray(FILL);
         int outline = gray(OUTLINE);
         int light = gray(LIGHT);
@@ -82,10 +88,10 @@ public final class GenerateSprites {
         int top = inset ? dark : light;
         int bottom = inset ? light : dark;
 
-        BufferedImage image = new BufferedImage(SIZE, SIZE, BufferedImage.TYPE_INT_ARGB);
-        for (int y = 0; y < SIZE; y++) {
-            for (int x = 0; x < SIZE; x++) {
-                double d = distanceToRoundedRect(x, y);
+        BufferedImage image = new BufferedImage(size, size, BufferedImage.TYPE_INT_ARGB);
+        for (int y = 0; y < size; y++) {
+            for (int x = 0; x < size; x++) {
+                double d = distanceToRoundedRect(x, y, size);
                 int argb;
                 if (d > RADIUS) {
                     argb = 0;                       // coin taillé : transparent
@@ -93,7 +99,7 @@ public final class GenerateSprites {
                     argb = 0xFF000000 | outline;
                 } else if (y == 1) {
                     argb = 0xFF000000 | top;
-                } else if (y == SIZE - 2) {
+                } else if (y == size - 2) {
                     argb = 0xFF000000 | bottom;
                 } else {
                     argb = 0xFF000000 | fill;
@@ -109,11 +115,11 @@ public final class GenerateSprites {
      * point sur le rectangle central : sur les bords droits la distance vaut l'écart à l'arête,
      * et dans les coins elle vaut la distance au centre du cercle.
      */
-    private static double distanceToRoundedRect(int x, int y) {
+    private static double distanceToRoundedRect(int x, int y, int size) {
         double px = x + 0.5;
         double py = y + 0.5;
-        double cx = Math.min(Math.max(px, RADIUS), SIZE - RADIUS);
-        double cy = Math.min(Math.max(py, RADIUS), SIZE - RADIUS);
+        double cx = Math.min(Math.max(px, RADIUS), size - RADIUS);
+        double cy = Math.min(Math.max(py, RADIUS), size - RADIUS);
         return Math.hypot(px - cx, py - cy);
     }
 

@@ -27,7 +27,10 @@ public final class GaldurRender {
      * {@code argb} rend le sprite translucide.</p>
      *
      * <p>Le découpage vient du {@code .png.mcmeta} du sprite : les coins gardent leur taille,
-     * les bords et le centre sont étirés. Si le rectangle est plus petit que deux fois la
+     * les bords et le centre sont répétés (tuilés) puis rognés, jamais étirés : Minecraft 1.21.1
+     * n'a pas de mode « étirement ». Un quad est dessiné par tuile, donc le sprite doit être
+     * assez grand pour limiter leur nombre, et ses bords et son centre doivent être uniformes
+     * (sinon la répétition se voit). Si le rectangle est plus petit que deux fois la
      * bordure, Minecraft 1.21.1 réduit la bordure à la moitié de la largeur (ou de la
      * hauteur) : les coins ne se chevauchent pas, mais ils sont rognés.</p>
      *
