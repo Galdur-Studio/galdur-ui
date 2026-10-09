@@ -2,6 +2,7 @@ package com.galdurstudio.galdurui.internal.dev;
 
 import com.galdurstudio.galdurui.GaldurUI;
 import com.galdurstudio.galdurui.api.GaldurLib;
+import com.galdurstudio.galdurui.api.window.CheckboxHandle;
 import com.galdurstudio.galdurui.api.window.GaldurWindow;
 import com.mojang.brigadier.Command;
 import net.minecraft.client.Minecraft;
@@ -50,6 +51,8 @@ public final class GaldurDevCommands {
                     window.addTitle(Component.literal("Inventaire"), true);
                     window.addText(Component.literal("Salut"), true);
                     window.addButton(Component.literal("Quitter"), window::close, true);
+                    CheckboxHandle sound = window.addCheckbox(Component.literal("Activer le son"), false);
+                    sound.onChange(action -> System.out.println("Activer le son: " + action));
                     window.open();
                     return Command.SINGLE_SUCCESS;
                 }))

@@ -1,10 +1,6 @@
 package com.galdurstudio.galdurui.api.window;
 
-import com.galdurstudio.galdurui.internal.window.TextElement;
-import com.galdurstudio.galdurui.internal.window.TitleElement;
-import com.galdurstudio.galdurui.internal.window.WindowModel;
-import com.galdurstudio.galdurui.internal.window.WindowScreen;
-import com.galdurstudio.galdurui.internal.window.ButtonElement;
+import com.galdurstudio.galdurui.internal.window.*;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.network.chat.Component;
@@ -16,8 +12,8 @@ import net.minecraft.network.chat.Component;
  * contient que la description de l'écran ; la mise en page, le thème et le rendu sont
  * assurés par Galdur UI, et aucune coordonnée n'est jamais à calculer.</p>
  *
- * <p><strong>En cours de construction</strong> : les cases à cocher ne sont pas encore
- * disponibles.</p>
+ * <p><strong>En cours de construction</strong> : l'aspect des cases à cocher est provisoire (elles
+ * s'affichent comme un bouton dont le libellé change au redimensionnement).</p>
  */
 public class GaldurWindow {
     private final WindowModel model = new WindowModel();
@@ -138,5 +134,38 @@ public class GaldurWindow {
     public void addButton(Component label, Runnable action, boolean centered) {
         ButtonElement element = new ButtonElement(label, action, centered);
         model.add(element);
+    }
+
+    /**
+     * Ajoute une case à cocher à la fin de la fenêtre et renvoie sa poignée.
+     *
+     * <p>La poignée permet de lire et de changer l'état de la case, et d'être prévenu des
+     * changements. La case est alignée à gauche ; voir
+     * {@link #addCheckbox(Component, boolean, boolean)} pour la centrer.</p>
+     *
+     * @param label        le texte affiché à côté de la case
+     * @param defaultState {@code true} si la case est cochée à l'ouverture
+     * @return la poignée de la case
+     */
+    public CheckboxHandle addCheckbox(Component label, boolean defaultState) {
+        CheckboxHandle handle = new CheckboxHandle(defaultState);
+        CheckboxElement element = new CheckboxElement(label, handle, false);
+        model.add(element);
+        return handle;
+    }
+
+    /**
+     * Ajoute une case à cocher à la fin de la fenêtre, centrée ou alignée à gauche.
+     *
+     * @param label        le texte affiché à côté de la case
+     * @param defaultState {@code true} si la case est cochée à l'ouverture
+     * @param centered     {@code true} pour la centrer dans la fenêtre, {@code false} pour l'aligner à gauche
+     * @return la poignée de la case
+     */
+    public CheckboxHandle addCheckbox(Component label, boolean defaultState, boolean centered) {
+        CheckboxHandle handle = new CheckboxHandle(defaultState);
+        CheckboxElement element = new CheckboxElement(label, handle, centered);
+        model.add(element);
+        return handle;
     }
 }
