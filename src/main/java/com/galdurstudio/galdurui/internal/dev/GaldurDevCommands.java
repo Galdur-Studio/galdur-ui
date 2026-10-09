@@ -49,6 +49,7 @@ public final class GaldurDevCommands {
                     GaldurWindow window = GaldurLib.createWindow();
                     window.addTitle(Component.literal("Inventaire"), true);
                     window.addText(Component.literal("Salut"), true);
+                    window.addButton(Component.literal("Quitter"), window::close, true);
                     window.open();
                     return Command.SINGLE_SUCCESS;
                 }))

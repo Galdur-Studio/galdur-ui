@@ -8,6 +8,7 @@ import net.minecraft.client.gui.layouts.LayoutSettings;
 import net.minecraft.client.gui.layouts.LinearLayout;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.network.chat.Component;
+import net.minecraft.server.packs.resources.ResourceManager;
 
 /**
  * Écran Minecraft qui affiche le contenu d'un {@link WindowModel} dans un panneau centré.
@@ -17,13 +18,30 @@ import net.minecraft.network.chat.Component;
  */
 public class WindowScreen extends Screen {
     private final WindowModel model;
+    private final Runnable onRemoved;
 
     /**
-     * @param model le contenu à afficher
+     * @param model     le contenu à afficher
+     * @param onRemoved appelé quand l'écran disparaît, quelle qu'en soit la raison (Échap, bouton
+     *                  de fermeture, autre écran qui le remplace). Permet de prévenir la fenêtre qui
+     *                  l'a ouvert sans que ce package dépende de {@code api}.
      */
-    public WindowScreen(WindowModel model) {
+    public WindowScreen(WindowModel model, Runnable onRemoved) {
         super(Component.literal("Galdur"));
         this.model = model;
+        this.onRemoved = onRemoved;
+    }
+
+    /**
+     * Prévient la fenêtre que l'écran n'est plus affiché.
+     *
+     * <p>Minecraft appelle cette méthode à chaque changement d'écran, mais pas lors d'un simple
+     * redimensionnement (qui ne fait que rappeler {@link #init()}).</p>
+     */
+    @Override
+    public void removed() {
+        super.removed();
+        onRemoved.run();
     }
 
     @Override
