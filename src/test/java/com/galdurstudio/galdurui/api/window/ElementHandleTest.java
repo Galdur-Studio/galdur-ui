@@ -2,11 +2,15 @@ package com.galdurstudio.galdurui.api.window;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import org.junit.jupiter.api.Test;
 
+/**
+ * Les tests unitaires tournent sans les classes de Minecraft : on n'y touche donc jamais à
+ * l'infobulle, dont le type ({@code Component}) vient du jeu. Elle se vérifie en jeu, avec
+ * {@code /galdurui window}.
+ */
 class ElementHandleTest {
     private int changes;
 
@@ -17,11 +21,10 @@ class ElementHandleTest {
     }
 
     @Test
-    void un_element_est_actif_visible_et_sans_infobulle_par_defaut() {
+    void un_element_est_actif_et_visible_par_defaut() {
         ElementHandle handle = new ElementHandle();
         assertTrue(handle.isEnabled());
         assertTrue(handle.isVisible());
-        assertNull(handle.getTooltip());
     }
 
     @Test
@@ -39,7 +42,6 @@ class ElementHandleTest {
         ElementHandle handle = handle();
         handle.setEnabled(true);
         handle.setVisible(true);
-        handle.setTooltip(null);
         assertEquals(0, changes);
     }
 
