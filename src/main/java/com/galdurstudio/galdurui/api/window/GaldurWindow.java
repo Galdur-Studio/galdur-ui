@@ -12,8 +12,8 @@ import net.minecraft.network.chat.Component;
  * contient que la description de l'écran ; la mise en page, le thème et le rendu sont
  * assurés par Galdur UI, et aucune coordonnée n'est jamais à calculer.</p>
  *
- * <p><strong>En cours de construction</strong> : l'aspect des cases à cocher est provisoire (elles
- * s'affichent comme un bouton dont le libellé change au redimensionnement).</p>
+ * <p><strong>En cours de construction</strong> : les cases à cocher s'affichent mais ne réagissent
+ * pas encore au clic du joueur ; seul {@code setChecked} les change pour l'instant.</p>
  */
 public class GaldurWindow {
     private final WindowModel model = new WindowModel();

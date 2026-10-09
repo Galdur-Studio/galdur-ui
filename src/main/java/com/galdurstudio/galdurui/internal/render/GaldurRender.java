@@ -79,6 +79,23 @@ public final class GaldurRender {
         graphics.renderOutline(x, y, width, height, argb);
     }
 
+    /**
+     * Remplit un rectangle d'une couleur unie.
+     *
+     * <p>L'alpha de {@code argb} est respecté : une couleur translucide laisse voir ce qui est
+     * dessous. Aucun état de rendu n'est modifié.</p>
+     *
+     * @param graphics contexte de rendu fourni par l'écran
+     * @param x        abscisse du coin supérieur gauche
+     * @param y        ordonnée du coin supérieur gauche
+     * @param width    largeur, en pixels d'interface
+     * @param height   hauteur, en pixels d'interface
+     * @param argb     couleur de remplissage, en ARGB empaqueté
+     */
+    public static void drawFill(GuiGraphics graphics, int x, int y, int width, int height, int argb) {
+        graphics.fill(x, y, x + width, y + height, argb);
+    }
+
     /** {@return la composante de {@code argb} décalée de {@code shift} bits, entre 0 et 1} */
     private static float channel(int argb, int shift) {
         return ((argb >>> shift) & 0xFF) / 255.0F;
