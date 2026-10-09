@@ -1,5 +1,8 @@
 package com.galdurstudio.galdurui.api.window;
 
+import com.galdurstudio.galdurui.internal.window.WindowScreen;
+import net.minecraft.client.Minecraft;
+
 /**
  * Un écran décrit par le code d'un mod : titre, textes, boutons, cases à cocher.
  *
@@ -15,7 +18,10 @@ public class GaldurWindow {
     public GaldurWindow() {}
 
     /** Affiche la fenêtre à l'écran. Sans effet si elle est déjà ouverte. */
-    public void open() {}
+    public void open() {
+        Minecraft minecraft = Minecraft.getInstance();
+        minecraft.tell(() -> minecraft.setScreen(new WindowScreen(this)));
+    }
 
     /** Ferme la fenêtre et revient à l'écran précédent. Sans effet si elle est fermée. */
     public void close() {}

@@ -1,6 +1,7 @@
 package com.galdurstudio.galdurui.internal.dev;
 
 import com.galdurstudio.galdurui.GaldurUI;
+import com.galdurstudio.galdurui.api.GaldurLib;
 import com.mojang.brigadier.Command;
 import net.minecraft.client.Minecraft;
 import net.minecraft.commands.Commands;
@@ -36,7 +37,12 @@ public final class GaldurDevCommands {
                     boolean isDebug = LayoutDebug.toggle();
                     context.getSource().sendSuccess(() -> Component.literal("Galdur UI: Le mode debug des layouts est " + (isDebug ? "activé." : "désactivé.")), false);
                     return Command.SINGLE_SUCCESS;
-                })));
+                }))
+                .then(Commands.literal("window").executes(context -> {
+                    GaldurLib.createWindow().open();
+                    return Command.SINGLE_SUCCESS;
+                }))
+        );
     }
 
     /**
