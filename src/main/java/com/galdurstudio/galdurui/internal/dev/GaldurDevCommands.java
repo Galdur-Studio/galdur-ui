@@ -2,6 +2,7 @@ package com.galdurstudio.galdurui.internal.dev;
 
 import com.galdurstudio.galdurui.GaldurUI;
 import com.galdurstudio.galdurui.api.GaldurLib;
+import com.galdurstudio.galdurui.api.window.GaldurWindow;
 import com.mojang.brigadier.Command;
 import net.minecraft.client.Minecraft;
 import net.minecraft.commands.Commands;
@@ -12,9 +13,15 @@ import net.neoforged.neoforge.common.NeoForge;
 /**
  * Commandes client réservées au développement de Galdur UI.
  *
- * <p>{@code /galdurui test} ouvre {@link TestScreen}. L'enregistrement est conditionné à
- * l'environnement de développement par l'appelant ({@code GaldurUIClient}) : la commande
- * n'existe pas dans une version publiée.</p>
+ * <ul>
+ *   <li>{@code /galdurui test} ouvre {@link TestScreen} ;</li>
+ *   <li>{@code /galdurui debug} active ou désactive le contour des layouts ({@link LayoutDebug}) ;</li>
+ *   <li>{@code /galdurui window} ouvre une fenêtre construite avec l'API publique
+ *       ({@link com.galdurstudio.galdurui.api.GaldurLib}), pour la tester en jeu.</li>
+ * </ul>
+ *
+ * <p>L'enregistrement est conditionné à l'environnement de développement par l'appelant
+ * ({@code GaldurUIClient}) : ces commandes n'existent pas dans une version publiée.</p>
  */
 public final class GaldurDevCommands {
     private GaldurDevCommands() {
@@ -39,7 +46,12 @@ public final class GaldurDevCommands {
                     return Command.SINGLE_SUCCESS;
                 }))
                 .then(Commands.literal("window").executes(context -> {
-                    GaldurLib.createWindow().open();
+                    GaldurWindow window = GaldurLib.createWindow();
+                    window.addText(Component.literal("Salut la mif"));
+                    window.addText(Component.literal("Salut la mif2"));
+                    window.addText(Component.literal("Salut"));
+                    window.addText(Component.literal("Salut la mifffffffffffffffffffffffffffff"));
+                    window.open();
                     return Command.SINGLE_SUCCESS;
                 }))
         );
