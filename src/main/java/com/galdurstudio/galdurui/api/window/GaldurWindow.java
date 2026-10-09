@@ -11,9 +11,6 @@ import net.minecraft.network.chat.Component;
  * <p>On la crée avec {@link com.galdurstudio.galdurui.api.GaldurLib#createWindow()}. Elle ne
  * contient que la description de l'écran ; la mise en page, le thème et le rendu sont
  * assurés par Galdur UI, et aucune coordonnée n'est jamais à calculer.</p>
- *
- * <p><strong>En cours de construction</strong> : les cases à cocher s'affichent mais ne réagissent
- * pas encore au clic du joueur ; seul {@code setChecked} les change pour l'instant.</p>
  */
 public class GaldurWindow {
     private final WindowModel model = new WindowModel();

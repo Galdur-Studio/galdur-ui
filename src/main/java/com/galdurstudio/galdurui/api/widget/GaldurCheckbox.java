@@ -28,11 +28,16 @@ import java.util.function.Consumer;
  * <p>Le widget fait la taille du carré, d'un espace et du libellé.</p>
  */
 public class GaldurCheckbox extends AbstractWidget {
+    /** Côté du carré, en pixels. */
     private static final int BOX_SIZE = 9;
+    /** Espace entre le carré et le libellé, en pixels. */
     private static final int GAP = 4;
 
+    /** Donne l'état courant ; relu à chaque image, jamais copié. */
     private final BooleanSupplier checked;
+    /** Reçoit la valeur voulue quand le joueur active la case. */
     private final Consumer<Boolean> onToggle;
+    /** Vrai entre l'appui et le relâchement de la souris sur la case. */
     private boolean held;
 
     /**
@@ -78,11 +83,19 @@ public class GaldurCheckbox extends AbstractWidget {
         narrationElementOutput.add(NarratedElementType.TITLE, getMessage());
     }
 
+    /**
+     * Appui de la souris sur la case : on retient seulement l'appui. La case ne change pas
+     * encore, pour que le joueur puisse annuler en relâchant ailleurs.
+     */
     @Override
     public void onClick(double mouseX, double mouseY, int button) {
         held = true;
     }
 
+    /**
+     * Relâchement de la souris : la case bascule seulement si l'appui a commencé sur elle
+     * et que le curseur est encore dessus.
+     */
     @Override
     public void onRelease(double mouseX, double mouseY) {
         boolean wasHeld = held;
@@ -92,6 +105,11 @@ public class GaldurCheckbox extends AbstractWidget {
         }
     }
 
+    /**
+     * Bascule la case avec le clavier (Espace ou Entrée) quand elle a le focus.
+     *
+     * @return {@code true} si la touche a été consommée, {@code false} sinon
+     */
     @Override
     public boolean keyPressed(int keyCode, int scanCode, int modifiers) {
         if (!active || !visible) {
@@ -105,6 +123,10 @@ public class GaldurCheckbox extends AbstractWidget {
         return true;
     }
 
+    /**
+     * Demande l'inverse de l'état courant. Le widget ne change rien lui-même : le nouvel
+     * état s'affichera à l'image suivante, quand {@code checked} aura été relu.
+     */
     private void toggle() {
         onToggle.accept(!checked.getAsBoolean());
     }
