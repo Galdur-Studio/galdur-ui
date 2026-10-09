@@ -1,6 +1,7 @@
 package com.galdurstudio.galdurui;
 
 import com.galdurstudio.galdurui.internal.dev.GaldurDevCommands;
+import com.galdurstudio.galdurui.internal.dev.LayoutDebug;
 import com.galdurstudio.galdurui.internal.theme.ThemeLoader;
 import net.neoforged.api.distmarker.Dist;
 import net.neoforged.bus.api.IEventBus;
@@ -22,6 +23,7 @@ public class GaldurUIClient {
         if (!FMLEnvironment.production) {
             GaldurUI.LOGGER.info("Environnement de développement : la commande /{} test est disponible.", GaldurUI.MODID);
             GaldurDevCommands.register();
+            LayoutDebug.register();
         }
     }
 }
