@@ -3,6 +3,7 @@ package com.galdurstudio.galdurui.internal.dev;
 import com.galdurstudio.galdurui.GaldurUI;
 import com.galdurstudio.galdurui.api.GaldurLib;
 import com.galdurstudio.galdurui.api.window.CheckboxHandle;
+import com.galdurstudio.galdurui.api.window.ElementHandle;
 import com.galdurstudio.galdurui.api.window.GaldurWindow;
 import com.mojang.brigadier.Command;
 import net.minecraft.client.Minecraft;
@@ -47,16 +48,38 @@ public final class GaldurDevCommands {
                     return Command.SINGLE_SUCCESS;
                 }))
                 .then(Commands.literal("window").executes(context -> {
-                    GaldurWindow window = GaldurLib.createWindow();
-                    window.addTitle(Component.literal("Inventaire"), true);
-                    window.addText(Component.literal("Salut"), true);
-                    window.addButton(Component.literal("Quitter"), window::close, true);
-                    CheckboxHandle sound = window.addCheckbox(Component.literal("Activer le son"), false);
-                    sound.onChange(action -> System.out.println("Activer le son: " + action));
-                    window.open();
+                    openDemoWindow();
                     return Command.SINGLE_SUCCESS;
                 }))
         );
+    }
+
+    /**
+     * Ouvre une fenêtre de démonstration construite uniquement avec l'API publique.
+     *
+     * <p>Elle montre les états communs : un texte caché qui libère sa place (case « Afficher le
+     * détail »), un bouton désactivé avec infobulle que la case « Mode avancé » active, et une
+     * infobulle sur une case. Ouverte depuis l'écran de test, Échap et « Quitter » y reviennent.</p>
+     */
+    static void openDemoWindow() {
+        GaldurWindow window = GaldurLib.createWindow();
+        window.addTitle(Component.literal("Inventaire"), true);
+
+        ElementHandle detail = window.addText(Component.literal("12 objets, 3 types différents"), true);
+        detail.setVisible(false);
+        CheckboxHandle showDetail = window.addCheckbox(Component.literal("Afficher le détail"), false);
+        showDetail.onChange(detail::setVisible);
+
+        CheckboxHandle advanced = window.addCheckbox(Component.literal("Mode avancé"), false);
+        advanced.setTooltip(Component.literal("Débloque les options avancées"));
+        ElementHandle options = window.addButton(Component.literal("Options avancées"),
+                () -> GaldurUI.LOGGER.info("Options avancées"), true);
+        options.setEnabled(false);
+        options.setTooltip(Component.literal("Coche « Mode avancé » pour y accéder"));
+        advanced.onChange(options::setEnabled);
+
+        window.addButton(Component.literal("Quitter"), window::close, true);
+        window.open();
     }
 
     /**

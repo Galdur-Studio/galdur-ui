@@ -68,14 +68,18 @@ public class GaldurCheckbox extends AbstractWidget {
     protected void renderWidget(GuiGraphics guiGraphics, int mouseX, int mouseY, float partialTick) {
         int boxY = getY() + (getHeight() - BOX_SIZE) / 2 - 1;
         int labelY = getY() + (getHeight() - GaldurRender.lineHeight()) / 2;
-        boolean highlighted = isHovered() || (isFocused() && Minecraft.getInstance().getLastInputType().isKeyboard());
+        boolean highlighted = active
+                && (isHovered() || (isFocused() && Minecraft.getInstance().getLastInputType().isKeyboard()));
+        int outline = highlighted ? GaldurTheme.accentHover() : GaldurTheme.textMuted();
+        int mark = active ? GaldurTheme.accent() : GaldurTheme.textMuted();
+        int label = active ? GaldurTheme.text() : GaldurTheme.textMuted();
 
         GaldurRender.drawFill(guiGraphics, getX(), boxY, BOX_SIZE, BOX_SIZE, GaldurTheme.surface());
-        GaldurRender.drawOutline(guiGraphics, getX(), boxY, BOX_SIZE, BOX_SIZE, highlighted ? GaldurTheme.accentHover() : GaldurTheme.textMuted());
+        GaldurRender.drawOutline(guiGraphics, getX(), boxY, BOX_SIZE, BOX_SIZE, outline);
         if (checked.getAsBoolean()) {
-            GaldurRender.drawFill(guiGraphics, getX() + 2, boxY + 2, BOX_SIZE - 4, BOX_SIZE - 4, GaldurTheme.accent());
+            GaldurRender.drawFill(guiGraphics, getX() + 2, boxY + 2, BOX_SIZE - 4, BOX_SIZE - 4, mark);
         }
-        GaldurRender.text(guiGraphics, getMessage(), getX() + GAP + BOX_SIZE, labelY, GaldurTheme.text(), true);
+        GaldurRender.text(guiGraphics, getMessage(), getX() + GAP + BOX_SIZE, labelY, label, true);
     }
 
     @Override

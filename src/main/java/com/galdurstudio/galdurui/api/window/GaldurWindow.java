@@ -2,7 +2,6 @@ package com.galdurstudio.galdurui.api.window;
 
 import com.galdurstudio.galdurui.internal.window.*;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.network.chat.Component;
 
 /**
@@ -14,8 +13,18 @@ import net.minecraft.network.chat.Component;
  */
 public class GaldurWindow {
     private final WindowModel model = new WindowModel();
-    private WindowScreen currentScreen;
-    private Screen lastScreen;
+
+    /** Écran affiché en ce moment, ou {@code null} si la fenêtre n'est pas à l'écran. */
+    private WindowScreen screen;
+
+    /**
+     * Écran créé par {@link #open()} mais pas encore affiché : {@code open()} passe par
+     * {@code Minecraft.tell}, qui ne s'exécute qu'à la prochaine boucle du client.
+     */
+    private WindowScreen pending;
+
+    /** Vrai quand une reconstruction de l'écran est déjà prévue (voir {@link #requestRebuild()}). */
+    private boolean rebuildScheduled;
 
     /**
      * Crée une fenêtre vide. Préférer {@code GaldurLib.createWindow()}.
@@ -24,51 +33,105 @@ public class GaldurWindow {
     }
 
     /**
-     * Affiche la fenêtre à l'écran. Sans effet si elle est déjà ouverte.
+     * Affiche la fenêtre à l'écran. Sans effet si elle est déjà ouverte ou en cours d'ouverture.
+     *
+     * <p>L'écran affiché jusque-là est retenu : {@link #close()} et Échap y reviennent.</p>
      */
     public void open() {
-        if (currentScreen != null) {
+        if (screen != null || pending != null) {
             return;
         }
+        WindowScreen created = new WindowScreen(model, this::shown, this::hidden);
+        pending = created;
         Minecraft minecraft = Minecraft.getInstance();
         minecraft.tell(() -> {
-            lastScreen = minecraft.screen;
-            currentScreen = new WindowScreen(model, this::reset);
-            minecraft.setScreen(currentScreen);
+            if (pending != created) {
+                return;
+            }
+            pending = null;
+            created.setPrevious(minecraft.screen);
+            minecraft.setScreen(created);
         });
     }
 
     /**
-     * Ferme la fenêtre et revient à l'écran précédent. Sans effet si elle est fermée.
+     * Ferme la fenêtre et revient à l'écran précédent, exactement comme Échap. Sans effet si elle
+     * est fermée.
      */
     public void close() {
-        if (currentScreen == null) {
+        if (pending != null) {
+            pending = null;
             return;
         }
-        Minecraft minecraft = Minecraft.getInstance();
-        minecraft.setScreen(lastScreen);
-        currentScreen = null;
-        lastScreen = null;
+        WindowScreen current = screen;
+        if (current != null && Minecraft.getInstance().screen == current) {
+            current.onClose();
+        }
     }
 
-    /** Oublie les écrans : appelée quand l'écran disparaît, par {@link #close()} ou autrement (Échap...). */
-    private void reset() {
-        currentScreen = null;
-        lastScreen = null;
+    /** {@return {@code true} si la fenêtre est à l'écran ou en cours d'ouverture} */
+    public boolean isOpen() {
+        return screen != null || pending != null;
+    }
+
+    /** L'écran devient l'écran courant (ouverture, ou retour depuis un écran ouvert par-dessus). */
+    private void shown(WindowScreen shownScreen) {
+        screen = shownScreen;
+    }
+
+    /** L'écran n'est plus l'écran courant, qu'importe la raison (Échap, close(), autre écran...). */
+    private void hidden(WindowScreen hiddenScreen) {
+        if (screen == hiddenScreen) {
+            screen = null;
+        }
+    }
+
+    /**
+     * Ajoute un élément au modèle, branche sa poignée et, si la fenêtre est affichée, la
+     * reconstruit.
+     *
+     * @return la poignée de l'élément, renvoyée telle quelle au mod
+     */
+    private <H extends ElementHandle> H add(WindowElement element, H handle) {
+        handle.setChangeListener(this::requestRebuild);
+        model.add(element);
+        requestRebuild();
+        return handle;
+    }
+
+    /**
+     * Reconstruit l'écran à la prochaine boucle du client, s'il est affiché.
+     *
+     * <p>Différé avec {@code Minecraft.tell} : un mod change souvent un état depuis l'action d'un
+     * bouton, donc pendant que l'écran parcourt ses widgets ; les remplacer à ce moment-là serait
+     * risqué. Plusieurs changements dans la même image ne donnent qu'une reconstruction.</p>
+     */
+    private void requestRebuild() {
+        if (screen == null || rebuildScheduled) {
+            return;
+        }
+        rebuildScheduled = true;
+        Minecraft.getInstance().tell(() -> {
+            rebuildScheduled = false;
+            if (screen != null) {
+                screen.rebuild();
+            }
+        });
     }
 
     /**
      * Ajoute une ligne de texte à la fin de la fenêtre.
      *
-     * <p>Les éléments sont affichés de haut en bas, dans l'ordre des appels. À appeler avant
-     * {@link #open()}. Le texte est aligné à gauche ; voir {@link #addText(Component, boolean)}
-     * pour le centrer.</p>
+     * <p>Les éléments sont affichés de haut en bas, dans l'ordre des appels. Un élément ajouté
+     * alors que la fenêtre est affichée apparaît à l'image suivante (à appeler sur le thread du client).
+     * Le texte est aligné à gauche ; voir {@link #addText(Component, boolean)} pour le centrer.</p>
      *
      * @param text le texte à afficher
+     * @return la poignée de l'élément (désactiver, cacher, infobulle)
      */
-    public void addText(Component text) {
-        TextElement element = new TextElement(text, false);
-        model.add(element);
+    public ElementHandle addText(Component text) {
+        ElementHandle handle = new ElementHandle();
+        return add(new TextElement(text, false, handle), handle);
     }
 
     /**
@@ -76,10 +139,11 @@ public class GaldurWindow {
      *
      * @param text     le texte à afficher
      * @param centered {@code true} pour le centrer dans la fenêtre, {@code false} pour l'aligner à gauche
+     * @return la poignée de l'élément (désactiver, cacher, infobulle)
      */
-    public void addText(Component text, boolean centered) {
-        TextElement element = new TextElement(text, centered);
-        model.add(element);
+    public ElementHandle addText(Component text, boolean centered) {
+        ElementHandle handle = new ElementHandle();
+        return add(new TextElement(text, centered, handle), handle);
     }
 
     /**
@@ -90,10 +154,11 @@ public class GaldurWindow {
      * voir {@link #addTitle(Component, boolean)} pour le centrer.</p>
      *
      * @param text le titre à afficher
+     * @return la poignée de l'élément (désactiver, cacher, infobulle)
      */
-    public void addTitle(Component text) {
-        TitleElement element = new TitleElement(text, false);
-        model.add(element);
+    public ElementHandle addTitle(Component text) {
+        ElementHandle handle = new ElementHandle();
+        return add(new TitleElement(text, false, handle), handle);
     }
 
     /**
@@ -101,10 +166,11 @@ public class GaldurWindow {
      *
      * @param text     le titre à afficher
      * @param centered {@code true} pour le centrer dans la fenêtre, {@code false} pour l'aligner à gauche
+     * @return la poignée de l'élément (désactiver, cacher, infobulle)
      */
-    public void addTitle(Component text, boolean centered) {
-        TitleElement element = new TitleElement(text, centered);
-        model.add(element);
+    public ElementHandle addTitle(Component text, boolean centered) {
+        ElementHandle handle = new ElementHandle();
+        return add(new TitleElement(text, centered, handle), handle);
     }
 
     /**
@@ -115,10 +181,11 @@ public class GaldurWindow {
      *
      * @param label  le libellé du bouton
      * @param action exécutée quand on active le bouton
+     * @return la poignée de l'élément (désactiver, cacher, infobulle)
      */
-    public void addButton(Component label, Runnable action) {
-        ButtonElement element = new ButtonElement(label, action, false);
-        model.add(element);
+    public ElementHandle addButton(Component label, Runnable action) {
+        ElementHandle handle = new ElementHandle();
+        return add(new ButtonElement(label, action, false, handle), handle);
     }
 
     /**
@@ -127,17 +194,19 @@ public class GaldurWindow {
      * @param label    le libellé du bouton
      * @param action   exécutée quand on active le bouton
      * @param centered {@code true} pour le centrer dans la fenêtre, {@code false} pour l'aligner à gauche
+     * @return la poignée de l'élément (désactiver, cacher, infobulle)
      */
-    public void addButton(Component label, Runnable action, boolean centered) {
-        ButtonElement element = new ButtonElement(label, action, centered);
-        model.add(element);
+    public ElementHandle addButton(Component label, Runnable action, boolean centered) {
+        ElementHandle handle = new ElementHandle();
+        return add(new ButtonElement(label, action, centered, handle), handle);
     }
 
     /**
      * Ajoute une case à cocher à la fin de la fenêtre et renvoie sa poignée.
      *
-     * <p>La poignée permet de lire et de changer l'état de la case, et d'être prévenu des
-     * changements. La case est alignée à gauche ; voir
+     * <p>La poignée permet de lire et de changer l'état de la case, d'être prévenu des
+     * changements et, comme toute {@link ElementHandle}, de la désactiver, la cacher ou lui donner
+     * une infobulle. La case est alignée à gauche ; voir
      * {@link #addCheckbox(Component, boolean, boolean)} pour la centrer.</p>
      *
      * @param label        le texte affiché à côté de la case
@@ -146,9 +215,7 @@ public class GaldurWindow {
      */
     public CheckboxHandle addCheckbox(Component label, boolean defaultState) {
         CheckboxHandle handle = new CheckboxHandle(defaultState);
-        CheckboxElement element = new CheckboxElement(label, handle, false);
-        model.add(element);
-        return handle;
+        return add(new CheckboxElement(label, handle, false), handle);
     }
 
     /**
@@ -161,8 +228,6 @@ public class GaldurWindow {
      */
     public CheckboxHandle addCheckbox(Component label, boolean defaultState, boolean centered) {
         CheckboxHandle handle = new CheckboxHandle(defaultState);
-        CheckboxElement element = new CheckboxElement(label, handle, centered);
-        model.add(element);
-        return handle;
+        return add(new CheckboxElement(label, handle, centered), handle);
     }
 }

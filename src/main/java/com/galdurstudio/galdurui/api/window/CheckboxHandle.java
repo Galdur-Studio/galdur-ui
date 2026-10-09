@@ -6,9 +6,11 @@ import java.util.function.Consumer;
  * Poignée vers une case à cocher d'une {@link GaldurWindow} : permet de lire son état, de le
  * changer et d'être prévenu quand il change.
  *
- * <p>On l'obtient avec {@code GaldurWindow.addCheckbox(...)}. L'état vit ici et non dans le widget
- * affiché : Minecraft recrée les widgets à chaque redimensionnement, la case reste donc cochée
- * (ou non) et le widget relit cet état.</p>
+ * <p>On l'obtient avec {@code GaldurWindow.addCheckbox(...)}. Comme toute {@link ElementHandle},
+ * elle permet aussi de désactiver la case, de la cacher ou de lui donner une infobulle.</p>
+ *
+ * <p>L'état vit ici et non dans le widget affiché : Minecraft recrée les widgets à chaque
+ * redimensionnement, la case reste donc cochée (ou non) et le widget relit cet état.</p>
  *
  * <pre>{@code
  * CheckboxHandle son = window.addCheckbox(Component.literal("Activer le son"), false);
@@ -16,7 +18,7 @@ import java.util.function.Consumer;
  * son.setChecked(true);   // affiche "Son : true"
  * }</pre>
  */
-public class CheckboxHandle {
+public class CheckboxHandle extends ElementHandle {
     private boolean checked;
     private Consumer<Boolean> action;
 

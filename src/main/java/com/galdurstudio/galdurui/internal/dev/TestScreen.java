@@ -53,7 +53,6 @@ public class TestScreen extends Screen {
         }));
         disabled.active = false;
 
-        // Libellés de longueurs différentes : la largeur de chaque bouton suit son texte.
         LinearLayout demo = column.addChild(LinearLayout.horizontal().spacing(GaldurTheme.gap()));
         demo.addChild(GaldurButton.of(Component.literal("OK"), button -> {
         }));
@@ -62,12 +61,13 @@ public class TestScreen extends Screen {
         demo.addChild(GaldurButton.of(Component.literal("Un libellé nettement plus long"), button -> {
         }));
 
-        // F3+T est ignoré tant qu'un écran est ouvert : ce bouton relance le même rechargement.
+        column.addChild(GaldurButton.of(Component.literal("Ouvrir une fenêtre Galdur"),
+                button -> GaldurDevCommands.openDemoWindow()));
+
         column.addChild(GaldurButton.of(Component.literal("Recharger le thème"),
                 button -> Minecraft.getInstance().reloadResourcePacks()));
 
         panel = new GaldurPanelLayout(column);
-        // Ajouté en premier : les widgets, ajoutés ensuite, se dessinent par-dessus le fond.
         addRenderableOnly(panel);
         panel.visitWidgets(this::addRenderableWidget);
         layoutPanel();

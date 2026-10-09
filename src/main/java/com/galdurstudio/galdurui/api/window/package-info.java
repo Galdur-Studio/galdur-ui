@@ -8,6 +8,11 @@
  * puis on l'ouvre. La mise en page, le thème et le rendu sont pris en charge par la
  * bibliothèque.</p>
  *
+ * <p>Chaque {@code add...(...)} renvoie une poignée qui garde l'état de l'élément, avant comme
+ * après l'ouverture : {@link com.galdurstudio.galdurui.api.window.ElementHandle} pour le
+ * désactiver, le cacher ou lui donner une infobulle, et
+ * {@link com.galdurstudio.galdurui.api.window.CheckboxHandle} qui y ajoute l'état coché.</p>
+ *
  * <p><strong>Règle pour nos mods</strong> : ne jamais dépendre de
  * {@code com.galdurstudio.galdurui.internal}.</p>
  */

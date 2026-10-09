@@ -1,6 +1,7 @@
 package com.galdurstudio.galdurui.internal.window;
 
 import com.galdurstudio.galdurui.api.widget.GaldurLabel;
+import com.galdurstudio.galdurui.api.window.ElementHandle;
 import net.minecraft.ChatFormatting;
 import net.minecraft.client.gui.layouts.LayoutElement;
 import net.minecraft.client.gui.layouts.LayoutSettings;
@@ -14,11 +15,13 @@ import net.minecraft.network.chat.Component;
  *
  * @param title    le titre à afficher
  * @param centered {@code true} pour centrer le titre dans la fenêtre, {@code false} pour l'aligner à gauche
+ * @param handle   l'état commun (désactivé, caché, infobulle), partagé avec le mod
  */
-public record TitleElement(Component title, boolean centered) implements WindowElement {
+public record TitleElement(Component title, boolean centered, ElementHandle handle) implements WindowElement {
     @Override
     public LayoutElement createWidget() {
-        return GaldurLabel.of(title.copy().withStyle(ChatFormatting.BOLD));
+        Component bold = title.copy().withStyle(ChatFormatting.BOLD);
+        return handle.isEnabled() ? GaldurLabel.of(bold) : GaldurLabel.muted(bold);
     }
 
     @Override

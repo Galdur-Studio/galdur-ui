@@ -1,5 +1,6 @@
 package com.galdurstudio.galdurui.internal.window;
 
+import com.galdurstudio.galdurui.api.window.ElementHandle;
 import net.minecraft.client.gui.layouts.LayoutElement;
 import net.minecraft.client.gui.layouts.LayoutSettings;
 
@@ -15,6 +16,14 @@ import net.minecraft.client.gui.layouts.LayoutSettings;
  * {@link com.galdurstudio.galdurui.api.window.GaldurWindow}.</p>
  */
 public interface WindowElement {
+    /**
+     * {@return l'état commun de l'élément (désactivé, caché, infobulle), partagé avec le mod}
+     *
+     * <p>{@link WindowScreen} le lit à chaque construction : un élément caché n'est pas placé
+     * dans la mise en page, et l'état désactivé et l'infobulle sont appliqués au widget créé.</p>
+     */
+    ElementHandle handle();
+
     /**
      * Crée un widget neuf à partir de cette description.
      *
