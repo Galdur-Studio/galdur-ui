@@ -1,5 +1,6 @@
 package com.galdurstudio.galdurui.api.window;
 
+import com.galdurstudio.galdurui.internal.window.WindowModel;
 import com.galdurstudio.galdurui.internal.window.WindowScreen;
 import net.minecraft.client.Minecraft;
 
@@ -14,15 +15,14 @@ import net.minecraft.client.Minecraft;
  * leur comportement et les éléments arrivent aux étapes suivantes.</p>
  */
 public class GaldurWindow {
+    private final WindowModel model = new WindowModel();
     /** Crée une fenêtre vide. Préférer {@code GaldurLib.createWindow()}. */
     public GaldurWindow() {}
-
     /** Affiche la fenêtre à l'écran. Sans effet si elle est déjà ouverte. */
     public void open() {
         Minecraft minecraft = Minecraft.getInstance();
-        minecraft.tell(() -> minecraft.setScreen(new WindowScreen(this)));
+        minecraft.tell(() -> minecraft.setScreen(new WindowScreen(model)));
     }
-
     /** Ferme la fenêtre et revient à l'écran précédent. Sans effet si elle est fermée. */
     public void close() {}
 }
