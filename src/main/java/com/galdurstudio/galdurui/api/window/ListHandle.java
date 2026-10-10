@@ -49,17 +49,16 @@ public class ListHandle extends ElementHandle {
     }
 
     /**
-     * Remplace toutes les lignes. Si la ligne sélectionnée n'existe plus, la sélection est
-     * retirée (et {@link #onSelect(IntConsumer)} est prévenue avec {@code -1}).
+     * Remplace toutes les lignes, par exemple pour afficher le résultat d'une recherche. La
+     * sélection est retirée, puisque son index désignerait maintenant une autre ligne ; s'il y en
+     * avait une, {@link #onSelect(IntConsumer)} est prévenue avec {@code -1}.
      *
      * @param newLines les nouvelles lignes, dans l'ordre d'affichage ; la liste est copiée
      */
     public void setLines(List<Component> newLines) {
         lines.clear();
         lines.addAll(newLines);
-        if (selected >= lines.size()) {
-            setSelected(-1);
-        }
+        setSelected(-1);
     }
 
     /** Retire toutes les lignes, et la sélection avec elles. */

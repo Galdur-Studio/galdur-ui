@@ -1,11 +1,17 @@
 package com.galdurstudio.galdurui.internal.render;
 
 import com.mojang.blaze3d.systems.RenderSystem;
+import com.mojang.blaze3d.vertex.PoseStack;
+import java.util.ArrayList;
+import java.util.List;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Font;
 import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.util.FormattedCharSequence;
+import net.minecraft.world.item.ItemStack;
 
 /**
  * Couche de dessin de Galdur UI.
@@ -163,6 +169,91 @@ public final class GaldurRender {
         } finally {
             popClip(graphics);
         }
+    }
+
+    /** Côté d'une icône d'objet, en pixels d'interface. */
+    public static final int ITEM_SIZE = 16;
+
+    /**
+     * Dessine l'icône d'un objet, avec sa barre d'usure s'il en a une, mais sans sa quantité :
+     * voir {@link #drawItemCount(GuiGraphics, String, int, int, int)}.
+     *
+     * <p>Implémentation 1.21.1 : {@link GuiGraphics#renderItem(ItemStack, int, int)} puis
+     * {@link GuiGraphics#renderItemDecorations(Font, ItemStack, int, int, String)} avec un texte
+     * vide, qui dessine l'usure et le temps de recharge sans le nombre vanilla.</p>
+     *
+     * @param graphics contexte de rendu fourni par l'écran
+     * @param stack    l'objet ; rien n'est dessiné s'il est vide
+     * @param x        abscisse du coin supérieur gauche de l'icône (16 × 16)
+     * @param y        ordonnée du coin supérieur gauche de l'icône
+     */
+    public static void drawItem(GuiGraphics graphics, ItemStack stack, int x, int y) {
+        if (stack.isEmpty()) {
+            return;
+        }
+        graphics.renderItem(stack, x, y);
+        graphics.renderItemDecorations(font(), stack, x, y, "");
+    }
+
+    /**
+     * Dessine une quantité dans le coin inférieur droit d'une icône d'objet, par-dessus l'icône.
+     *
+     * <p>Un texte qui tient dans les 16 pixels de l'icône (« 64 ») est écrit à la taille normale,
+     * à la même place que le nombre vanilla. Un texte plus large (« 1,2k ») est écrit à demi-taille
+     * pour rester dans la case.</p>
+     *
+     * <p>Implémentation 1.21.1 : la pose de {@code graphics} est décalée vers l'avant
+     * ({@code z} + 200, comme vanilla) pour passer devant l'objet, puis rétablie.</p>
+     *
+     * @param graphics contexte de rendu fourni par l'écran
+     * @param text     le texte à écrire, en général {@code GaldurFormat.amount(...)}
+     * @param x        abscisse du coin supérieur gauche de l'icône
+     * @param y        ordonnée du coin supérieur gauche de l'icône
+     * @param argb     couleur du texte, en ARGB empaqueté
+     */
+    public static void drawItemCount(GuiGraphics graphics, String text, int x, int y, int argb) {
+        Font font = font();
+        int width = font.width(text);
+        PoseStack pose = graphics.pose();
+        pose.pushPose();
+        if (width <= ITEM_SIZE) {
+            pose.translate(0.0F, 0.0F, 200.0F);
+            graphics.drawString(font, text, x + ITEM_SIZE + 1 - width, y + 9, argb, true);
+        } else {
+            pose.translate(x + ITEM_SIZE, y + ITEM_SIZE, 200.0F);
+            pose.scale(0.5F, 0.5F, 1.0F);
+            graphics.drawString(font, text, -width, -font.lineHeight + 1, argb, true);
+        }
+        pose.popPose();
+    }
+
+    /**
+     * Demande à l'écran courant d'afficher l'infobulle d'un objet à la fin de son rendu, par-dessus
+     * tous les widgets : nom, description, enchantements... comme dans un inventaire.
+     *
+     * <p>À appeler pendant le rendu, à chaque image où la souris survole l'objet. Les lignes de
+     * {@code extra} sont ajoutées à la fin (par exemple la quantité exacte).</p>
+     *
+     * <p>Implémentation 1.21.1 : {@link Screen#getTooltipFromItem(Minecraft, ItemStack)} puis
+     * {@link Screen#setTooltipForNextRenderPass(List)}. Les infobulles à image (contenu d'un sac)
+     * ne sont pas affichées.</p>
+     *
+     * @param stack l'objet ; sans effet s'il est vide ou s'il n'y a pas d'écran ouvert
+     * @param extra lignes ajoutées après celles de l'objet
+     */
+    public static void showItemTooltip(ItemStack stack, List<Component> extra) {
+        Minecraft minecraft = Minecraft.getInstance();
+        Screen screen = minecraft.screen;
+        if (stack.isEmpty() || screen == null) {
+            return;
+        }
+        List<Component> lines = new ArrayList<>(Screen.getTooltipFromItem(minecraft, stack));
+        lines.addAll(extra);
+        List<FormattedCharSequence> sequences = new ArrayList<>(lines.size());
+        for (Component line : lines) {
+            sequences.add(line.getVisualOrderText());
+        }
+        screen.setTooltipForNextRenderPass(sequences);
     }
 
     /** {@return la composante de {@code argb} décalée de {@code shift} bits, entre 0 et 1} */

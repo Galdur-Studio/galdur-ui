@@ -55,6 +55,8 @@ public final class GaldurTheme {
     public static final String LIST_ROW_HEIGHT = "list_row_height";
     /** Largeur de la barre de défilement d'une liste. */
     public static final String SCROLLBAR_WIDTH = "scrollbar_width";
+    /** Hauteur d'un champ de saisie (champ de recherche). */
+    public static final String FIELD_HEIGHT = "field_height";
 
     /**
      * {@return la couleur ARGB associée à {@code key}}
@@ -177,6 +179,11 @@ public final class GaldurTheme {
     /** {@return la largeur de la barre de défilement d'une liste, en pixels} */
     public static int scrollbarWidth() {
         return spacing(SCROLLBAR_WIDTH);
+    }
+
+    /** {@return la hauteur d'un champ de saisie, en pixels} */
+    public static int fieldHeight() {
+        return spacing(FIELD_HEIGHT);
     }
 
     private GaldurTheme() {

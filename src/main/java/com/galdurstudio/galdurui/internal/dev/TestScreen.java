@@ -1,14 +1,19 @@
 package com.galdurstudio.galdurui.internal.dev;
 
+import com.galdurstudio.galdurui.GaldurUI;
 import com.galdurstudio.galdurui.api.layout.GaldurPanelLayout;
 import com.galdurstudio.galdurui.api.theme.GaldurTheme;
 import com.galdurstudio.galdurui.api.widget.GaldurButton;
+import com.galdurstudio.galdurui.api.widget.GaldurItemSlot;
 import com.galdurstudio.galdurui.api.widget.GaldurLabel;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.layouts.FrameLayout;
 import net.minecraft.client.gui.layouts.LinearLayout;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.network.chat.Component;
+import net.minecraft.world.item.Item;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.Items;
 
 /**
  * Écran de démonstration des widgets de Galdur UI.
@@ -63,6 +68,18 @@ public class TestScreen extends Screen {
 
         column.addChild(new ClipDemo());
 
+        LinearLayout slots = column.addChild(LinearLayout.horizontal().spacing(2));
+        slots.addChild(GaldurItemSlot.of(() -> new ItemStack(Items.DIRT)));
+        slots.addChild(GaldurItemSlot.of(() -> new ItemStack(Items.COBBLESTONE, 64)));
+        slots.addChild(slotWithAmount(Items.IRON_INGOT, 1_234));
+        slots.addChild(slotWithAmount(Items.DIAMOND, 64_000));
+        slots.addChild(slotWithAmount(Items.REDSTONE, 1_250_000));
+        slots.addChild(slotWithAmount(Items.EMERALD, 9_876_543_210L));
+        slots.addChild(GaldurItemSlot.of(TestScreen::damagedSword));
+        slots.addChild(GaldurItemSlot.of(() -> ItemStack.EMPTY));
+        GaldurItemSlot disabledSlot = slots.addChild(slotWithAmount(Items.GOLD_INGOT, 500));
+        disabledSlot.active = false;
+
         column.addChild(GaldurButton.of(Component.literal("Ouvrir une fenêtre Galdur"),
                 button -> GaldurDevCommands.openDemoWindow()));
 
@@ -89,6 +106,22 @@ public class TestScreen extends Screen {
         if (counter.getWidth() != previousWidth) {
             layoutPanel();
         }
+    }
+
+    /**
+     * {@return une case de démonstration avec une quantité fournie à part, qui écrit dans le
+     * journal le bouton de souris utilisé}
+     */
+    private static GaldurItemSlot slotWithAmount(Item item, long amount) {
+        return GaldurItemSlot.of(() -> new ItemStack(item), () -> amount)
+                .onPress(button -> GaldurUI.LOGGER.info("Case {} : clic {}", item, button == 0 ? "gauche" : "droit"));
+    }
+
+    /** {@return une épée usée, pour vérifier que la barre d'usure s'affiche} */
+    private static ItemStack damagedSword() {
+        ItemStack sword = new ItemStack(Items.DIAMOND_SWORD);
+        sword.setDamageValue(sword.getMaxDamage() * 2 / 3);
+        return sword;
     }
 
     private Component counterText() {

@@ -289,4 +289,34 @@ public class GaldurWindow {
         ListHandle handle = new ListHandle();
         return add(new ListElement(handle, visibleRows, centered), handle);
     }
+
+    /**
+     * Ajoute un champ de recherche à la fin de la fenêtre et renvoie sa poignée, qui porte le texte
+     * saisi. Le champ est aligné à gauche ; voir {@link #addSearch(Component, boolean)} pour le
+     * centrer.
+     *
+     * <pre>{@code
+     * SearchHandle recherche = window.addSearch(Component.literal("Rechercher..."));
+     * recherche.onChange(texte -> filtrer(texte));
+     * }</pre>
+     *
+     * @param placeholder texte d'indication, affiché tant que le champ est vide
+     * @return la poignée du champ
+     */
+    public SearchHandle addSearch(Component placeholder) {
+        return addSearch(placeholder, false);
+    }
+
+    /**
+     * Ajoute un champ de recherche à la fin de la fenêtre, centré ou aligné à gauche, et renvoie
+     * sa poignée.
+     *
+     * @param placeholder texte d'indication, affiché tant que le champ est vide
+     * @param centered    {@code true} pour le centrer dans la fenêtre, {@code false} pour l'aligner à gauche
+     * @return la poignée du champ
+     */
+    public SearchHandle addSearch(Component placeholder, boolean centered) {
+        SearchHandle handle = new SearchHandle();
+        return add(new SearchElement(placeholder, handle, centered), handle);
+    }
 }

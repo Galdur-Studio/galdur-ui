@@ -1,6 +1,6 @@
 /**
- * Widgets de Galdur UI : boutons, libellés, cases à cocher et listes défilantes aux couleurs de
- * la charte.
+ * Widgets de Galdur UI : boutons, libellés, cases à cocher, listes défilantes, champs de
+ * recherche et cases d'objet aux couleurs de la charte.
  *
  * <p>API publique, stable dans une même version majeure. Ces classes héritent de classes
  * vanilla ({@code AbstractWidget}) pour s'intégrer aux écrans et aux layouts

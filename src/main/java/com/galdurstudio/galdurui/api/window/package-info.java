@@ -15,7 +15,9 @@
  * {@code addRow()} renvoie une {@link com.galdurstudio.galdurui.api.window.RowHandle}, qui place
  * ses propres éléments côte à côte, et {@code addList(...)} une
  * {@link com.galdurstudio.galdurui.api.window.ListHandle}, qui porte les lignes et la sélection
- * d'une liste défilante.</p>
+ * d'une liste défilante. {@code addSearch(...)} renvoie une
+ * {@link com.galdurstudio.galdurui.api.window.SearchHandle}, qui porte le texte d'un champ de
+ * recherche.</p>
  *
  * <p><strong>Règle pour nos mods</strong> : ne jamais dépendre de
  * {@code com.galdurstudio.galdurui.internal}.</p>

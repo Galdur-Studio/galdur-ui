@@ -7,8 +7,11 @@ import com.galdurstudio.galdurui.api.window.ElementHandle;
 import com.galdurstudio.galdurui.api.window.GaldurWindow;
 import com.galdurstudio.galdurui.api.window.ListHandle;
 import com.galdurstudio.galdurui.api.window.RowHandle;
+import com.galdurstudio.galdurui.api.window.SearchHandle;
 import com.mojang.brigadier.Command;
+import java.text.Normalizer;
 import java.util.List;
+import java.util.Locale;
 import net.minecraft.client.Minecraft;
 import net.minecraft.commands.Commands;
 import net.minecraft.network.chat.Component;
@@ -62,7 +65,8 @@ public final class GaldurDevCommands {
      *
      * <p>Elle montre les états communs : un texte caché qui libère sa place (case « Afficher le
      * détail »), un bouton désactivé avec infobulle que la case « Mode avancé » active, et une
-     * infobulle sur une case, une liste défilante de minerais dont la sélection active le bouton
+     * infobulle sur une case, un champ de recherche qui filtre une liste défilante de minerais, dont la
+     * sélection active le bouton
      * « Prendre », et une ligne centrée de boutons. Ouverte depuis
      * l'écran de test, Échap et « Quitter » y reviennent.</p>
      */
@@ -78,11 +82,12 @@ public final class GaldurDevCommands {
         CheckboxHandle advanced = window.addCheckbox(Component.literal("Mode avancé"), false);
         advanced.setTooltip(Component.literal("Débloque les options avancées"));
 
+        List<String> allOres = List.of("Charbon", "Fer", "Cuivre", "Or", "Redstone", "Lapis-lazuli",
+                "Diamant", "Émeraude", "Quartz du Nether", "Débris antiques");
+        SearchHandle search = window.addSearch(Component.literal("Rechercher un minerai..."), true);
         ListHandle ores = window.addList(5, true);
-        for (String ore : List.of("Charbon", "Fer", "Cuivre", "Or", "Redstone", "Lapis-lazuli",
-                "Diamant", "Émeraude", "Quartz du Nether", "Débris antiques")) {
-            ores.addLine(Component.literal(ore));
-        }
+        ores.setLines(filterOres(allOres, ""));
+        search.onChange(query -> ores.setLines(filterOres(allOres, query)));
 
         RowHandle actions = window.addRow(true);
         ElementHandle take = actions.addButton(Component.literal("Prendre"),
@@ -97,6 +102,25 @@ public final class GaldurDevCommands {
         advanced.onChange(options::setEnabled);
         actions.addButton(Component.literal("Quitter"), window::close);
         window.open();
+    }
+
+    /**
+     * {@return les minerais dont le nom contient {@code query}, sans tenir compte des majuscules
+     * ni des accents (« emer » trouve « Émeraude »)}
+     */
+    private static List<Component> filterOres(List<String> ores, String query) {
+        String wanted = simplify(query.trim());
+        return ores.stream()
+                .filter(ore -> simplify(ore).contains(wanted))
+                .map(ore -> (Component) Component.literal(ore))
+                .toList();
+    }
+
+    /** {@return {@code text} en minuscules et sans accents} */
+    private static String simplify(String text) {
+        return Normalizer.normalize(text, Normalizer.Form.NFD)
+                .replaceAll("\\p{M}", "")
+                .toLowerCase(Locale.ROOT);
     }
 
     /**
