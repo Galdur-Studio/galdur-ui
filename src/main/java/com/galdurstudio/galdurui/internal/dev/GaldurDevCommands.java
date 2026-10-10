@@ -5,6 +5,7 @@ import com.galdurstudio.galdurui.api.GaldurLib;
 import com.galdurstudio.galdurui.api.window.CheckboxHandle;
 import com.galdurstudio.galdurui.api.window.ElementHandle;
 import com.galdurstudio.galdurui.api.window.GaldurWindow;
+import com.galdurstudio.galdurui.api.window.RowHandle;
 import com.mojang.brigadier.Command;
 import net.minecraft.client.Minecraft;
 import net.minecraft.commands.Commands;
@@ -59,7 +60,8 @@ public final class GaldurDevCommands {
      *
      * <p>Elle montre les états communs : un texte caché qui libère sa place (case « Afficher le
      * détail »), un bouton désactivé avec infobulle que la case « Mode avancé » active, et une
-     * infobulle sur une case. Ouverte depuis l'écran de test, Échap et « Quitter » y reviennent.</p>
+     * infobulle sur une case. Les deux boutons du bas sont dans une ligne centrée. Ouverte depuis
+     * l'écran de test, Échap et « Quitter » y reviennent.</p>
      */
     static void openDemoWindow() {
         GaldurWindow window = GaldurLib.createWindow();
@@ -72,13 +74,14 @@ public final class GaldurDevCommands {
 
         CheckboxHandle advanced = window.addCheckbox(Component.literal("Mode avancé"), false);
         advanced.setTooltip(Component.literal("Débloque les options avancées"));
-        ElementHandle options = window.addButton(Component.literal("Options avancées"),
-                () -> GaldurUI.LOGGER.info("Options avancées"), true);
+
+        RowHandle actions = window.addRow(true);
+        ElementHandle options = actions.addButton(Component.literal("Options avancées"),
+                () -> GaldurUI.LOGGER.info("Options avancées"));
         options.setEnabled(false);
         options.setTooltip(Component.literal("Coche « Mode avancé » pour y accéder"));
         advanced.onChange(options::setEnabled);
-
-        window.addButton(Component.literal("Quitter"), window::close, true);
+        actions.addButton(Component.literal("Quitter"), window::close);
         window.open();
     }
 

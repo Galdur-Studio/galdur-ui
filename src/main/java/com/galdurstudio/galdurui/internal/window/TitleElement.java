@@ -19,9 +19,9 @@ import net.minecraft.network.chat.Component;
  */
 public record TitleElement(Component title, boolean centered, ElementHandle handle) implements WindowElement {
     @Override
-    public LayoutElement createWidget() {
+    public LayoutElement createWidget(boolean enabled) {
         Component bold = title.copy().withStyle(ChatFormatting.BOLD);
-        return handle.isEnabled() ? GaldurLabel.of(bold) : GaldurLabel.muted(bold);
+        return enabled ? GaldurLabel.of(bold) : GaldurLabel.muted(bold);
     }
 
     @Override

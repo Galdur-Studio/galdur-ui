@@ -30,9 +30,14 @@ public interface WindowElement {
      * <p>Appelée à chaque {@code init()} de l'écran : elle doit renvoyer une nouvelle instance
      * à chaque appel, sans réutiliser un widget déjà donné à l'écran.</p>
      *
+     * <p>L'état actif est fourni par {@link WindowScreen} plutôt que lu dans {@link #handle()} :
+     * un élément placé dans une ligne désactivée est désactivé lui aussi, même si sa propre
+     * poignée est active.</p>
+     *
+     * @param enabled {@code true} si l'élément et tout ce qui le contient sont actifs
      * @return le widget prêt à être placé dans une mise en page
      */
-    LayoutElement createWidget();
+    LayoutElement createWidget(boolean enabled);
 
     /**
      * Règle la façon dont l'élément est placé dans la mise en page (alignement, marges...).

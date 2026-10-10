@@ -10,7 +10,7 @@ import net.minecraft.network.chat.Component;
  * Élément de fenêtre qui affiche un bouton cliquable.
  *
  * <p>Le widget attend une action qui reçoit le bouton ; l'API publique donne un simple
- * {@link Runnable}. {@link #createWidget()} fait le pont entre les deux.</p>
+ * {@link Runnable}. {@link #createWidget(boolean)} fait le pont entre les deux.</p>
  *
  * @param label     le libellé du bouton
  * @param action   exécutée à chaque activation du bouton, à la souris ou au clavier
@@ -19,7 +19,7 @@ import net.minecraft.network.chat.Component;
  */
 public record ButtonElement(Component label, Runnable action, boolean centered, ElementHandle handle) implements WindowElement  {
     @Override
-    public LayoutElement createWidget() {
+    public LayoutElement createWidget(boolean enabled) {
         return GaldurButton.of(label, button -> action.run());
     }
 

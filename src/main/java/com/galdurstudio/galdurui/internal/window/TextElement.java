@@ -15,8 +15,8 @@ import net.minecraft.network.chat.Component;
  */
 public record TextElement(Component text, boolean centered, ElementHandle handle) implements WindowElement {
     @Override
-    public LayoutElement createWidget() {
-        return handle.isEnabled() ? GaldurLabel.of(text) : GaldurLabel.muted(text);
+    public LayoutElement createWidget(boolean enabled) {
+        return enabled ? GaldurLabel.of(text) : GaldurLabel.muted(text);
     }
 
     @Override

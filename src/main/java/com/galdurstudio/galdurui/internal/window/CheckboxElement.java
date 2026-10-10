@@ -21,7 +21,7 @@ import net.minecraft.network.chat.Component;
  */
 public record CheckboxElement(Component label, CheckboxHandle handle, boolean centered) implements WindowElement {
     @Override
-    public LayoutElement createWidget() {
+    public LayoutElement createWidget(boolean enabled) {
         return GaldurCheckbox.of(label, handle::isChecked, handle::setChecked);
     }
 

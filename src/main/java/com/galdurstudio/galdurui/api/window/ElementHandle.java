@@ -41,13 +41,18 @@ public class ElementHandle {
     /** Prévient la fenêtre qu'un état a changé ; posé par {@link GaldurWindow}. */
     private Runnable onChange = () -> {};
 
-    /** Non publique : seule {@link GaldurWindow} crée des poignées. */
+    /** Non publique : seules {@link GaldurWindow} et {@link RowHandle} créent des poignées. */
     ElementHandle() {
     }
 
-    /** Branche la fenêtre qui doit se mettre à jour quand l'état change. */
+    /** Branche la fenêtre (ou la ligne) qui doit se mettre à jour quand l'état change. */
     void setChangeListener(Runnable onChange) {
         this.onChange = onChange;
+    }
+
+    /** Prévient la fenêtre que l'élément a changé et qu'elle doit se reconstruire. */
+    void changed() {
+        onChange.run();
     }
 
     /**
@@ -58,7 +63,7 @@ public class ElementHandle {
     public void setEnabled(boolean enabled) {
         if (enabled != this.enabled) {
             this.enabled = enabled;
-            onChange.run();
+            changed();
         }
     }
 
@@ -76,7 +81,7 @@ public class ElementHandle {
     public void setVisible(boolean visible) {
         if (visible != this.visible) {
             this.visible = visible;
-            onChange.run();
+            changed();
         }
     }
 
@@ -93,7 +98,7 @@ public class ElementHandle {
     public void setTooltip(@Nullable Component tooltip) {
         if (!Objects.equals(tooltip, this.tooltip)) {
             this.tooltip = tooltip;
-            onChange.run();
+            changed();
         }
     }
 

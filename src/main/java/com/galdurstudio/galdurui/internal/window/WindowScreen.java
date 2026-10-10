@@ -8,6 +8,7 @@ import net.minecraft.client.gui.components.AbstractWidget;
 import net.minecraft.client.gui.components.Tooltip;
 import net.minecraft.client.gui.layouts.FrameLayout;
 import net.minecraft.client.gui.layouts.LayoutElement;
+import net.minecraft.client.gui.layouts.LayoutSettings;
 import net.minecraft.client.gui.layouts.LinearLayout;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.network.chat.Component;
@@ -94,17 +95,64 @@ public class WindowScreen extends Screen {
     }
 
     /**
-     * Applique au widget l'état désactivé et l'infobulle de la poignée.
+     * Construit le widget d'un élément avec l'état hérité de ce qui le contient.
+     *
+     * <p>Un élément est actif seulement si lui et sa ligne le sont ; sans infobulle à lui, il
+     * prend celle de sa ligne.</p>
+     *
+     * @param element       l'élément à construire
+     * @param parentEnabled {@code false} si ce qui contient l'élément est désactivé
+     * @param parentTooltip l'infobulle de ce qui contient l'élément, ou {@code null}
+     * @return le widget, ou {@code null} si l'élément est caché et ne prend donc aucune place
+     */
+    @Nullable
+    private static LayoutElement build(WindowElement element, boolean parentEnabled, @Nullable Component parentTooltip) {
+        ElementHandle handle = element.handle();
+        if (!handle.isVisible()) {
+            return null;
+        }
+        boolean enabled = parentEnabled && handle.isEnabled();
+        Component tooltip = handle.getTooltip() != null ? handle.getTooltip() : parentTooltip;
+        if (element instanceof RowElement row) {
+            return buildRow(row, enabled, tooltip);
+        }
+        LayoutElement widget = element.createWidget(enabled);
+        if (widget instanceof AbstractWidget abstractWidget) {
+            applyState(abstractWidget, enabled, tooltip);
+        }
+        return widget;
+    }
+
+    /**
+     * Construit une ligne : ses éléments visibles côte à côte, centrés verticalement entre eux.
+     *
+     * @return la ligne, ou {@code null} si aucun de ses éléments n'est visible
+     */
+    @Nullable
+    private static LayoutElement buildRow(RowElement row, boolean enabled, @Nullable Component tooltip) {
+        LinearLayout line = LinearLayout.horizontal().spacing(GaldurTheme.gap());
+        boolean empty = true;
+        for (WindowElement child : row.children().elements()) {
+            LayoutElement widget = build(child, enabled, tooltip);
+            if (widget != null) {
+                line.addChild(widget, LayoutSettings::alignVerticallyMiddle);
+                empty = false;
+            }
+        }
+        return empty ? null : line;
+    }
+
+    /**
+     * Applique au widget l'état désactivé et l'infobulle.
      *
      * <p>Les libellés sont toujours inactifs ({@code active = false}, comme {@code StringWidget}) :
      * leur état désactivé se voit à la couleur, choisie par l'élément lui-même. L'infobulle
      * s'affiche au survol, que le widget soit actif ou non.</p>
      */
-    private static void applyState(AbstractWidget widget, ElementHandle handle) {
-        if (!handle.isEnabled()) {
+    private static void applyState(AbstractWidget widget, boolean enabled, @Nullable Component tooltip) {
+        if (!enabled) {
             widget.active = false;
         }
-        Component tooltip = handle.getTooltip();
         widget.setTooltip(tooltip == null ? null : Tooltip.create(tooltip));
     }
 
@@ -115,15 +163,10 @@ public class WindowScreen extends Screen {
         GaldurPanelLayout panel = new GaldurPanelLayout(layout);
         addRenderableOnly(panel);
         for (WindowElement element : model.elements()) {
-            ElementHandle handle = element.handle();
-            if (!handle.isVisible()) {
-                continue;
+            LayoutElement widget = build(element, true, null);
+            if (widget != null) {
+                layout.addChild(widget, element::adjustSettings);
             }
-            LayoutElement widget = element.createWidget();
-            if (widget instanceof AbstractWidget abstractWidget) {
-                applyState(abstractWidget, handle);
-            }
-            layout.addChild(widget, element::adjustSettings);
         }
         panel.arrangeElements();
         FrameLayout.centerInRectangle(panel, getRectangle());

@@ -230,4 +230,32 @@ public class GaldurWindow {
         CheckboxHandle handle = new CheckboxHandle(defaultState);
         return add(new CheckboxElement(label, handle, centered), handle);
     }
+
+    /**
+     * Ajoute une ligne à la fin de la fenêtre et renvoie sa poignée, pour y placer des éléments
+     * côte à côte. La ligne est alignée à gauche ; voir {@link #addRow(boolean)} pour la centrer.
+     *
+     * <pre>{@code
+     * RowHandle actions = window.addRow();
+     * actions.addButton(Component.literal("Valider"), this::valider);
+     * actions.addButton(Component.literal("Annuler"), window::close);
+     * }</pre>
+     *
+     * @return la poignée de la ligne, qui sert à y ajouter des éléments
+     */
+    public RowHandle addRow() {
+        return addRow(false);
+    }
+
+    /**
+     * Ajoute une ligne à la fin de la fenêtre, centrée ou alignée à gauche, et renvoie sa poignée.
+     *
+     * @param centered {@code true} pour la centrer dans la fenêtre, {@code false} pour l'aligner à gauche
+     * @return la poignée de la ligne, qui sert à y ajouter des éléments
+     */
+    public RowHandle addRow(boolean centered) {
+        WindowModel children = new WindowModel();
+        RowHandle handle = new RowHandle(children);
+        return add(new RowElement(children, centered, handle), handle);
+    }
 }
