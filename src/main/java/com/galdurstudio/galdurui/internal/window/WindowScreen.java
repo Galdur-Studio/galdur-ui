@@ -59,9 +59,17 @@ public class WindowScreen extends Screen {
     /**
      * Reconstruit les widgets à partir du modèle, par exemple après l'ajout d'un élément alors que
      * l'écran est déjà affiché. À appeler sur le thread du client.
+     *
+     * <p>Le focus est rendu au widget de même rang : un joueur qui navigue au clavier dans une
+     * liste ne le perd pas quand sa sélection change l'état d'un autre élément. Si un élément
+     * apparaît ou disparaît avant lui, le focus peut glisser d'un widget.</p>
      */
     public void rebuild() {
+        int focusedIndex = children().indexOf(getFocused());
         rebuildWidgets();
+        if (focusedIndex >= 0 && focusedIndex < children().size()) {
+            setFocused(children().get(focusedIndex));
+        }
     }
 
     /** Appelée par Minecraft quand l'écran devient l'écran courant. */

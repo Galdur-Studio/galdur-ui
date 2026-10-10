@@ -61,6 +61,8 @@ public class TestScreen extends Screen {
         demo.addChild(GaldurButton.of(Component.literal("Un libellé nettement plus long"), button -> {
         }));
 
+        column.addChild(new ClipDemo());
+
         column.addChild(GaldurButton.of(Component.literal("Ouvrir une fenêtre Galdur"),
                 button -> GaldurDevCommands.openDemoWindow()));
 

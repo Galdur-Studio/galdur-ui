@@ -96,6 +96,75 @@ public final class GaldurRender {
         graphics.fill(x, y, x + width, y + height, argb);
     }
 
+    /**
+     * Commence un découpage : jusqu'au {@link #popClip(GuiGraphics)} correspondant, seuls les
+     * pixels situés dans ce rectangle sont dessinés, le reste est coupé.
+     *
+     * <p>Les découpages s'empilent : un découpage ouvert à l'intérieur d'un autre ne garde que
+     * l'intersection des deux (une liste dans un onglet dans un panneau ne déborde d'aucun des
+     * trois). Chaque {@code pushClip} doit être suivi de son {@code popClip}, y compris quand le
+     * dessin lève une exception, sinon tout le reste de l'écran resterait découpé :
+     * {@link #drawClipped(GuiGraphics, int, int, int, int, Runnable)} s'en charge.</p>
+     *
+     * <p>Implémentation 1.21.1 : {@link GuiGraphics#enableScissor(int, int, int, int)}, qui gère
+     * la pile et vide le tampon de dessin en attente. Le rectangle est en coordonnées d'écran
+     * (pixels d'interface) : une translation appliquée à la pose de {@code graphics} n'est
+     * <strong>pas</strong> prise en compte en 1.21.1. Une largeur ou une hauteur négative est
+     * ramenée à zéro, ce qui ne laisse rien passer.</p>
+     *
+     * @param graphics contexte de rendu fourni par l'écran
+     * @param x        abscisse du coin supérieur gauche de la zone visible
+     * @param y        ordonnée du coin supérieur gauche de la zone visible
+     * @param width    largeur de la zone visible, en pixels d'interface
+     * @param height   hauteur de la zone visible, en pixels d'interface
+     */
+    public static void pushClip(GuiGraphics graphics, int x, int y, int width, int height) {
+        graphics.enableScissor(x, y, x + Math.max(0, width), y + Math.max(0, height));
+    }
+
+    /**
+     * Termine le dernier découpage ouvert par {@link #pushClip(GuiGraphics, int, int, int, int)}
+     * et rétablit le précédent (ou plus aucun découpage s'il n'y en avait qu'un).
+     *
+     * <p>Implémentation 1.21.1 : {@link GuiGraphics#disableScissor()}. Appeler cette méthode sans
+     * découpage ouvert est une erreur de programmation : Minecraft lève alors une
+     * {@link IllegalStateException}.</p>
+     *
+     * @param graphics contexte de rendu fourni par l'écran
+     */
+    public static void popClip(GuiGraphics graphics) {
+        graphics.disableScissor();
+    }
+
+    /**
+     * Exécute {@code draw} avec un découpage actif, puis le termine dans tous les cas, même si le
+     * dessin lève une exception. Forme à préférer à un {@code pushClip} / {@code popClip} écrit
+     * à la main.
+     *
+     * <pre>{@code
+     * GaldurRender.drawClipped(graphics, getX(), getY(), getWidth(), getHeight(), () -> {
+     *     for (Ligne ligne : lignesVisibles) {
+     *         ligne.render(graphics, ...);
+     *     }
+     * });
+     * }</pre>
+     *
+     * @param graphics contexte de rendu fourni par l'écran
+     * @param x        abscisse du coin supérieur gauche de la zone visible
+     * @param y        ordonnée du coin supérieur gauche de la zone visible
+     * @param width    largeur de la zone visible, en pixels d'interface
+     * @param height   hauteur de la zone visible, en pixels d'interface
+     * @param draw     le dessin à découper
+     */
+    public static void drawClipped(GuiGraphics graphics, int x, int y, int width, int height, Runnable draw) {
+        pushClip(graphics, x, y, width, height);
+        try {
+            draw.run();
+        } finally {
+            popClip(graphics);
+        }
+    }
+
     /** {@return la composante de {@code argb} décalée de {@code shift} bits, entre 0 et 1} */
     private static float channel(int argb, int shift) {
         return ((argb >>> shift) & 0xFF) / 255.0F;

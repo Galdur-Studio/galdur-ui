@@ -258,4 +258,35 @@ public class GaldurWindow {
         RowHandle handle = new RowHandle(children);
         return add(new RowElement(children, centered, handle), handle);
     }
+
+    /**
+     * Ajoute une liste défilante à la fin de la fenêtre et renvoie sa poignée, qui porte ses
+     * lignes et sa sélection. La liste est alignée à gauche ; voir
+     * {@link #addList(int, boolean)} pour la centrer.
+     *
+     * <pre>{@code
+     * ListHandle minerais = window.addList(5);
+     * minerais.addLine(Component.literal("Fer"));
+     * minerais.onSelect(index -> choisir(index));
+     * }</pre>
+     *
+     * @param visibleRows nombre de lignes visibles à la fois (au moins 1) ; fixe la hauteur
+     * @return la poignée de la liste
+     */
+    public ListHandle addList(int visibleRows) {
+        return addList(visibleRows, false);
+    }
+
+    /**
+     * Ajoute une liste défilante à la fin de la fenêtre, centrée ou alignée à gauche, et renvoie
+     * sa poignée.
+     *
+     * @param visibleRows nombre de lignes visibles à la fois (au moins 1) ; fixe la hauteur
+     * @param centered    {@code true} pour la centrer dans la fenêtre, {@code false} pour l'aligner à gauche
+     * @return la poignée de la liste
+     */
+    public ListHandle addList(int visibleRows, boolean centered) {
+        ListHandle handle = new ListHandle();
+        return add(new ListElement(handle, visibleRows, centered), handle);
+    }
 }

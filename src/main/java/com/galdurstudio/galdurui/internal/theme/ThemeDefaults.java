@@ -41,7 +41,9 @@ public final class ThemeDefaults {
                     GaldurTheme.GAP, 8,
                     GaldurTheme.BUTTON_PADDING_X, 6,
                     GaldurTheme.BUTTON_MIN_WIDTH, 40,
-                    GaldurTheme.BUTTON_HEIGHT, 20));
+                    GaldurTheme.BUTTON_HEIGHT, 20,
+                    GaldurTheme.LIST_ROW_HEIGHT, 12,
+                    GaldurTheme.SCROLLBAR_WIDTH, 4));
 
     private static final ThemeParser.Theme EMBEDDED = loadEmbedded();
 

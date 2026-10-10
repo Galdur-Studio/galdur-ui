@@ -5,8 +5,10 @@ import com.galdurstudio.galdurui.api.GaldurLib;
 import com.galdurstudio.galdurui.api.window.CheckboxHandle;
 import com.galdurstudio.galdurui.api.window.ElementHandle;
 import com.galdurstudio.galdurui.api.window.GaldurWindow;
+import com.galdurstudio.galdurui.api.window.ListHandle;
 import com.galdurstudio.galdurui.api.window.RowHandle;
 import com.mojang.brigadier.Command;
+import java.util.List;
 import net.minecraft.client.Minecraft;
 import net.minecraft.commands.Commands;
 import net.minecraft.network.chat.Component;
@@ -60,7 +62,8 @@ public final class GaldurDevCommands {
      *
      * <p>Elle montre les états communs : un texte caché qui libère sa place (case « Afficher le
      * détail »), un bouton désactivé avec infobulle que la case « Mode avancé » active, et une
-     * infobulle sur une case. Les deux boutons du bas sont dans une ligne centrée. Ouverte depuis
+     * infobulle sur une case, une liste défilante de minerais dont la sélection active le bouton
+     * « Prendre », et une ligne centrée de boutons. Ouverte depuis
      * l'écran de test, Échap et « Quitter » y reviennent.</p>
      */
     static void openDemoWindow() {
@@ -75,7 +78,18 @@ public final class GaldurDevCommands {
         CheckboxHandle advanced = window.addCheckbox(Component.literal("Mode avancé"), false);
         advanced.setTooltip(Component.literal("Débloque les options avancées"));
 
+        ListHandle ores = window.addList(5, true);
+        for (String ore : List.of("Charbon", "Fer", "Cuivre", "Or", "Redstone", "Lapis-lazuli",
+                "Diamant", "Émeraude", "Quartz du Nether", "Débris antiques")) {
+            ores.addLine(Component.literal(ore));
+        }
+
         RowHandle actions = window.addRow(true);
+        ElementHandle take = actions.addButton(Component.literal("Prendre"),
+                () -> GaldurUI.LOGGER.info("Prendre : {}", ores.getLines().get(ores.getSelected()).getString()));
+        take.setEnabled(false);
+        take.setTooltip(Component.literal("Choisis d'abord un minerai dans la liste"));
+        ores.onSelect(index -> take.setEnabled(index >= 0));
         ElementHandle options = actions.addButton(Component.literal("Options avancées"),
                 () -> GaldurUI.LOGGER.info("Options avancées"));
         options.setEnabled(false);

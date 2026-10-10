@@ -51,6 +51,10 @@ public final class GaldurTheme {
     public static final String BUTTON_MIN_WIDTH = "button_min_width";
     /** Hauteur par défaut d'un bouton. */
     public static final String BUTTON_HEIGHT = "button_height";
+    /** Hauteur d'une ligne de liste défilante, texte compris. */
+    public static final String LIST_ROW_HEIGHT = "list_row_height";
+    /** Largeur de la barre de défilement d'une liste. */
+    public static final String SCROLLBAR_WIDTH = "scrollbar_width";
 
     /**
      * {@return la couleur ARGB associée à {@code key}}
@@ -163,6 +167,16 @@ public final class GaldurTheme {
     /** {@return la hauteur par défaut d'un bouton, en pixels} */
     public static int buttonHeight() {
         return spacing(BUTTON_HEIGHT);
+    }
+
+    /** {@return la hauteur d'une ligne de liste défilante, en pixels} */
+    public static int listRowHeight() {
+        return spacing(LIST_ROW_HEIGHT);
+    }
+
+    /** {@return la largeur de la barre de défilement d'une liste, en pixels} */
+    public static int scrollbarWidth() {
+        return spacing(SCROLLBAR_WIDTH);
     }
 
     private GaldurTheme() {

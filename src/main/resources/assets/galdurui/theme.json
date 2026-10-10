@@ -20,6 +20,8 @@
     "gap": 8,
     "button_padding_x": 6,
     "button_min_width": 40,
-    "button_height": 20
+    "button_height": 20,
+    "list_row_height": 12,
+    "scrollbar_width": 4
   }
 }
