@@ -32,15 +32,27 @@ avertissement dans le journal, plutôt que de donner une couleur invisible.
 
 ## Sprites
 
-Les sprites 9-slice (`panel`, `button`, `button_hover`, `button_pressed`, `button_disabled`,
-bordure 4 ; `panel` 256×256, boutons 64×64) de `assets/galdurui/textures/gui/sprites/` sont en niveaux de gris : leur
+Les sprites 9-slice de `assets/galdurui/textures/gui/sprites/` sont en niveaux de gris : leur
 couleur vient du thème et est appliquée au rendu (un pixel blanc prend exactement la couleur
 du thème). Modifier les couleurs de `theme.json` ne demande donc pas de régénérer les images.
 Seule la forme (coins, relief) est décrite par le générateur. Les sprites sont volontairement
 grands : Minecraft 1.21.1 n'étire pas les bords et le centre d'un 9-slice, il les répète (une
 tuile = sprite − 2×bordure) à raison d'un quad par tuile, donc un petit sprite coûte des
 centaines d'appels de dessin sur un grand panneau. Bords et centre doivent rester uniformes,
-sinon la répétition se voit :
+sinon la répétition se voit.
+
+| Sprite | Taille, bordure | Relief | Utilisé par (teinte) |
+|---|---|---|---|
+| `panel` | 256, 4 | bombé | `GaldurPanelLayout` (`background`) |
+| `button`, `button_hover`, `button_pressed`, `button_disabled` | 64, 4 | bombé (`pressed` en creux) | `GaldurButton`, `GaldurIconButton` (accent selon l'état, `surface` désactivé) |
+| `field` | 64, 4 | creux | champ de recherche, cadre de liste, case à cocher (`surface`), rail de barre de progression (`background`) |
+| `slot` | 64, 4 | creux | `GaldurItemSlot` (`background`) |
+| `tab`, `tab_selected` | 64, 4 | bombé, ouvert en bas | `GaldurTabs` (`surface`, `accent` pour l'onglet actif) |
+| `scrollbar_track`, `scrollbar_thumb` | 32, 2 | creux / bombé | barre de défilement de `GaldurScrollList` (`background`, `text_muted`) |
+
+Les sprites aux mêmes pixels (`button`/`button_hover`/`button_disabled`, `field`/`slot`,
+`tab`/`tab_selected`) restent séparés pour qu'un pack de ressources puisse redessiner chacun.
+Pour les régénérer :
 
 ```powershell
 .\gradlew.bat generateSprites
@@ -95,10 +107,10 @@ passe par l'API, moins il a de code à reprendre à chaque version de Minecraft.
 - **Méthodes d'API non utilisées en interne** : `GaldurButton.withSprites`, `getPreferredWidth`, `isHeld`, `clearHeld`,
   `GaldurLabel.getText`, `GaldurPanelLayout.withSprite`, `getChild`, etc. ne sont pas appelés
   dans ce dépôt mais sont gardés volontairement : ils font partie de l'API offerte à nos mods.
-- **Cinq sprites distincts, même si quatre sont identiques** : `panel`, `button`,
-  `button_hover` et `button_disabled` ont aujourd'hui les mêmes pixels (seule la teinte du thème
-  les distingue). Ils restent séparés pour qu'un pack de ressources puisse redessiner chaque état
-  indépendamment.
+- **Sprites distincts, même aux pixels identiques** : `panel`, `button`, `button_hover` et
+  `button_disabled` ont aujourd'hui les mêmes pixels, comme `field` et `slot`, ou `tab` et
+  `tab_selected` (seule la teinte du thème les distingue). Ils restent séparés pour qu'un pack de
+  ressources puisse redessiner chaque état indépendamment.
 
 ## Licence
 

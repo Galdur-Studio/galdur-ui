@@ -2,6 +2,7 @@ package com.galdurstudio.galdurui.api.widget;
 
 import com.galdurstudio.galdurui.api.theme.GaldurTheme;
 import com.galdurstudio.galdurui.internal.render.GaldurRender;
+import com.galdurstudio.galdurui.internal.render.GaldurSprites;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.AbstractWidget;
@@ -70,12 +71,13 @@ public class GaldurCheckbox extends AbstractWidget {
         int labelY = getY() + (getHeight() - GaldurRender.lineHeight()) / 2;
         boolean highlighted = active
                 && (isHovered() || (isFocused() && Minecraft.getInstance().getLastInputType().isKeyboard()));
-        int outline = highlighted ? GaldurTheme.accentHover() : GaldurTheme.textMuted();
         int mark = active ? GaldurTheme.accent() : GaldurTheme.textMuted();
         int label = active ? GaldurTheme.text() : GaldurTheme.textMuted();
 
-        GaldurRender.drawFill(guiGraphics, getX(), boxY, BOX_SIZE, BOX_SIZE, GaldurTheme.surface());
-        GaldurRender.drawOutline(guiGraphics, getX(), boxY, BOX_SIZE, BOX_SIZE, outline);
+        GaldurRender.drawNineSlice(guiGraphics, GaldurSprites.FIELD, getX(), boxY, BOX_SIZE, BOX_SIZE, GaldurTheme.surface());
+        if (highlighted) {
+            GaldurRender.drawOutline(guiGraphics, getX(), boxY, BOX_SIZE, BOX_SIZE, GaldurTheme.accentHover());
+        }
         if (checked.getAsBoolean()) {
             GaldurRender.drawFill(guiGraphics, getX() + 2, boxY + 2, BOX_SIZE - 4, BOX_SIZE - 4, mark);
         }

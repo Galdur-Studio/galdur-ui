@@ -3,6 +3,7 @@ package com.galdurstudio.galdurui.api.widget;
 import com.galdurstudio.galdurui.api.text.GaldurFormat;
 import com.galdurstudio.galdurui.api.theme.GaldurTheme;
 import com.galdurstudio.galdurui.internal.render.GaldurRender;
+import com.galdurstudio.galdurui.internal.render.GaldurSprites;
 import java.util.List;
 import java.util.function.IntConsumer;
 import java.util.function.LongSupplier;
@@ -110,9 +111,10 @@ public class GaldurItemSlot extends AbstractWidget {
         boolean keyboardFocused = isFocused() && Minecraft.getInstance().getLastInputType().isKeyboard();
         boolean highlighted = active && (isHovered() || keyboardFocused);
 
-        GaldurRender.drawFill(guiGraphics, getX(), getY(), SIZE, SIZE, GaldurTheme.background());
-        GaldurRender.drawOutline(guiGraphics, getX(), getY(), SIZE, SIZE,
-                highlighted ? GaldurTheme.accentHover() : GaldurTheme.surface());
+        GaldurRender.drawNineSlice(guiGraphics, GaldurSprites.SLOT, getX(), getY(), SIZE, SIZE, GaldurTheme.background());
+        if (highlighted) {
+            GaldurRender.drawOutline(guiGraphics, getX(), getY(), SIZE, SIZE, GaldurTheme.accentHover());
+        }
         if (highlighted) {
             GaldurRender.drawFill(guiGraphics, itemX, itemY, GaldurRender.ITEM_SIZE, GaldurRender.ITEM_SIZE,
                     (HOVER_ALPHA << 24) | (GaldurTheme.accent() & 0xFFFFFF));

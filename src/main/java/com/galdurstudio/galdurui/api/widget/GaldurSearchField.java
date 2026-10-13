@@ -2,6 +2,7 @@ package com.galdurstudio.galdurui.api.widget;
 
 import com.galdurstudio.galdurui.api.theme.GaldurTheme;
 import com.galdurstudio.galdurui.internal.render.GaldurRender;
+import com.galdurstudio.galdurui.internal.render.GaldurSprites;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
 import net.minecraft.client.Minecraft;
@@ -122,9 +123,11 @@ public class GaldurSearchField extends AbstractWidget {
         input.setTextColorUneditable(GaldurTheme.textMuted());
 
         boolean highlighted = active && (isFocused() || isHovered());
-        GaldurRender.drawFill(guiGraphics, getX(), getY(), getWidth(), getHeight(), GaldurTheme.surface());
-        GaldurRender.drawOutline(guiGraphics, getX(), getY(), getWidth(), getHeight(),
-                highlighted ? GaldurTheme.accentHover() : GaldurTheme.textMuted());
+        GaldurRender.drawNineSlice(guiGraphics, GaldurSprites.FIELD, getX(), getY(), getWidth(), getHeight(),
+                GaldurTheme.surface());
+        if (highlighted) {
+            GaldurRender.drawOutline(guiGraphics, getX(), getY(), getWidth(), getHeight(), GaldurTheme.accentHover());
+        }
 
         if (input.getValue().isEmpty()) {
             GaldurRender.drawClipped(guiGraphics, input.getX(), getY(), input.getWidth(), getHeight(),

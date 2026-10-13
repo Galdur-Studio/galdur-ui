@@ -2,6 +2,7 @@ package com.galdurstudio.galdurui.api.widget;
 
 import com.galdurstudio.galdurui.api.theme.GaldurTheme;
 import com.galdurstudio.galdurui.internal.render.GaldurRender;
+import com.galdurstudio.galdurui.internal.render.GaldurSprites;
 import java.util.function.DoubleSupplier;
 import java.util.function.Supplier;
 import net.minecraft.Util;
@@ -31,7 +32,8 @@ import org.jetbrains.annotations.Nullable;
  * <ul>
  *   <li><strong>Remplissage</strong> : de gauche à droite, en dégradé de {@code accent}
  *       (redstone) à {@code ember} (braise) sur toute la largeur : la tête de la barre se
- *       réchauffe à mesure qu'elle avance. Fond {@code background}, cadre {@code text_muted}, et
+ *       réchauffe à mesure qu'elle avance. Rail en creux (sprite {@code field} teinté
+ *       {@code background}), et
  *       la colonne de tête est éclaircie pour marquer le front.</li>
  *   <li><strong>Animation</strong> : la barre glisse vers sa nouvelle valeur au lieu de sauter
  *       (elle revient en arrière d'un coup, pour qu'une remise à zéro soit nette), et un éclat
@@ -181,7 +183,8 @@ public class GaldurProgressBar extends AbstractWidget {
         double value = updateShown();
         int filled = (int) Math.round(innerWidth * value);
 
-        GaldurRender.drawFill(guiGraphics, innerX, innerY, innerWidth, innerHeight, GaldurTheme.background());
+        GaldurRender.drawNineSlice(guiGraphics, GaldurSprites.FIELD, getX(), getY(), getWidth(), getHeight(),
+                GaldurTheme.background());
         if (filled > 0 && !active) {
             GaldurRender.drawFill(guiGraphics, innerX, innerY, filled, innerHeight, GaldurTheme.textMuted());
         } else if (filled > 0) {
@@ -202,7 +205,6 @@ public class GaldurProgressBar extends AbstractWidget {
                 GaldurRender.drawFill(guiGraphics, innerX + column, innerY, 1, innerHeight, color);
             }
         }
-        GaldurRender.drawOutline(guiGraphics, getX(), getY(), getWidth(), getHeight(), GaldurTheme.textMuted());
 
         Component text = label.get();
         if (text == null) {

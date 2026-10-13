@@ -2,6 +2,7 @@ package com.galdurstudio.galdurui.api.widget;
 
 import com.galdurstudio.galdurui.api.theme.GaldurTheme;
 import com.galdurstudio.galdurui.internal.render.GaldurRender;
+import com.galdurstudio.galdurui.internal.render.GaldurSprites;
 import java.util.List;
 import java.util.function.IntConsumer;
 import java.util.function.IntSupplier;
@@ -30,10 +31,10 @@ import org.lwjgl.glfw.GLFW;
  * }</pre>
  *
  * <ul>
- *   <li><strong>Onglet actif</strong> : rempli en {@code accent}, relié au trait du bas de la
- *       même couleur.</li>
- *   <li><strong>Autres onglets</strong> : plus bas, en {@code surface}, texte en
- *       {@code text_muted} ; surlignés au survol.</li>
+ *   <li><strong>Onglet actif</strong> : sprite {@code tab_selected} teinté {@code accent},
+ *       relié au trait du bas de la même couleur.</li>
+ *   <li><strong>Autres onglets</strong> : plus bas, sprite {@code tab} teinté {@code surface},
+ *       texte en {@code text_muted} ; teinte tirée vers l'accent au survol.</li>
  *   <li><strong>Clavier</strong> : flèches gauche et droite quand la rangée a le focus ; l'onglet
  *       actif est alors entouré en {@code accent_hover}.</li>
  *   <li><strong>Désactivée</strong> ({@code active = false}) : couleurs atténuées, ni clic ni
@@ -51,8 +52,8 @@ public class GaldurTabs extends AbstractWidget {
     private static final int UNDERLINE = 2;
     /** Décalage vers le bas des onglets inactifs, pour que l'onglet actif ressorte. */
     private static final int INACTIVE_INSET = 2;
-    /** Opacité du surlignage d'un onglet survolé (0 à 255). */
-    private static final int HOVER_ALPHA = 0x40;
+    /** Part de l'accent mêlée au fond d'un onglet survolé (0 à 1). */
+    private static final double HOVER_MIX = 0.3;
 
     private final List<Component> titles;
     private final IntSupplier selected;
@@ -139,6 +140,17 @@ public class GaldurTabs extends AbstractWidget {
         return -1;
     }
 
+    /** {@return la couleur à {@code t} (0 à 1) entre {@code from} et {@code to}, canal par canal} */
+    private static int mix(int from, int to, double t) {
+        int result = 0;
+        for (int shift = 0; shift <= 24; shift += 8) {
+            int a = (from >>> shift) & 0xFF;
+            int b = (to >>> shift) & 0xFF;
+            result |= ((int) Math.round(a + (b - a) * t) & 0xFF) << shift;
+        }
+        return result;
+    }
+
     @Override
     protected void renderWidget(GuiGraphics guiGraphics, int mouseX, int mouseY, float partialTick) {
         int selectedIndex = selected.getAsInt();
@@ -159,14 +171,13 @@ public class GaldurTabs extends AbstractWidget {
             int height = lineY - top;
             int textColor;
             if (isSelected) {
-                GaldurRender.drawFill(guiGraphics, x, top, width, height, activeFill);
+                GaldurRender.drawNineSlice(guiGraphics, GaldurSprites.TAB_SELECTED, x, top, width, height, activeFill);
                 textColor = active ? GaldurTheme.text() : GaldurTheme.textMuted();
             } else {
-                GaldurRender.drawFill(guiGraphics, x, top, width, height, GaldurTheme.surface());
-                if (index == hovered) {
-                    GaldurRender.drawFill(guiGraphics, x, top, width, height,
-                            (HOVER_ALPHA << 24) | (GaldurTheme.accent() & 0xFFFFFF));
-                }
+                int tint = index == hovered
+                        ? mix(GaldurTheme.surface(), GaldurTheme.accent(), HOVER_MIX)
+                        : GaldurTheme.surface();
+                GaldurRender.drawNineSlice(guiGraphics, GaldurSprites.TAB, x, top, width, height, tint);
                 textColor = index == hovered ? GaldurTheme.text() : GaldurTheme.textMuted();
             }
             int textY = top + (height - GaldurRender.lineHeight()) / 2 + 1;

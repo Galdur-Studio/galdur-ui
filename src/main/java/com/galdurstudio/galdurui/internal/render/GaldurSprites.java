@@ -25,6 +25,18 @@ public final class GaldurSprites {
     public static final ResourceLocation BUTTON_PRESSED = sprite("button_pressed");
     /** Bouton désactivé. */
     public static final ResourceLocation BUTTON_DISABLED = sprite("button_disabled");
+    /** Creux : champ de recherche, cadre de liste, case à cocher, rail de barre de progression. */
+    public static final ResourceLocation FIELD = sprite("field");
+    /** Case d'objet (mêmes pixels que {@link #FIELD} à l'origine, redessinable à part). */
+    public static final ResourceLocation SLOT = sprite("slot");
+    /** Onglet inactif : coins arrondis en haut, ouvert en bas. */
+    public static final ResourceLocation TAB = sprite("tab");
+    /** Onglet actif. */
+    public static final ResourceLocation TAB_SELECTED = sprite("tab_selected");
+    /** Rail de la barre de défilement d'une liste (bordure 2). */
+    public static final ResourceLocation SCROLLBAR_TRACK = sprite("scrollbar_track");
+    /** Curseur de la barre de défilement d'une liste (bordure 2). */
+    public static final ResourceLocation SCROLLBAR_THUMB = sprite("scrollbar_thumb");
 
     private static ResourceLocation sprite(String name) {
         return ResourceLocation.fromNamespaceAndPath(GaldurUI.MODID, name);

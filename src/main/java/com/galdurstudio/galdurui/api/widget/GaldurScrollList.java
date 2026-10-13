@@ -2,6 +2,7 @@ package com.galdurstudio.galdurui.api.widget;
 
 import com.galdurstudio.galdurui.api.theme.GaldurTheme;
 import com.galdurstudio.galdurui.internal.render.GaldurRender;
+import com.galdurstudio.galdurui.internal.render.GaldurSprites;
 import java.util.List;
 import java.util.function.DoubleConsumer;
 import java.util.function.IntConsumer;
@@ -237,7 +238,8 @@ public class GaldurScrollList extends AbstractWidget {
         int textColor = active ? GaldurTheme.text() : GaldurTheme.textMuted();
         boolean keyboardFocused = isFocused() && Minecraft.getInstance().getLastInputType().isKeyboard();
 
-        GaldurRender.drawFill(guiGraphics, getX(), getY(), getWidth(), getHeight(), GaldurTheme.surface());
+        GaldurRender.drawNineSlice(guiGraphics, GaldurSprites.FIELD, getX(), getY(), getWidth(), getHeight(),
+                GaldurTheme.surface());
         GaldurRender.drawClipped(guiGraphics, innerX(), innerY(), rowsWidth, innerHeight(), () -> {
             int first = (int) (scroll / rowHeight);
             int last = Math.min(rows.size() - 1, (int) ((scroll + innerHeight()) / rowHeight));
@@ -257,13 +259,16 @@ public class GaldurScrollList extends AbstractWidget {
 
         if (hasScrollbar()) {
             int barWidth = GaldurTheme.scrollbarWidth();
-            GaldurRender.drawFill(guiGraphics, scrollbarX(), innerY(), barWidth, innerHeight(), GaldurTheme.background());
+            GaldurRender.drawNineSlice(guiGraphics, GaldurSprites.SCROLLBAR_TRACK, scrollbarX(), innerY(), barWidth,
+                    innerHeight(), GaldurTheme.background());
             int thumbColor = draggingThumb ? GaldurTheme.accentHover() : GaldurTheme.textMuted();
-            GaldurRender.drawFill(guiGraphics, scrollbarX(), thumbY(), barWidth, thumbHeight(), thumbColor);
+            GaldurRender.drawNineSlice(guiGraphics, GaldurSprites.SCROLLBAR_THUMB, scrollbarX(), thumbY(), barWidth,
+                    thumbHeight(), thumbColor);
         }
 
-        int outline = active && (keyboardFocused || draggingThumb) ? GaldurTheme.accentHover() : GaldurTheme.textMuted();
-        GaldurRender.drawOutline(guiGraphics, getX(), getY(), getWidth(), getHeight(), outline);
+        if (active && (keyboardFocused || draggingThumb)) {
+            GaldurRender.drawOutline(guiGraphics, getX(), getY(), getWidth(), getHeight(), GaldurTheme.accentHover());
+        }
     }
 
     @Override
