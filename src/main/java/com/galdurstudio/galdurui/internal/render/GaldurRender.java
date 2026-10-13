@@ -2,16 +2,20 @@ package com.galdurstudio.galdurui.internal.render;
 
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.PoseStack;
-import java.util.ArrayList;
-import java.util.List;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Font;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.screens.Screen;
+import net.minecraft.locale.Language;
+import net.minecraft.network.chat.CommonComponents;
 import net.minecraft.network.chat.Component;
+import net.minecraft.network.chat.FormattedText;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.FormattedCharSequence;
 import net.minecraft.world.item.ItemStack;
+
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Couche de dessin de Galdur UI.
@@ -24,6 +28,14 @@ import net.minecraft.world.item.ItemStack;
  * <p>Implémentation visant Minecraft 1.21.1.</p>
  */
 public final class GaldurRender {
+    /**
+     * Côté d'une icône d'objet, en pixels d'interface.
+     */
+    public static final int ITEM_SIZE = 16;
+
+    private GaldurRender() {
+    }
+
     /**
      * Dessine un sprite 9-slice teinté.
      *
@@ -171,9 +183,6 @@ public final class GaldurRender {
         }
     }
 
-    /** Côté d'une icône d'objet, en pixels d'interface. */
-    public static final int ITEM_SIZE = 16;
-
     /**
      * Dessine l'icône d'un objet, avec sa barre d'usure s'il en a une, mais sans sa quantité :
      * voir {@link #drawItemCount(GuiGraphics, String, int, int, int)}.
@@ -256,7 +265,9 @@ public final class GaldurRender {
         screen.setTooltipForNextRenderPass(sequences);
     }
 
-    /** {@return la composante de {@code argb} décalée de {@code shift} bits, entre 0 et 1} */
+    /**
+     * {@return la composante de {@code argb} décalée de {@code shift} bits, entre 0 et 1}
+     */
     private static float channel(int argb, int shift) {
         return ((argb >>> shift) & 0xFF) / 255.0F;
     }
@@ -278,6 +289,10 @@ public final class GaldurRender {
         graphics.drawString(font(), text, x, y, argb, shadow);
     }
 
+    public static void text(GuiGraphics graphics, FormattedCharSequence text, int x, int y, int argb, boolean shadow) {
+        graphics.drawString(font(), text, x, y, argb, shadow);
+    }
+
     /**
      * Dessine une ligne de texte avec ombre portée, centrée horizontalement.
      *
@@ -291,6 +306,16 @@ public final class GaldurRender {
         text(graphics, text, centerX - textWidth(text) / 2, y, argb, true);
     }
 
+    public static FormattedCharSequence truncateText(Component text, int maxWidth) {
+        int textWidth = font().width(text);
+        if (maxWidth <= 0 || textWidth <= maxWidth) {
+            return Language.getInstance().getVisualOrder(text);
+        }
+        int truncatedWidth = maxWidth - font().width(CommonComponents.ELLIPSIS);
+        FormattedText truncatedText = font().substrByWidth(text, truncatedWidth);
+        return Language.getInstance().getVisualOrder(FormattedText.composite(truncatedText, CommonComponents.ELLIPSIS));
+    }
+
     /**
      * {@return la largeur de {@code text} en pixels d'interface}
      *
@@ -302,16 +327,14 @@ public final class GaldurRender {
         return font().width(text);
     }
 
-    /** {@return la hauteur d'une ligne de texte de la police courante, en pixels d'interface} */
+    /**
+     * {@return la hauteur d'une ligne de texte de la police courante, en pixels d'interface}
+     */
     public static int lineHeight() {
         return font().lineHeight;
     }
 
     private static Font font() {
         return Minecraft.getInstance().font;
-    }
-
-
-    private GaldurRender() {
     }
 }

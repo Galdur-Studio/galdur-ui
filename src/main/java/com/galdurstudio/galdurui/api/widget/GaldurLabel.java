@@ -2,13 +2,15 @@ package com.galdurstudio.galdurui.api.widget;
 
 import com.galdurstudio.galdurui.api.theme.GaldurTheme;
 import com.galdurstudio.galdurui.internal.render.GaldurRender;
-import java.util.function.IntSupplier;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.AbstractWidget;
 import net.minecraft.client.gui.narration.NarratedElementType;
 import net.minecraft.client.gui.narration.NarrationElementOutput;
 import net.minecraft.client.sounds.SoundManager;
 import net.minecraft.network.chat.Component;
+import org.jetbrains.annotations.NotNull;
+
+import java.util.function.IntSupplier;
 
 /**
  * Ligne de texte aux couleurs de la charte, utilisable dans les layouts vanilla.
@@ -28,8 +30,11 @@ import net.minecraft.network.chat.Component;
  * n'est ouvert).</p>
  */
 public class GaldurLabel extends AbstractWidget {
-    /** Couleur ARGB, relue à chaque image pour suivre le thème. */
+    /**
+     * Couleur ARGB, relue à chaque image pour suivre le thème.
+     */
     private final IntSupplier color;
+    private final int maxWidth;
 
     /**
      * Crée un libellé.
@@ -38,10 +43,19 @@ public class GaldurLabel extends AbstractWidget {
      * @param color fournisseur de la couleur ARGB, appelé à chaque image
      */
     protected GaldurLabel(Component text, IntSupplier color) {
-        super(0, 0, GaldurRender.textWidth(text), GaldurRender.lineHeight(), text);
+        this(text, color, 0);
+    }
+
+    protected GaldurLabel(Component text, IntSupplier color, int maxWidth) {
+        super(0, 0, fitWidth(text, maxWidth), GaldurRender.lineHeight(), text);
         this.color = color;
+        this.maxWidth = maxWidth;
         // Comme StringWidget : un widget inactif n'est ni cliquable ni atteignable au clavier.
         this.active = false;
+    }
+
+    public static GaldurLabel of(Component text, int maxWidth) {
+        return new GaldurLabel(text, GaldurTheme::text, maxWidth);
     }
 
     /**
@@ -50,16 +64,35 @@ public class GaldurLabel extends AbstractWidget {
      * @param text texte affiché
      */
     public static GaldurLabel of(Component text) {
-        return new GaldurLabel(text, GaldurTheme::text);
+        return GaldurLabel.of(text, 0);
     }
+
 
     /**
      * {@return un libellé dans la couleur de texte secondaire ({@code text_muted})}
      *
      * @param text texte affiché
      */
+    public static GaldurLabel muted(Component text, int maxWidth) {
+        return new GaldurLabel(text, GaldurTheme::textMuted, maxWidth);
+    }
+
     public static GaldurLabel muted(Component text) {
-        return new GaldurLabel(text, GaldurTheme::textMuted);
+        return GaldurLabel.muted(text, 0);
+    }
+
+    private static int fitWidth(Component text, int maxWidth) {
+        if (maxWidth <= 0) {
+            return GaldurRender.textWidth(text);
+        }
+        return Math.min(maxWidth, GaldurRender.textWidth(text));
+    }
+
+    /**
+     * {@return le texte affiché}
+     */
+    public Component getText() {
+        return getMessage();
     }
 
     /**
@@ -72,17 +105,12 @@ public class GaldurLabel extends AbstractWidget {
      */
     public void setText(Component text) {
         setMessage(text);
-        setWidth(GaldurRender.textWidth(text));
-    }
-
-    /** {@return le texte affiché} */
-    public Component getText() {
-        return getMessage();
+        setWidth(fitWidth(text, maxWidth));
     }
 
     @Override
-    protected void renderWidget(GuiGraphics guiGraphics, int mouseX, int mouseY, float partialTick) {
-        GaldurRender.text(guiGraphics, getMessage(), getX(), getY(), color.getAsInt(), true);
+    protected void renderWidget(@NotNull GuiGraphics guiGraphics, int mouseX, int mouseY, float partialTick) {
+        GaldurRender.text(guiGraphics, GaldurRender.truncateText(getMessage(), maxWidth), getX(), getY(), color.getAsInt(), true);
     }
 
     @Override

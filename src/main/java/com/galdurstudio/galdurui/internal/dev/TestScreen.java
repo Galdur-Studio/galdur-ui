@@ -49,7 +49,7 @@ public class TestScreen extends Screen {
         LinearLayout column = LinearLayout.vertical().spacing(GaldurTheme.gap());
         column.defaultCellSetting().alignHorizontallyCenter();
 
-        column.addChild(GaldurLabel.of(getTitle()));
+        column.addChild(GaldurLabel.of(getTitle(), 40));
         counter = column.addChild(GaldurLabel.muted(counterText()));
 
         LinearLayout actions = column.addChild(LinearLayout.horizontal().spacing(GaldurTheme.gap()));
