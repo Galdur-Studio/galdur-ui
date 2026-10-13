@@ -25,6 +25,7 @@
     "scrollbar_width": 4,
     "field_height": 16,
     "tab_height": 16,
-    "tab_padding_x": 8
+    "tab_padding_x": 8,
+    "progress_height": 12
   }
 }

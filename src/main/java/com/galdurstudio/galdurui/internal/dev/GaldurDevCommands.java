@@ -6,6 +6,7 @@ import com.galdurstudio.galdurui.api.window.CheckboxHandle;
 import com.galdurstudio.galdurui.api.window.ElementHandle;
 import com.galdurstudio.galdurui.api.window.GaldurWindow;
 import com.galdurstudio.galdurui.api.window.ListHandle;
+import com.galdurstudio.galdurui.api.window.ProgressHandle;
 import com.galdurstudio.galdurui.api.window.RowHandle;
 import com.galdurstudio.galdurui.api.window.SearchHandle;
 import com.galdurstudio.galdurui.api.window.TabHandle;
@@ -74,7 +75,8 @@ public final class GaldurDevCommands {
      *       détail ») ;</li>
      *   <li><strong>Autocraft</strong> : la case « Mode avancé », qui active « Options avancées »
      *       dans l'onglet Stockage, pour vérifier qu'un changement dans un onglet caché est visible
-     *       en y revenant.</li>
+     *       en y revenant ; et une barre de progression « Lingots de fer : 0 / 64 », que
+     *       « Avancer de 8 » remplit, « Réinitialiser » vide et « Pause » désactive.</li>
      * </ul>
      *
      * <p>Sous les onglets, une ligne centrée : « Onglet suivant » change d'onglet par le code, et
@@ -119,12 +121,40 @@ public final class GaldurDevCommands {
         CheckboxHandle advanced = autocraft.addCheckbox(Component.literal("Mode avancé"), false);
         advanced.setTooltip(Component.literal("Débloque les options avancées du Stockage"));
         advanced.onChange(options::setEnabled);
+        long[] crafted = {0};
+        ProgressHandle craft = autocraft.addProgress(craftLabel(0));
+        RowHandle craftActions = autocraft.addRow();
+        ElementHandle advance = craftActions.addButton(Component.literal("Avancer de 8"), () -> {
+            crafted[0] = Math.min(CRAFT_TOTAL, crafted[0] + 8);
+            craft.setProgress(crafted[0], CRAFT_TOTAL);
+            craft.setLabel(craftLabel(crafted[0]));
+        });
+        craftActions.addButton(Component.literal("Réinitialiser"), () -> {
+            crafted[0] = 0;
+            craft.setProgress(0);
+            craft.setLabel(craftLabel(0));
+            craft.setEnabled(true);
+            advance.setEnabled(true);
+        });
+        ElementHandle pause = craftActions.addButton(Component.literal("Pause"), () -> {
+            craft.setEnabled(!craft.isEnabled());
+            advance.setEnabled(craft.isEnabled());
+        });
+        pause.setTooltip(Component.literal("Met la barre en pause (état désactivé)"));
 
         RowHandle actions = window.addRow(true);
         actions.addButton(Component.literal("Onglet suivant"),
                 () -> tabs.setSelected((tabs.getSelected() + 1) % tabs.getTabs().size()));
         actions.addButton(Component.literal("Quitter"), window::close);
         window.open();
+    }
+
+    /** Nombre de lingots à fabriquer dans la démo de barre de progression. */
+    private static final long CRAFT_TOTAL = 64;
+
+    /** {@return le texte de la barre de progression de la démo, par exemple « Lingots de fer : 16 / 64 »} */
+    private static Component craftLabel(long crafted) {
+        return Component.literal("Lingots de fer : " + crafted + " / " + CRAFT_TOTAL);
     }
 
     /**

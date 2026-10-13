@@ -3,6 +3,7 @@ package com.galdurstudio.galdurui.api.window;
 import com.galdurstudio.galdurui.internal.window.ButtonElement;
 import com.galdurstudio.galdurui.internal.window.CheckboxElement;
 import com.galdurstudio.galdurui.internal.window.ListElement;
+import com.galdurstudio.galdurui.internal.window.ProgressElement;
 import com.galdurstudio.galdurui.internal.window.RowElement;
 import com.galdurstudio.galdurui.internal.window.SearchElement;
 import com.galdurstudio.galdurui.internal.window.TextElement;
@@ -10,6 +11,7 @@ import com.galdurstudio.galdurui.internal.window.TitleElement;
 import com.galdurstudio.galdurui.internal.window.WindowElement;
 import com.galdurstudio.galdurui.internal.window.WindowModel;
 import net.minecraft.network.chat.Component;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * Ce qui reçoit des éléments empilés de haut en bas : une {@link GaldurWindow}, ou le contenu
@@ -221,5 +223,34 @@ public abstract class ElementContainer {
     public SearchHandle addSearch(Component placeholder, boolean centered) {
         SearchHandle handle = new SearchHandle();
         return add(new SearchElement(placeholder, handle, centered), handle);
+    }
+
+    /**
+     * Ajoute une barre de progression à la fin, alignée à gauche, et renvoie sa poignée, qui porte
+     * son avancement et son texte ; voir {@link #addProgress(Component, boolean)} pour la centrer.
+     *
+     * <pre>{@code
+     * ProgressHandle craft = window.addProgress(Component.literal("0 / 64"));
+     * craft.setProgress(16, 64);
+     * }</pre>
+     *
+     * @param label le texte affiché sur la barre, ou {@code null} pour aucun ; il fixe aussi la
+     *              largeur de la barre (au moins 100 pixels)
+     * @return la poignée de la barre, vide au départ
+     */
+    public ProgressHandle addProgress(@Nullable Component label) {
+        return addProgress(label, false);
+    }
+
+    /**
+     * Ajoute une barre de progression à la fin, centrée ou alignée à gauche, et renvoie sa poignée.
+     *
+     * @param label    le texte affiché sur la barre, ou {@code null} pour aucun
+     * @param centered {@code true} pour la centrer, {@code false} pour l'aligner à gauche
+     * @return la poignée de la barre, vide au départ
+     */
+    public ProgressHandle addProgress(@Nullable Component label, boolean centered) {
+        ProgressHandle handle = new ProgressHandle(label);
+        return add(new ProgressElement(handle, centered), handle);
     }
 }

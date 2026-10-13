@@ -36,17 +36,18 @@ public final class ThemeDefaults {
                     GaldurTheme.ACCENT_HOVER, 0xFF707070,
                     GaldurTheme.ACCENT_PRESSED, 0xFF505050,
                     GaldurTheme.EMBER, 0xFF808080),
-            Map.of(
-                    GaldurTheme.PANEL_PADDING, 16,
-                    GaldurTheme.GAP, 8,
-                    GaldurTheme.BUTTON_PADDING_X, 6,
-                    GaldurTheme.BUTTON_MIN_WIDTH, 40,
-                    GaldurTheme.BUTTON_HEIGHT, 20,
-                    GaldurTheme.LIST_ROW_HEIGHT, 12,
-                    GaldurTheme.SCROLLBAR_WIDTH, 4,
-                    GaldurTheme.FIELD_HEIGHT, 16,
-                    GaldurTheme.TAB_HEIGHT, 16,
-                    GaldurTheme.TAB_PADDING_X, 8));
+            Map.ofEntries(
+                    Map.entry(GaldurTheme.PANEL_PADDING, 16),
+                    Map.entry(GaldurTheme.GAP, 8),
+                    Map.entry(GaldurTheme.BUTTON_PADDING_X, 6),
+                    Map.entry(GaldurTheme.BUTTON_MIN_WIDTH, 40),
+                    Map.entry(GaldurTheme.BUTTON_HEIGHT, 20),
+                    Map.entry(GaldurTheme.LIST_ROW_HEIGHT, 12),
+                    Map.entry(GaldurTheme.SCROLLBAR_WIDTH, 4),
+                    Map.entry(GaldurTheme.FIELD_HEIGHT, 16),
+                    Map.entry(GaldurTheme.TAB_HEIGHT, 16),
+                    Map.entry(GaldurTheme.TAB_PADDING_X, 8),
+                    Map.entry(GaldurTheme.PROGRESS_HEIGHT, 12)));
 
     private static final ThemeParser.Theme EMBEDDED = loadEmbedded();
 

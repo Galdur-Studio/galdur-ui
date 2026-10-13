@@ -61,6 +61,8 @@ public final class GaldurTheme {
     public static final String TAB_HEIGHT = "tab_height";
     /** Marge horizontale entre le bord d'un onglet et son titre. */
     public static final String TAB_PADDING_X = "tab_padding_x";
+    /** Hauteur d'une barre de progression, cadre compris. */
+    public static final String PROGRESS_HEIGHT = "progress_height";
 
     /**
      * {@return la couleur ARGB associée à {@code key}}
@@ -198,6 +200,11 @@ public final class GaldurTheme {
     /** {@return la marge horizontale entre le bord d'un onglet et son titre, en pixels} */
     public static int tabPaddingX() {
         return spacing(TAB_PADDING_X);
+    }
+
+    /** {@return la hauteur d'une barre de progression, en pixels} */
+    public static int progressHeight() {
+        return spacing(PROGRESS_HEIGHT);
     }
 
     private GaldurTheme() {
