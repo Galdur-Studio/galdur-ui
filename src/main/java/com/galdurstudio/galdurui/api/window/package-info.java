@@ -17,7 +17,11 @@
  * {@link com.galdurstudio.galdurui.api.window.ListHandle}, qui porte les lignes et la sélection
  * d'une liste défilante. {@code addSearch(...)} renvoie une
  * {@link com.galdurstudio.galdurui.api.window.SearchHandle}, qui porte le texte d'un champ de
- * recherche.</p>
+ * recherche. {@code addTabs()} renvoie une
+ * {@link com.galdurstudio.galdurui.api.window.TabsHandle}, qui porte l'onglet actif ; chacun de
+ * ses onglets est une {@link com.galdurstudio.galdurui.api.window.TabHandle}, qu'on remplit comme
+ * une fenêtre (les deux héritent de
+ * {@link com.galdurstudio.galdurui.api.window.ElementContainer}).</p>
  *
  * <p><strong>Règle pour nos mods</strong> : ne jamais dépendre de
  * {@code com.galdurstudio.galdurui.internal}.</p>

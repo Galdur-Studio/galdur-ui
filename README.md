@@ -69,6 +69,7 @@ vanilla pour s'intégrer aux écrans et aux layouts du jeu.
 | `api.widget.GaldurScrollList` | `AbstractWidget` |
 | `api.widget.GaldurSearchField` | `AbstractWidget` (contient un `EditBox`) |
 | `api.widget.GaldurItemSlot` | `AbstractWidget` |
+| `api.widget.GaldurTabs` | `AbstractWidget` |
 | `api.layout.GaldurPanelLayout` | `AbstractLayout` (donc `Layout`), `Renderable` |
 
 Leurs méthodes de rendu reçoivent un `GuiGraphics` et celles de souris et de clavier suivent

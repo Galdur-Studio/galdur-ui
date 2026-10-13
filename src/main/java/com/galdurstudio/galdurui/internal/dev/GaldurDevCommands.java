@@ -8,6 +8,8 @@ import com.galdurstudio.galdurui.api.window.GaldurWindow;
 import com.galdurstudio.galdurui.api.window.ListHandle;
 import com.galdurstudio.galdurui.api.window.RowHandle;
 import com.galdurstudio.galdurui.api.window.SearchHandle;
+import com.galdurstudio.galdurui.api.window.TabHandle;
+import com.galdurstudio.galdurui.api.window.TabsHandle;
 import com.mojang.brigadier.Command;
 import java.text.Normalizer;
 import java.util.List;
@@ -63,43 +65,64 @@ public final class GaldurDevCommands {
     /**
      * Ouvre une fenêtre de démonstration construite uniquement avec l'API publique.
      *
-     * <p>Elle montre les états communs : un texte caché qui libère sa place (case « Afficher le
-     * détail »), un bouton désactivé avec infobulle que la case « Mode avancé » active, et une
-     * infobulle sur une case, un champ de recherche qui filtre une liste défilante de minerais, dont la
-     * sélection active le bouton
-     * « Prendre », et une ligne centrée de boutons. Ouverte depuis
-     * l'écran de test, Échap et « Quitter » y reviennent.</p>
+     * <p>Elle reprend les onglets du Terminal Nexus :</p>
+     * <ul>
+     *   <li><strong>Stockage</strong> : un champ de recherche qui filtre une liste défilante de
+     *       minerais, dont la sélection active le bouton « Prendre », et un bouton « Options
+     *       avancées » désactivé avec infobulle ;</li>
+     *   <li><strong>Artisanat</strong> : un texte caché qui libère sa place (case « Afficher le
+     *       détail ») ;</li>
+     *   <li><strong>Autocraft</strong> : la case « Mode avancé », qui active « Options avancées »
+     *       dans l'onglet Stockage, pour vérifier qu'un changement dans un onglet caché est visible
+     *       en y revenant.</li>
+     * </ul>
+     *
+     * <p>Sous les onglets, une ligne centrée : « Onglet suivant » change d'onglet par le code, et
+     * « Quitter » ferme la fenêtre. Ouverte depuis l'écran de test, Échap et « Quitter » y
+     * reviennent.</p>
      */
     static void openDemoWindow() {
         GaldurWindow window = GaldurLib.createWindow();
-        window.addTitle(Component.literal("Inventaire"), true);
+        window.addTitle(Component.literal("Terminal"), true);
 
-        ElementHandle detail = window.addText(Component.literal("12 objets, 3 types différents"), true);
-        detail.setVisible(false);
-        CheckboxHandle showDetail = window.addCheckbox(Component.literal("Afficher le détail"), false);
-        showDetail.onChange(detail::setVisible);
+        TabsHandle tabs = window.addTabs(true);
+        tabs.setTooltip(Component.literal("Flèches gauche et droite pour changer d'onglet"));
+        tabs.onSelect(index -> GaldurUI.LOGGER.info("Onglet : {}", index));
 
-        CheckboxHandle advanced = window.addCheckbox(Component.literal("Mode avancé"), false);
-        advanced.setTooltip(Component.literal("Débloque les options avancées"));
-
+        TabHandle storage = tabs.addTab(Component.literal("Stockage"));
         List<String> allOres = List.of("Charbon", "Fer", "Cuivre", "Or", "Redstone", "Lapis-lazuli",
                 "Diamant", "Émeraude", "Quartz du Nether", "Débris antiques");
-        SearchHandle search = window.addSearch(Component.literal("Rechercher un minerai..."), true);
-        ListHandle ores = window.addList(5, true);
+        SearchHandle search = storage.addSearch(Component.literal("Rechercher un minerai..."));
+        ListHandle ores = storage.addList(5);
         ores.setLines(filterOres(allOres, ""));
         search.onChange(query -> ores.setLines(filterOres(allOres, query)));
-
-        RowHandle actions = window.addRow(true);
-        ElementHandle take = actions.addButton(Component.literal("Prendre"),
+        RowHandle storageActions = storage.addRow();
+        ElementHandle take = storageActions.addButton(Component.literal("Prendre"),
                 () -> GaldurUI.LOGGER.info("Prendre : {}", ores.getLines().get(ores.getSelected()).getString()));
         take.setEnabled(false);
         take.setTooltip(Component.literal("Choisis d'abord un minerai dans la liste"));
         ores.onSelect(index -> take.setEnabled(index >= 0));
-        ElementHandle options = actions.addButton(Component.literal("Options avancées"),
+        ElementHandle options = storageActions.addButton(Component.literal("Options avancées"),
                 () -> GaldurUI.LOGGER.info("Options avancées"));
         options.setEnabled(false);
-        options.setTooltip(Component.literal("Coche « Mode avancé » pour y accéder"));
+        options.setTooltip(Component.literal("Coche « Mode avancé » dans l'onglet Autocraft"));
+
+        TabHandle crafting = tabs.addTab(Component.literal("Artisanat"));
+        crafting.addText(Component.literal("Table 3 × 3 : à venir"));
+        ElementHandle detail = crafting.addText(Component.literal("12 objets, 3 types différents"));
+        detail.setVisible(false);
+        CheckboxHandle showDetail = crafting.addCheckbox(Component.literal("Afficher le détail"), false);
+        showDetail.onChange(detail::setVisible);
+
+        TabHandle autocraft = tabs.addTab(Component.literal("Autocraft"));
+        autocraft.addText(Component.literal("Aucune requête en cours"));
+        CheckboxHandle advanced = autocraft.addCheckbox(Component.literal("Mode avancé"), false);
+        advanced.setTooltip(Component.literal("Débloque les options avancées du Stockage"));
         advanced.onChange(options::setEnabled);
+
+        RowHandle actions = window.addRow(true);
+        actions.addButton(Component.literal("Onglet suivant"),
+                () -> tabs.setSelected((tabs.getSelected() + 1) % tabs.getTabs().size()));
         actions.addButton(Component.literal("Quitter"), window::close);
         window.open();
     }

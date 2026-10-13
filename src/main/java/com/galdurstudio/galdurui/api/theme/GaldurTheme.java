@@ -57,6 +57,10 @@ public final class GaldurTheme {
     public static final String SCROLLBAR_WIDTH = "scrollbar_width";
     /** Hauteur d'un champ de saisie (champ de recherche). */
     public static final String FIELD_HEIGHT = "field_height";
+    /** Hauteur d'une rangée d'onglets, trait du bas compris. */
+    public static final String TAB_HEIGHT = "tab_height";
+    /** Marge horizontale entre le bord d'un onglet et son titre. */
+    public static final String TAB_PADDING_X = "tab_padding_x";
 
     /**
      * {@return la couleur ARGB associée à {@code key}}
@@ -184,6 +188,16 @@ public final class GaldurTheme {
     /** {@return la hauteur d'un champ de saisie, en pixels} */
     public static int fieldHeight() {
         return spacing(FIELD_HEIGHT);
+    }
+
+    /** {@return la hauteur d'une rangée d'onglets, en pixels} */
+    public static int tabHeight() {
+        return spacing(TAB_HEIGHT);
+    }
+
+    /** {@return la marge horizontale entre le bord d'un onglet et son titre, en pixels} */
+    public static int tabPaddingX() {
+        return spacing(TAB_PADDING_X);
     }
 
     private GaldurTheme() {

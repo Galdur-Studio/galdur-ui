@@ -23,6 +23,8 @@
     "button_height": 20,
     "list_row_height": 12,
     "scrollbar_width": 4,
-    "field_height": 16
+    "field_height": 16,
+    "tab_height": 16,
+    "tab_padding_x": 8
   }
 }

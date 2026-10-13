@@ -2,7 +2,10 @@ package com.galdurstudio.galdurui.internal.window;
 
 import com.galdurstudio.galdurui.api.layout.GaldurPanelLayout;
 import com.galdurstudio.galdurui.api.theme.GaldurTheme;
+import com.galdurstudio.galdurui.api.widget.GaldurTabs;
 import com.galdurstudio.galdurui.api.window.ElementHandle;
+import com.galdurstudio.galdurui.api.window.TabsHandle;
+import java.util.List;
 import java.util.function.Consumer;
 import net.minecraft.client.gui.components.AbstractWidget;
 import net.minecraft.client.gui.components.Tooltip;
@@ -124,6 +127,9 @@ public class WindowScreen extends Screen {
         if (element instanceof RowElement row) {
             return buildRow(row, enabled, tooltip);
         }
+        if (element instanceof TabsElement tabs) {
+            return buildTabs(tabs, enabled, tooltip);
+        }
         LayoutElement widget = element.createWidget(enabled);
         if (widget instanceof AbstractWidget abstractWidget) {
             applyState(abstractWidget, enabled, tooltip);
@@ -151,6 +157,73 @@ public class WindowScreen extends Screen {
     }
 
     /**
+     * Construit une rangée d'onglets : les onglets, puis dessous le contenu de l'onglet actif.
+     *
+     * <p>Le contenu de chaque onglet est construit puis mesuré, et la zone de contenu prend la
+     * taille du plus grand : la fenêtre ne change pas de taille quand on change d'onglet. Seuls
+     * les widgets de l'onglet actif sont placés dans la mise en page, donc ajoutés à l'écran ; les
+     * autres ne servent qu'à mesurer et sont abandonnés.</p>
+     *
+     * <p>L'infobulle de la rangée ne s'applique qu'aux onglets, pas au contenu ; l'état
+     * désactivé, lui, s'applique aux deux.</p>
+     *
+     * @return la rangée et son contenu, ou {@code null} s'il n'y a encore aucun onglet
+     */
+    @Nullable
+    private static LayoutElement buildTabs(TabsElement element, boolean enabled, @Nullable Component tooltip) {
+        List<Component> titles = element.tabs().titles();
+        List<WindowModel> contents = element.tabs().contents();
+        if (titles.isEmpty()) {
+            return null;
+        }
+        TabsHandle handle = element.handle();
+        int selected = handle.getSelected();
+        LinearLayout shown = null;
+        int contentWidth = 0;
+        int contentHeight = 0;
+        for (int index = 0; index < contents.size(); index++) {
+            LinearLayout content = buildColumn(contents.get(index), enabled);
+            content.arrangeElements();
+            contentWidth = Math.max(contentWidth, content.getWidth());
+            contentHeight = Math.max(contentHeight, content.getHeight());
+            if (index == selected) {
+                shown = content;
+            }
+        }
+
+        GaldurTabs bar = GaldurTabs.of(contentWidth, titles, handle::getSelected, handle::setSelected);
+        applyState(bar, enabled, tooltip);
+        FrameLayout area = new FrameLayout(bar.getWidth(), contentHeight);
+        area.defaultChildLayoutSetting().alignHorizontallyLeft().alignVerticallyTop();
+        if (shown != null) {
+            area.addChild(shown);
+        }
+
+        LinearLayout column = LinearLayout.vertical().spacing(GaldurTheme.gap());
+        column.addChild(bar);
+        column.addChild(area);
+        return column;
+    }
+
+    /**
+     * Construit des éléments empilés de haut en bas, comme le contenu de la fenêtre.
+     *
+     * @param model   les éléments, dans l'ordre
+     * @param enabled {@code false} si ce qui les contient est désactivé
+     * @return la colonne, vide si aucun élément n'est visible
+     */
+    private static LinearLayout buildColumn(WindowModel model, boolean enabled) {
+        LinearLayout column = LinearLayout.vertical().spacing(GaldurTheme.gap());
+        for (WindowElement element : model.elements()) {
+            LayoutElement widget = build(element, enabled, null);
+            if (widget != null) {
+                column.addChild(widget, element::adjustSettings);
+            }
+        }
+        return column;
+    }
+
+    /**
      * Applique au widget l'état désactivé et l'infobulle.
      *
      * <p>Les libellés sont toujours inactifs ({@code active = false}, comme {@code StringWidget}) :
@@ -166,16 +239,9 @@ public class WindowScreen extends Screen {
 
     @Override
     protected void init() {
-        LinearLayout layout = LinearLayout.vertical();
-        layout.spacing(GaldurTheme.gap());
+        LinearLayout layout = buildColumn(model, true);
         GaldurPanelLayout panel = new GaldurPanelLayout(layout);
         addRenderableOnly(panel);
-        for (WindowElement element : model.elements()) {
-            LayoutElement widget = build(element, true, null);
-            if (widget != null) {
-                layout.addChild(widget, element::adjustSettings);
-            }
-        }
         panel.arrangeElements();
         FrameLayout.centerInRectangle(panel, getRectangle());
         layout.visitWidgets(this::addRenderableWidget);
