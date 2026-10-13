@@ -18,6 +18,8 @@ import java.util.Locale;
 import net.minecraft.client.Minecraft;
 import net.minecraft.commands.Commands;
 import net.minecraft.network.chat.Component;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.Items;
 import net.neoforged.neoforge.client.event.RegisterClientCommandsEvent;
 import net.neoforged.neoforge.common.NeoForge;
 
@@ -69,7 +71,8 @@ public final class GaldurDevCommands {
      * <p>Elle reprend les onglets du Terminal Nexus :</p>
      * <ul>
      *   <li><strong>Stockage</strong> : un champ de recherche qui filtre une liste défilante de
-     *       minerais, dont la sélection active le bouton « Prendre », et un bouton « Options
+     *       minerais, une ligne de boutons icônes (entonnoir : inverser l'ordre ; barrière : vider
+     *       la recherche, désactivée tant qu'elle est vide ; établi : désactivé avec infobulle), dont la sélection active le bouton « Prendre », et un bouton « Options
      *       avancées » désactivé avec infobulle ;</li>
      *   <li><strong>Artisanat</strong> : un texte caché qui libère sa place (case « Afficher le
      *       détail ») ;</li>
@@ -96,8 +99,24 @@ public final class GaldurDevCommands {
                 "Diamant", "Émeraude", "Quartz du Nether", "Débris antiques");
         SearchHandle search = storage.addSearch(Component.literal("Rechercher un minerai..."));
         ListHandle ores = storage.addList(5);
-        ores.setLines(filterOres(allOres, ""));
-        search.onChange(query -> ores.setLines(filterOres(allOres, query)));
+        boolean[] reversed = {false};
+        ores.setLines(filterOres(allOres, "", false));
+        RowHandle tools = storage.addRow();
+        tools.addIconButton(new ItemStack(Items.HOPPER), Component.literal("Inverser l'ordre"), () -> {
+            reversed[0] = !reversed[0];
+            ores.setLines(filterOres(allOres, search.getText(), reversed[0]));
+        });
+        ElementHandle clear = tools.addIconButton(new ItemStack(Items.BARRIER),
+                Component.literal("Vider la recherche"), () -> search.setText(""));
+        clear.setEnabled(false);
+        search.onChange(query -> {
+            ores.setLines(filterOres(allOres, query, reversed[0]));
+            clear.setEnabled(!query.isEmpty());
+        });
+        ElementHandle soon = tools.addIconButton(new ItemStack(Items.CRAFTING_TABLE),
+                Component.literal("Commander"), () -> {});
+        soon.setEnabled(false);
+        soon.setTooltip(Component.literal("Commander : bientôt disponible"));
         RowHandle storageActions = storage.addRow();
         ElementHandle take = storageActions.addButton(Component.literal("Prendre"),
                 () -> GaldurUI.LOGGER.info("Prendre : {}", ores.getLines().get(ores.getSelected()).getString()));
@@ -159,14 +178,15 @@ public final class GaldurDevCommands {
 
     /**
      * {@return les minerais dont le nom contient {@code query}, sans tenir compte des majuscules
-     * ni des accents (« emer » trouve « Émeraude »)}
+     * ni des accents (« emer » trouve « Émeraude »), à l'envers si {@code reversed}}
      */
-    private static List<Component> filterOres(List<String> ores, String query) {
+    private static List<Component> filterOres(List<String> ores, String query, boolean reversed) {
         String wanted = simplify(query.trim());
-        return ores.stream()
+        List<Component> found = ores.stream()
                 .filter(ore -> simplify(ore).contains(wanted))
                 .map(ore -> (Component) Component.literal(ore))
                 .toList();
+        return reversed ? found.reversed() : found;
     }
 
     /** {@return {@code text} en minuscules et sans accents} */

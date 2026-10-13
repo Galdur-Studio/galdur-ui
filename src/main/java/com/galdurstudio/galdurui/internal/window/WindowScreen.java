@@ -228,13 +228,16 @@ public class WindowScreen extends Screen {
      *
      * <p>Les libellés sont toujours inactifs ({@code active = false}, comme {@code StringWidget}) :
      * leur état désactivé se voit à la couleur, choisie par l'élément lui-même. L'infobulle
-     * s'affiche au survol, que le widget soit actif ou non.</p>
+     * s'affiche au survol, que le widget soit actif ou non. Sans infobulle donnée par le mod, le
+     * widget garde la sienne (un bouton icône affiche son libellé).</p>
      */
     private static void applyState(AbstractWidget widget, boolean enabled, @Nullable Component tooltip) {
         if (!enabled) {
             widget.active = false;
         }
-        widget.setTooltip(tooltip == null ? null : Tooltip.create(tooltip));
+        if (tooltip != null) {
+            widget.setTooltip(Tooltip.create(tooltip));
+        }
     }
 
     @Override

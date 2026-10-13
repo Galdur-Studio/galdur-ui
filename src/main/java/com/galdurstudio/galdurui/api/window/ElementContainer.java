@@ -2,6 +2,7 @@ package com.galdurstudio.galdurui.api.window;
 
 import com.galdurstudio.galdurui.internal.window.ButtonElement;
 import com.galdurstudio.galdurui.internal.window.CheckboxElement;
+import com.galdurstudio.galdurui.internal.window.IconButtonElement;
 import com.galdurstudio.galdurui.internal.window.ListElement;
 import com.galdurstudio.galdurui.internal.window.ProgressElement;
 import com.galdurstudio.galdurui.internal.window.RowElement;
@@ -11,6 +12,8 @@ import com.galdurstudio.galdurui.internal.window.TitleElement;
 import com.galdurstudio.galdurui.internal.window.WindowElement;
 import com.galdurstudio.galdurui.internal.window.WindowModel;
 import net.minecraft.network.chat.Component;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraft.world.item.ItemStack;
 import org.jetbrains.annotations.Nullable;
 
 /**
@@ -109,6 +112,71 @@ public abstract class ElementContainer {
     public ElementHandle addButton(Component label, Runnable action, boolean centered) {
         ElementHandle handle = new ElementHandle();
         return add(new ButtonElement(label, action, centered, handle), handle);
+    }
+
+    /**
+     * Ajoute un bouton icône à la fin, aligné à gauche, qui affiche un objet ; voir
+     * {@link #addIconButton(ItemStack, Component, Runnable, boolean)} pour le centrer.
+     *
+     * <p>Le libellé n'est pas affiché sur le bouton : il sert d'infobulle et de narration. Une
+     * infobulle donnée à la poignée le remplace. Pour plusieurs icônes côte à côte, utiliser une
+     * ligne ({@link RowHandle#addIconButton(ItemStack, Component, Runnable)}).</p>
+     *
+     * <pre>{@code
+     * window.addIconButton(new ItemStack(Items.HOPPER), Component.literal("Trier"), this::trier);
+     * }</pre>
+     *
+     * @param icon   l'objet affiché ; il est copié
+     * @param label  texte de l'infobulle et de la narration
+     * @param action exécutée quand on active le bouton
+     * @return la poignée de l'élément (désactiver, cacher, infobulle)
+     */
+    public ElementHandle addIconButton(ItemStack icon, Component label, Runnable action) {
+        return addIconButton(icon, label, action, false);
+    }
+
+    /**
+     * Ajoute un bouton icône qui affiche un objet, centré ou aligné à gauche.
+     *
+     * @param icon     l'objet affiché ; il est copié
+     * @param label    texte de l'infobulle et de la narration
+     * @param action   exécutée quand on active le bouton
+     * @param centered {@code true} pour le centrer, {@code false} pour l'aligner à gauche
+     * @return la poignée de l'élément (désactiver, cacher, infobulle)
+     */
+    public ElementHandle addIconButton(ItemStack icon, Component label, Runnable action, boolean centered) {
+        ElementHandle handle = new ElementHandle();
+        return add(new IconButtonElement(null, icon.copy(), label, action, centered, handle), handle);
+    }
+
+    /**
+     * Ajoute un bouton icône à la fin, aligné à gauche, qui affiche un sprite de l'interface ; voir
+     * {@link #addIconButton(ResourceLocation, Component, Runnable, boolean)} pour le centrer.
+     *
+     * <p>Le sprite est teinté avec la couleur du texte du thème : le fournir en niveaux de gris.
+     * Le libellé sert d'infobulle et de narration.</p>
+     *
+     * @param sprite identifiant du sprite dans l'atlas d'interface
+     * @param label  texte de l'infobulle et de la narration
+     * @param action exécutée quand on active le bouton
+     * @return la poignée de l'élément (désactiver, cacher, infobulle)
+     */
+    public ElementHandle addIconButton(ResourceLocation sprite, Component label, Runnable action) {
+        return addIconButton(sprite, label, action, false);
+    }
+
+    /**
+     * Ajoute un bouton icône qui affiche un sprite de l'interface, centré ou aligné à gauche.
+     *
+     * @param sprite   identifiant du sprite dans l'atlas d'interface
+     * @param label    texte de l'infobulle et de la narration
+     * @param action   exécutée quand on active le bouton
+     * @param centered {@code true} pour le centrer, {@code false} pour l'aligner à gauche
+     * @return la poignée de l'élément (désactiver, cacher, infobulle)
+     */
+    public ElementHandle addIconButton(ResourceLocation sprite, Component label, Runnable action, boolean centered) {
+        ElementHandle handle = new ElementHandle();
+        return add(new IconButtonElement(sprite, ItemStack.EMPTY, label, action, centered, handle), handle);
     }
 
     /**

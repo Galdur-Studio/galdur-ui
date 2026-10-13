@@ -205,6 +205,27 @@ public final class GaldurRender {
     }
 
     /**
+     * Voile une icône d'objet déjà dessinée, par exemple pour la montrer désactivée.
+     *
+     * <p>Implémentation 1.21.1 : les objets sont dessinés en avant de l'interface ({@code z}
+     * + 150) ; un simple remplissage passerait derrière eux. La pose de {@code graphics} est donc
+     * décalée vers l'avant ({@code z} + 200, comme la quantité) le temps du remplissage, puis
+     * rétablie.</p>
+     *
+     * @param graphics contexte de rendu fourni par l'écran
+     * @param x        abscisse du coin supérieur gauche de l'icône (16 × 16)
+     * @param y        ordonnée du coin supérieur gauche de l'icône
+     * @param argb     couleur du voile, en ARGB empaqueté ; son alpha règle l'opacité
+     */
+    public static void dimItem(GuiGraphics graphics, int x, int y, int argb) {
+        PoseStack pose = graphics.pose();
+        pose.pushPose();
+        pose.translate(0.0F, 0.0F, 200.0F);
+        graphics.fill(x, y, x + ITEM_SIZE, y + ITEM_SIZE, argb);
+        pose.popPose();
+    }
+
+    /**
      * Dessine une quantité dans le coin inférieur droit d'une icône d'objet, par-dessus l'icône.
      *
      * <p>Un texte qui tient dans les 16 pixels de l'icône (« 64 ») est écrit à la taille normale,

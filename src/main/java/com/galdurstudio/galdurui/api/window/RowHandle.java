@@ -2,10 +2,13 @@ package com.galdurstudio.galdurui.api.window;
 
 import com.galdurstudio.galdurui.internal.window.ButtonElement;
 import com.galdurstudio.galdurui.internal.window.CheckboxElement;
+import com.galdurstudio.galdurui.internal.window.IconButtonElement;
 import com.galdurstudio.galdurui.internal.window.TextElement;
 import com.galdurstudio.galdurui.internal.window.WindowElement;
 import com.galdurstudio.galdurui.internal.window.WindowModel;
 import net.minecraft.network.chat.Component;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraft.world.item.ItemStack;
 
 /**
  * Poignée vers une ligne d'une {@link GaldurWindow} : des éléments placés côte à côte, de gauche
@@ -27,7 +30,8 @@ import net.minecraft.network.chat.Component;
  *   <li><strong>désactivée</strong>, elle désactive tous ses éléments ;</li>
  *   <li><strong>cachée</strong>, elle disparaît avec ses éléments et libère sa place ; une ligne
  *       dont tous les éléments sont cachés libère aussi sa place ;</li>
- *   <li>son <strong>infobulle</strong> s'affiche sur les éléments qui n'en ont pas une à eux.</li>
+ *   <li>son <strong>infobulle</strong> s'affiche sur les éléments qui n'en ont pas une à eux (y
+ *       compris à la place du libellé d'un bouton icône).</li>
  * </ul>
  *
  * <p>Un élément ajouté alors que la fenêtre est affichée apparaît à l'image suivante. À appeler
@@ -66,6 +70,33 @@ public class RowHandle extends ElementHandle {
     public ElementHandle addButton(Component label, Runnable action) {
         ElementHandle handle = new ElementHandle();
         return add(new ButtonElement(label, action, false, handle), handle);
+    }
+
+    /**
+     * Ajoute un bouton icône à la fin de la ligne, qui affiche un objet.
+     *
+     * @param icon   l'objet affiché ; il est copié
+     * @param label  texte de l'infobulle et de la narration (non affiché sur le bouton)
+     * @param action exécutée quand on active le bouton, à la souris ou au clavier
+     * @return la poignée de l'élément (désactiver, cacher, infobulle)
+     */
+    public ElementHandle addIconButton(ItemStack icon, Component label, Runnable action) {
+        ElementHandle handle = new ElementHandle();
+        return add(new IconButtonElement(null, icon.copy(), label, action, false, handle), handle);
+    }
+
+    /**
+     * Ajoute un bouton icône à la fin de la ligne, qui affiche un sprite de l'interface, teinté
+     * avec la couleur du texte du thème.
+     *
+     * @param sprite identifiant du sprite dans l'atlas d'interface, en niveaux de gris
+     * @param label  texte de l'infobulle et de la narration (non affiché sur le bouton)
+     * @param action exécutée quand on active le bouton, à la souris ou au clavier
+     * @return la poignée de l'élément (désactiver, cacher, infobulle)
+     */
+    public ElementHandle addIconButton(ResourceLocation sprite, Component label, Runnable action) {
+        ElementHandle handle = new ElementHandle();
+        return add(new IconButtonElement(sprite, ItemStack.EMPTY, label, action, false, handle), handle);
     }
 
     /**

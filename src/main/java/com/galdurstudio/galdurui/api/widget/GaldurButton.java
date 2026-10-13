@@ -200,6 +200,19 @@ public class GaldurButton extends AbstractWidget {
         State state = currentState();
         GaldurRender.drawNineSlice(guiGraphics, sprite(state), getX(), getY(), getWidth(), getHeight(), tint(state));
 
+        renderContent(guiGraphics);
+    }
+
+    /**
+     * Dessine le contenu du bouton par-dessus son fond : par défaut, le libellé centré, en
+     * {@code text} ou en {@code text_muted} s'il est désactivé.
+     *
+     * <p>Une sous-classe la redéfinit pour afficher autre chose que du texte (voir
+     * {@link GaldurIconButton}) en gardant le fond, les états et le comportement du bouton.</p>
+     *
+     * @param guiGraphics contexte de rendu
+     */
+    protected void renderContent(GuiGraphics guiGraphics) {
         int labelColor = active ? GaldurTheme.text() : GaldurTheme.textMuted();
         int labelY = getY() + (getHeight() - GaldurRender.lineHeight()) / 2;
         GaldurRender.drawCenteredText(guiGraphics, getMessage(), getX() + getWidth() / 2, labelY, labelColor);

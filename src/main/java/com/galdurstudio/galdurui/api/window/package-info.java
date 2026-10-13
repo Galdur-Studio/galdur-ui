@@ -23,7 +23,8 @@
  * une fenêtre (les deux héritent de
  * {@link com.galdurstudio.galdurui.api.window.ElementContainer}). {@code addProgress(...)} renvoie
  * une {@link com.galdurstudio.galdurui.api.window.ProgressHandle}, qui porte l'avancement et le
- * texte d'une barre de progression.</p>
+ * texte d'une barre de progression. {@code addIconButton(...)} ajoute un bouton sans texte qui
+ * affiche un objet ou un sprite, son libellé servant d'infobulle.</p>
  *
  * <p><strong>Règle pour nos mods</strong> : ne jamais dépendre de
  * {@code com.galdurstudio.galdurui.internal}.</p>
