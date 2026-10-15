@@ -6,18 +6,22 @@ import com.galdurstudio.galdurui.api.theme.GaldurTheme;
 import com.galdurstudio.galdurui.api.widget.GaldurButton;
 import com.galdurstudio.galdurui.api.widget.GaldurCheckbox;
 import com.galdurstudio.galdurui.api.widget.GaldurIconButton;
+import com.galdurstudio.galdurui.api.widget.GaldurItemGrid;
 import com.galdurstudio.galdurui.api.widget.GaldurItemSlot;
 import com.galdurstudio.galdurui.api.widget.GaldurLabel;
 import com.galdurstudio.galdurui.api.widget.GaldurProgressBar;
 import com.galdurstudio.galdurui.api.widget.GaldurScrollList;
 import com.galdurstudio.galdurui.api.widget.GaldurSearchField;
 import com.galdurstudio.galdurui.api.widget.GaldurTabs;
+import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Locale;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.layouts.FrameLayout;
 import net.minecraft.client.gui.layouts.LinearLayout;
 import net.minecraft.client.gui.screens.Screen;
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
@@ -43,6 +47,9 @@ import net.minecraft.world.item.Items;
  *       liste désactivés ;</li>
  *   <li><strong>Objets</strong> : cases d'objet (quantités abrégées, usure, case vide,
  *       désactivée) ;</li>
+ *   <li><strong>Grille</strong> : une {@link GaldurItemGrid} avec tous les objets du jeu
+ *       (plus d'un millier), filtrée par un champ de recherche et triable par nom ou par
+ *       quantité ;</li>
  *   <li><strong>Progression</strong> : barre animée qu'on fait avancer, barre sans texte, barre
  *       désactivée.</li>
  * </ul>
@@ -64,7 +71,7 @@ public class TestScreen extends Screen {
     /** Titres des onglets, dans l'ordre. */
     private static final List<Component> TABS = List.of(
             Component.literal("Boutons"), Component.literal("Texte"), Component.literal("Liste"),
-            Component.literal("Objets"), Component.literal("Progression"));
+            Component.literal("Objets"), Component.literal("Grille"), Component.literal("Progression"));
     private static final List<String> ORES = List.of("Charbon", "Fer", "Cuivre", "Or", "Redstone",
             "Lapis-lazuli", "Diamant", "Émeraude", "Quartz du Nether", "Débris antiques");
 
@@ -76,10 +83,18 @@ public class TestScreen extends Screen {
     private int selectedOre = -1;
     private double oreScroll;
     private double progress = 0.25;
+    private String gridQuery = "";
+    private boolean gridByAmount;
+    private int gridScroll;
+    /** Tous les objets du jeu avec une quantité de démonstration, calculés à la première ouverture. */
+    private List<GaldurItemGrid.Entry> gridAll;
+    /** Les objets affichés : filtrés par {@link #gridQuery} et triés. */
+    private List<GaldurItemGrid.Entry> gridShown = List.of();
 
     private GaldurPanelLayout panel;
     private GaldurLabel counter;
     private GaldurTabs tabs;
+    private GaldurLabel gridCount;
 
     public TestScreen() {
         super(Component.literal("Galdur UI — écran de démo"));
@@ -100,6 +115,7 @@ public class TestScreen extends Screen {
             case 1 -> textTab();
             case 2 -> listTab();
             case 3 -> itemsTab();
+            case 4 -> gridTab();
             default -> progressTab();
         });
 
@@ -219,6 +235,79 @@ public class TestScreen extends Screen {
         GaldurItemSlot disabledSlot = slots.addChild(slotWithAmount(Items.GOLD_INGOT, 500));
         disabledSlot.active = false;
         return content;
+    }
+
+    private LinearLayout gridTab() {
+        if (gridAll == null) {
+            gridAll = demoGridEntries();
+            refreshGrid();
+        }
+        LinearLayout content = LinearLayout.vertical().spacing(GaldurTheme.gap());
+        content.defaultCellSetting().alignHorizontallyCenter();
+
+        LinearLayout tools = content.addChild(LinearLayout.horizontal().spacing(GaldurTheme.gap()));
+        tools.addChild(GaldurSearchField.of(140, Component.literal("Rechercher un objet..."), () -> gridQuery, text -> {
+            gridQuery = text;
+            refreshGrid();
+        }));
+        tools.addChild(GaldurIconButton.ofItem(new ItemStack(Items.HOPPER),
+                Component.literal("Trier par nom ou par quantité"), button -> {
+                    gridByAmount = !gridByAmount;
+                    refreshGrid();
+                }));
+
+        GaldurItemGrid grid = GaldurItemGrid.of(9, 6, () -> gridShown)
+                .onClick((index, entry, button, shift) -> GaldurUI.LOGGER.info("Grille : {} × {}, clic {}{}",
+                        entry.stack().getHoverName().getString(), entry.amount(),
+                        button == 0 ? "gauche" : "droit", shift ? " + Maj" : ""));
+        grid.setScrollRow(gridScroll);
+        content.addChild(grid.onScroll(row -> gridScroll = row));
+        gridCount = content.addChild(GaldurLabel.muted(gridCountText()));
+        return content;
+    }
+
+    /** Refiltre et retrie la grille après un changement de recherche ou de tri. */
+    private void refreshGrid() {
+        String wanted = gridQuery.trim().toLowerCase(Locale.ROOT);
+        List<GaldurItemGrid.Entry> shown = new ArrayList<>();
+        for (GaldurItemGrid.Entry entry : gridAll) {
+            if (entry.stack().getHoverName().getString().toLowerCase(Locale.ROOT).contains(wanted)) {
+                shown.add(entry);
+            }
+        }
+        shown.sort(gridByAmount
+                ? Comparator.comparingLong(GaldurItemGrid.Entry::amount).reversed()
+                : Comparator.comparing(entry -> entry.stack().getHoverName().getString()));
+        gridShown = shown;
+        if (gridCount != null) {
+            int previousWidth = gridCount.getWidth();
+            gridCount.setText(gridCountText());
+            if (gridCount.getWidth() != previousWidth) {
+                layoutPanel();
+            }
+        }
+    }
+
+    private Component gridCountText() {
+        return Component.literal(gridShown.size() + " objets, triés par " + (gridByAmount ? "quantité" : "nom"));
+    }
+
+    /**
+     * {@return tous les objets du jeu (sauf l'air), chacun avec une quantité de démonstration
+     * variée : de 0 à plusieurs milliards, pour voir toutes les abréviations}
+     */
+    private static List<GaldurItemGrid.Entry> demoGridEntries() {
+        List<GaldurItemGrid.Entry> all = new ArrayList<>();
+        int index = 0;
+        for (Item item : BuiltInRegistries.ITEM) {
+            if (item == Items.AIR) {
+                continue;
+            }
+            long amount = (index % 13 == 0) ? 0 : (long) Math.pow(10, index % 10) * (1 + index % 7);
+            all.add(new GaldurItemGrid.Entry(new ItemStack(item), amount));
+            index++;
+        }
+        return all;
     }
 
     private LinearLayout progressTab() {

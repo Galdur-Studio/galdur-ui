@@ -88,6 +88,7 @@ vanilla pour s'intégrer aux écrans et aux layouts du jeu.
 | `api.widget.GaldurTabs` | `AbstractWidget` |
 | `api.widget.GaldurProgressBar` | `AbstractWidget` |
 | `api.widget.GaldurIconButton` | `GaldurButton` (donc `AbstractWidget`) |
+| `api.widget.GaldurItemGrid` | `AbstractWidget` |
 | `api.screen.GaldurContainerScreen` | `AbstractContainerScreen` |
 | `api.menu.GaldurMenu` | `AbstractContainerMenu` (côté logique, chargeable sur serveur) |
 | `api.layout.GaldurPanelLayout` | `AbstractLayout` (donc `Layout`), `Renderable` |
