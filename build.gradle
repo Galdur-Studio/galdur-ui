@@ -19,6 +19,15 @@ repositories {
         url = "https://api.modrinth.com/maven"
         content { includeGroup "maven.modrinth" }
     }
+    maven {
+        // JEI (Just Enough Items), pour l'intégration optionnelle (internal.compat.jei), et sa
+        // bibliothèque de configuration, dont JEI a besoin au lancement.
+        url = "https://maven.blamejared.com/"
+        content {
+            includeGroup "mezz.jei"
+            includeGroup "net.mezzdev.config"
+        }
+    }
 }
 
 base {
@@ -80,6 +89,15 @@ dependencies {
 
     // Profileur Spark (/sparkc) : uniquement en dev, ni dans notre jar ni transmis à nos mods.
     localRuntime "maven.modrinth:spark:1.10.124-neoforge-1.21.1"
+
+    // Intégrations optionnelles JEI et EMI (internal.compat) : compilées contre leur API, mais
+    // absentes du jar et non transmises à nos mods. Sans elles chez le joueur, leurs plugins ne
+    // sont simplement jamais chargés. En dev, les deux sont lancés (EMI reprend aussi les plugins JEI).
+    compileOnly "mezz.jei:jei-${minecraft_version}-common-api:${jei_version}"
+    compileOnly "mezz.jei:jei-${minecraft_version}-neoforge-api:${jei_version}"
+    localRuntime "mezz.jei:jei-${minecraft_version}-neoforge:${jei_version}"
+    compileOnly "maven.modrinth:emi:${emi_version}+neoforge"
+    localRuntime "maven.modrinth:emi:${emi_version}+neoforge"
 }
 
 // Remplace les ${...} des gabarits de src/main/templates (neoforge.mods.toml) par les valeurs de

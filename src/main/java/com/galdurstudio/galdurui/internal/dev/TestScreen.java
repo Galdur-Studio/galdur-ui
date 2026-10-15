@@ -21,7 +21,6 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.layouts.FrameLayout;
 import net.minecraft.client.gui.layouts.LinearLayout;
 import net.minecraft.client.gui.screens.Screen;
-import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
@@ -49,7 +48,8 @@ import net.minecraft.world.item.Items;
  *       désactivée) ;</li>
  *   <li><strong>Grille</strong> : une {@link GaldurItemGrid} avec tous les objets du jeu
  *       (plus d'un millier), filtrée par un champ de recherche et triable par nom ou par
- *       quantité ;</li>
+ *       quantité. JEI et EMI ne sont pas actifs sur cet écran (ce n'est pas un écran de menu) :
+ *       pour R / U, voir le terminal de test ({@code /galduruidev terminal}) ;</li>
  *   <li><strong>Progression</strong> : barre animée qu'on fait avancer, barre sans texte, barre
  *       désactivée.</li>
  * </ul>
@@ -239,7 +239,7 @@ public class TestScreen extends Screen {
 
     private LinearLayout gridTab() {
         if (gridAll == null) {
-            gridAll = demoGridEntries();
+            gridAll = DemoItems.allWithAmounts();
             refreshGrid();
         }
         LinearLayout content = LinearLayout.vertical().spacing(GaldurTheme.gap());
@@ -290,24 +290,6 @@ public class TestScreen extends Screen {
 
     private Component gridCountText() {
         return Component.literal(gridShown.size() + " objets, triés par " + (gridByAmount ? "quantité" : "nom"));
-    }
-
-    /**
-     * {@return tous les objets du jeu (sauf l'air), chacun avec une quantité de démonstration
-     * variée : de 0 à plusieurs milliards, pour voir toutes les abréviations}
-     */
-    private static List<GaldurItemGrid.Entry> demoGridEntries() {
-        List<GaldurItemGrid.Entry> all = new ArrayList<>();
-        int index = 0;
-        for (Item item : BuiltInRegistries.ITEM) {
-            if (item == Items.AIR) {
-                continue;
-            }
-            long amount = (index % 13 == 0) ? 0 : (long) Math.pow(10, index % 10) * (1 + index % 7);
-            all.add(new GaldurItemGrid.Entry(new ItemStack(item), amount));
-            index++;
-        }
-        return all;
     }
 
     private LinearLayout progressTab() {

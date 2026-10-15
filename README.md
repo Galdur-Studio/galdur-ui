@@ -20,6 +20,8 @@ En jeu (environnement de développement uniquement) : `/galdurui test` ouvre l'�
 `/galdurui window` la démo de l'API déclarative, et `/galduruidev chest` donne un coffre Galdur
 de test (bloc posable, aussi dans l'onglet créatif « Blocs fonctionnels ») qui s'ouvre dans un
 `GaldurContainerScreen`.
+`/galduruidev terminal` ouvre un terminal de test : une grille de tous les objets du jeu
+au-dessus de l'inventaire, comme le futur Terminal Nexus.
 
 ## Thème
 
@@ -102,6 +104,18 @@ plus grande partie du travail.
 **Règle pour nos mods** : n'appeler que l'API Galdur (`api.*`) pour dessiner et construire les
 écrans, jamais `GuiGraphics` directement, et ne jamais dépendre de `internal.*`. Plus un mod
 passe par l'API, moins il a de code à reprendre à chaque version de Minecraft.
+
+## Intégrations JEI et EMI
+
+Optionnelles, dans `internal.compat` : compilées contre l'API de JEI et d'EMI (`compileOnly`),
+absentes du jar et jamais chargées si le mod correspondant n'est pas installé. En développement,
+les deux sont lancés (versions dans `gradle.properties`).
+
+- La liste d'objets évite le panneau d'un `GaldurContainerScreen` et ses
+  `getExclusionZones()`.
+- Survoler un objet d'une `GaldurItemGrid` puis appuyer sur R ou U montre ses recettes,
+  **dans un écran de menu** (`GaldurContainerScreen`) : JEI et EMI ne sont pas actifs sur les
+  écrans simples comme `/galdurui test`. Pour tester : `/galduruidev terminal`.
 
 ## Décisions
 

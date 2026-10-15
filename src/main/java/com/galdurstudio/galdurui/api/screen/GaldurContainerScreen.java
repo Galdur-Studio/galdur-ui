@@ -6,6 +6,8 @@ import com.galdurstudio.galdurui.internal.render.GaldurSprites;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.screens.MenuScreens;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
+import net.minecraft.client.renderer.Rect2i;
+import java.util.List;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.inventory.AbstractContainerMenu;
@@ -29,6 +31,9 @@ import net.minecraft.world.inventory.Slot;
  * sous-classe peut imposer sa taille avec
  * {@link #GaldurContainerScreen(AbstractContainerMenu, Inventory, Component, int, int)}, et
  * redéfinir {@link #renderBg} ou {@link #renderLabels} pour ajouter son contenu.</p>
+ *
+ * <p>Avec JEI ou EMI installé, leur liste d'objets évite le panneau et les zones de
+ * {@link #getExclusionZones()}.</p>
  *
  * <p>Le titre « Inventaire » est placé juste au-dessus de l'inventaire du joueur, s'il y en a
  * un dans le menu, et masqué sinon.</p>
@@ -119,6 +124,18 @@ public class GaldurContainerScreen<M extends AbstractContainerMenu> extends Abst
      */
     public static <M extends AbstractContainerMenu> MenuScreens.ScreenConstructor<M, GaldurContainerScreen<M>> factory() {
         return GaldurContainerScreen::new;
+    }
+
+    /**
+     * {@return les zones de l'écran, en coordonnées d'écran, que JEI et EMI doivent laisser libres
+     * en plus du panneau : onglets latéraux, boutons qui dépassent...}
+     *
+     * <p>Aucune par défaut : le panneau ({@code leftPos}, {@code topPos}, {@code imageWidth},
+     * {@code imageHeight}) est déjà évité. Relue par JEI et EMI quand ils en ont besoin, elle peut
+     * dépendre de l'état de l'écran.</p>
+     */
+    public List<Rect2i> getExclusionZones() {
+        return List.of();
     }
 
     @Override

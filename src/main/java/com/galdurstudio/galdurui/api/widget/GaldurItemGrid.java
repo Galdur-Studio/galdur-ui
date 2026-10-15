@@ -13,6 +13,7 @@ import net.minecraft.client.gui.components.AbstractWidget;
 import net.minecraft.client.gui.narration.NarratedElementType;
 import net.minecraft.client.gui.narration.NarrationElementOutput;
 import net.minecraft.client.gui.screens.Screen;
+import net.minecraft.client.renderer.Rect2i;
 import net.minecraft.network.chat.Component;
 import net.minecraft.util.Mth;
 import net.minecraft.world.item.ItemStack;
@@ -47,6 +48,8 @@ import org.lwjgl.glfw.GLFW;
  *   <li><strong>Clic</strong> : gauche ou droit, avec l'état de Maj, sur une case occupée.</li>
  *   <li><strong>Désactivée</strong> ({@code active = false}) : quantités atténuées, ni clic ni
  *       survol ; le défilement reste possible pour consulter.</li>
+ *   <li><strong>JEI / EMI</strong> : si l'un d'eux est installé, survoler un objet puis appuyer
+ *       sur R ou U montre ses recettes, sur n'importe quel écran.</li>
  * </ul>
  *
  * <p>Tailles lues dans le thème : {@code spacing.scrollbar_width}. Une case fait 18 × 18 pixels,
@@ -333,6 +336,24 @@ public class GaldurItemGrid extends AbstractWidget {
     public Entry getEntryAt(double mouseX, double mouseY) {
         int index = indexAt(mouseX, mouseY);
         return index >= 0 ? entries.get().get(index) : null;
+    }
+
+    /**
+     * {@return le cadre, en coordonnées d'écran, de la case occupée sous ce point, ou {@code null}}
+     *
+     * <p>Sert aux intégrations JEI et EMI, qui ont besoin de la zone de l'objet survolé.</p>
+     *
+     * @param mouseX abscisse de la souris
+     * @param mouseY ordonnée de la souris
+     */
+    @Nullable
+    public Rect2i getCellAreaAt(double mouseX, double mouseY) {
+        if (indexAt(mouseX, mouseY) < 0) {
+            return null;
+        }
+        int column = (int) ((mouseX - getX()) / CELL_SIZE);
+        int row = (int) ((mouseY - getY()) / CELL_SIZE);
+        return new Rect2i(getX() + column * CELL_SIZE, getY() + row * CELL_SIZE, CELL_SIZE, CELL_SIZE);
     }
 
     @Override
