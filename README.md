@@ -17,8 +17,9 @@ Bibliothèque d'interface de Galdur Studio : thème, composants et écrans pour 
 ```
 
 En jeu (environnement de développement uniquement) : `/galdurui test` ouvre l'écran de démo,
-`/galdurui window` la démo de l'API déclarative, et `/galduruidev chest` un coffre de test
-affiché dans un `GaldurContainerScreen`.
+`/galdurui window` la démo de l'API déclarative, et `/galduruidev chest` donne un coffre Galdur
+de test (bloc posable, aussi dans l'onglet créatif « Blocs fonctionnels ») qui s'ouvre dans un
+`GaldurContainerScreen`.
 
 ## Thème
 

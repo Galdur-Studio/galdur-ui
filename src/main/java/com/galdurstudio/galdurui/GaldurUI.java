@@ -1,5 +1,6 @@
 package com.galdurstudio.galdurui;
 
+import com.galdurstudio.galdurui.internal.dev.DevBlocks;
 import com.galdurstudio.galdurui.internal.dev.DevMenus;
 import net.neoforged.bus.api.IEventBus;
 import net.neoforged.fml.common.Mod;
@@ -24,9 +25,10 @@ public class GaldurUI {
 
     public GaldurUI(IEventBus modEventBus) {
         LOGGER.info("Galdur UI chargé.");
-        // Menus de test (coffre Galdur, /galduruidev chest) : développement uniquement, sur les
-        // deux côtés pour que client et serveur aient le même registre.
+        // Coffre Galdur de test (bloc, menu, /galduruidev chest) : développement uniquement, sur
+        // les deux côtés pour que client et serveur aient le même registre.
         if (!FMLEnvironment.production) {
+            DevBlocks.register(modEventBus);
             DevMenus.register(modEventBus);
         }
     }
