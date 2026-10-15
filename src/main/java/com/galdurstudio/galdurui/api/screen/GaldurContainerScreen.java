@@ -33,6 +33,15 @@ import net.minecraft.world.inventory.Slot;
  * <p>Le titre « Inventaire » est placé juste au-dessus de l'inventaire du joueur, s'il y en a
  * un dans le menu, et masqué sinon.</p>
  *
+ * <p>Aux couleurs du thème :</p>
+ * <ul>
+ *   <li>le slot survolé reçoit un voile {@code accent} par-dessus l'objet (au lieu du blanc
+ *       vanilla) et un contour {@code accent_hover} ;</li>
+ *   <li>pendant un glisser pour répartir (clic maintenu sur plusieurs slots), chaque slot visé
+ *       reçoit le même contour. Le léger voile blanc posé sous l'objet reste celui de
+ *       Minecraft.</li>
+ * </ul>
+ *
  * @param <M> le type du menu affiché
  */
 public class GaldurContainerScreen<M extends AbstractContainerMenu> extends AbstractContainerScreen<M> {
@@ -47,6 +56,8 @@ public class GaldurContainerScreen<M extends AbstractContainerMenu> extends Abst
     private static final int INVENTORY_LABEL_GAP = 12;
     /** Ordonnée du titre de l'écran dans le panneau. */
     private static final int TITLE_Y = 6;
+    /** Opacité du voile posé sur le slot survolé (0 à 255), comme une case d'objet Galdur. */
+    private static final int HOVER_ALPHA = 0x60;
 
     /** Vrai si le menu contient l'inventaire du joueur : le titre « Inventaire » est affiché. */
     private final boolean showInventoryLabel;
@@ -118,18 +129,37 @@ public class GaldurContainerScreen<M extends AbstractContainerMenu> extends Abst
 
     /**
      * Dessine le panneau (sprite {@code panel} teinté {@code background}) puis le cadre de chaque
-     * slot actif (sprite {@code slot}). Les objets sont dessinés ensuite par Minecraft.
+     * slot actif (sprite {@code slot}), entouré en {@code accent_hover} s'il est survolé ou visé par
+     * un glisser. Les objets sont dessinés ensuite par Minecraft.
      */
     @Override
     protected void renderBg(GuiGraphics guiGraphics, float partialTick, int mouseX, int mouseY) {
         GaldurRender.drawNineSlice(guiGraphics, GaldurSprites.PANEL, leftPos, topPos, imageWidth, imageHeight,
                 GaldurTheme.background());
+        boolean spreading = isQuickCrafting && quickCraftSlots.size() > 1;
         for (Slot slot : menu.slots) {
-            if (slot.isActive()) {
-                GaldurRender.drawNineSlice(guiGraphics, GaldurSprites.SLOT, leftPos + slot.x - 1, topPos + slot.y - 1,
-                        SLOT_FRAME, SLOT_FRAME, GaldurTheme.background());
+            if (!slot.isActive()) {
+                continue;
+            }
+            int frameX = leftPos + slot.x - 1;
+            int frameY = topPos + slot.y - 1;
+            GaldurRender.drawNineSlice(guiGraphics, GaldurSprites.SLOT, frameX, frameY, SLOT_FRAME, SLOT_FRAME,
+                    GaldurTheme.background());
+            boolean hovered = slot.isHighlightable() && isHovering(slot.x, slot.y, ITEM_SIZE, ITEM_SIZE, mouseX, mouseY);
+            if (hovered || (spreading && quickCraftSlots.contains(slot))) {
+                GaldurRender.drawOutline(guiGraphics, frameX, frameY, SLOT_FRAME, SLOT_FRAME, GaldurTheme.accentHover());
             }
         }
+    }
+
+    /**
+     * {@return la couleur du voile posé sur le slot survolé : {@code accent} translucide}
+     *
+     * <p>Minecraft la dessine par-dessus l'objet. Relue à chaque image, elle suit le thème.</p>
+     */
+    @Override
+    public int getSlotColor(int index) {
+        return (HOVER_ALPHA << 24) | (GaldurTheme.accent() & 0xFFFFFF);
     }
 
     /** Titre de l'écran en {@code text}, titre « Inventaire » en {@code text_muted}. */
