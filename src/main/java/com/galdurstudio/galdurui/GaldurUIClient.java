@@ -1,5 +1,6 @@
 package com.galdurstudio.galdurui;
 
+import com.galdurstudio.galdurui.internal.dev.DevScreens;
 import com.galdurstudio.galdurui.internal.dev.GaldurDevCommands;
 import com.galdurstudio.galdurui.internal.dev.LayoutDebug;
 import com.galdurstudio.galdurui.internal.theme.ThemeLoader;
@@ -24,6 +25,7 @@ public class GaldurUIClient {
             GaldurUI.LOGGER.info("Environnement de développement : la commande /{} test est disponible.", GaldurUI.MODID);
             GaldurDevCommands.register();
             LayoutDebug.register();
+            DevScreens.register(modEventBus);
         }
     }
 }

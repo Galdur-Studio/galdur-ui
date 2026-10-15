@@ -1,6 +1,9 @@
 package com.galdurstudio.galdurui;
 
+import com.galdurstudio.galdurui.internal.dev.DevMenus;
+import net.neoforged.bus.api.IEventBus;
 import net.neoforged.fml.common.Mod;
+import net.neoforged.fml.loading.FMLEnvironment;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -8,8 +11,8 @@ import org.slf4j.LoggerFactory;
  * Point d'entrée commun de Galdur UI.
  *
  * <p>Cette classe ne contient que ce qui est valable sur les deux côtés (client et serveur) :
- * l'identifiant du mod et le journal partagé. Tout ce qui touche au rendu vit côté client,
- * dans {@link GaldurUIClient}.</p>
+ * l'identifiant du mod, le journal partagé et, en développement, les menus de test. Tout ce qui
+ * touche au rendu vit côté client, dans {@link GaldurUIClient}.</p>
  */
 @Mod(GaldurUI.MODID)
 public class GaldurUI {
@@ -19,7 +22,12 @@ public class GaldurUI {
     /** Journal partagé par toute la bibliothèque. */
     public static final Logger LOGGER = LoggerFactory.getLogger("GaldurUI");
 
-    public GaldurUI() {
+    public GaldurUI(IEventBus modEventBus) {
         LOGGER.info("Galdur UI chargé.");
+        // Menus de test (coffre Galdur, /galduruidev chest) : développement uniquement, sur les
+        // deux côtés pour que client et serveur aient le même registre.
+        if (!FMLEnvironment.production) {
+            DevMenus.register(modEventBus);
+        }
     }
 }

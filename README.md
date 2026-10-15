@@ -16,7 +16,9 @@ Bibliothèque d'interface de Galdur Studio : thème, composants et écrans pour 
 .\gradlew.bat test        # tests unitaires seuls (sans démarrer Minecraft)
 ```
 
-En jeu, la commande `/galdurui test` ouvre l'écran de test (environnement de développement uniquement).
+En jeu (environnement de développement uniquement) : `/galdurui test` ouvre l'écran de démo,
+`/galdurui window` la démo de l'API déclarative, et `/galduruidev chest` un coffre de test
+affiché dans un `GaldurContainerScreen`.
 
 ## Thème
 
@@ -65,6 +67,7 @@ PNG commités ne correspondent plus à ce qu'il produit.
 ## Structure
 
 - `com.galdurstudio.galdurui.api` : API publique et stable, utilisée par nos mods.
+  `api.menu` est le seul package chargeable sur un serveur dédié ; tous les autres sont client.
 - `com.galdurstudio.galdurui.internal` : implémentation interne, peut changer à tout moment.
   `internal.render.GaldurRender` est la seule classe qui appelle `GuiGraphics`.
 
@@ -84,6 +87,8 @@ vanilla pour s'intégrer aux écrans et aux layouts du jeu.
 | `api.widget.GaldurTabs` | `AbstractWidget` |
 | `api.widget.GaldurProgressBar` | `AbstractWidget` |
 | `api.widget.GaldurIconButton` | `GaldurButton` (donc `AbstractWidget`) |
+| `api.screen.GaldurContainerScreen` | `AbstractContainerScreen` |
+| `api.menu.GaldurMenu` | `AbstractContainerMenu` (côté logique, chargeable sur serveur) |
 | `api.layout.GaldurPanelLayout` | `AbstractLayout` (donc `Layout`), `Renderable` |
 
 Leurs méthodes de rendu reçoivent un `GuiGraphics` et celles de souris et de clavier suivent
