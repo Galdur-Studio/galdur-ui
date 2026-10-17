@@ -1,16 +1,16 @@
 package com.galdurstudio.galdurui.internal.window;
 
+import com.galdurstudio.galdurui.api.text.GaldurFonts;
 import com.galdurstudio.galdurui.api.widget.GaldurLabel;
 import com.galdurstudio.galdurui.api.window.ElementHandle;
-import net.minecraft.ChatFormatting;
 import net.minecraft.client.gui.layouts.LayoutElement;
 import net.minecraft.client.gui.layouts.LayoutSettings;
 import net.minecraft.network.chat.Component;
 
 /**
- * Élément de fenêtre qui affiche un titre, pour l'instant en gras.
+ * Élément de fenêtre qui affiche un titre, dans la police des titres ({@link GaldurFonts#TITLE}).
  *
- * <p>Le texte reçu n'est pas modifié : le gras est appliqué sur une copie, pour ne pas changer le
+ * <p>Le texte reçu n'est pas modifié : la police est appliquée sur une copie, pour ne pas changer le
  * {@code Component} du mod qui nous l'a donné.</p>
  *
  * @param title    le titre à afficher
@@ -20,8 +20,8 @@ import net.minecraft.network.chat.Component;
 public record TitleElement(Component title, boolean centered, ElementHandle handle) implements WindowElement {
     @Override
     public LayoutElement createWidget(boolean enabled) {
-        Component bold = title.copy().withStyle(ChatFormatting.BOLD);
-        return enabled ? GaldurLabel.of(bold) : GaldurLabel.muted(bold);
+        Component styled = GaldurFonts.title(title);
+        return enabled ? GaldurLabel.of(styled) : GaldurLabel.muted(styled);
     }
 
     @Override

@@ -76,6 +76,13 @@ Le joueur peut tout couper : Mods → Galdur UI → Configurer → Animations
 (`config/galdurui-client.toml`). Un mod qui anime ses propres widgets utilise
 `api.anim.AnimatedValue`, qui respecte ce réglage.
 
+## Police des titres
+
+Les titres (`addTitle`, titre des écrans de menu) utilisent Fredoka SemiBold, police `galdurui:title`
+(`assets/galdurui/font/title.json`). `api.text.GaldurFonts.title(texte)` l'applique à n'importe quel
+texte. Les caractères absents viennent de la police de Minecraft ; un pack de ressources peut
+remplacer la police.
+
 ## Narration
 
 Chaque widget se lit au narrateur de Minecraft (Ctrl+B), dans la langue du joueur : textes vanilla
@@ -155,3 +162,7 @@ les deux sont lancés (versions dans `gradle.properties`).
 
 Galdur UI est distribué sous licence GNU LGPL v3 uniquement (`LGPL-3.0-only`).
 Voir [LICENSE](LICENSE) (LGPL v3) et [COPYING](COPYING) (GPL v3, à laquelle la LGPL se réfère).
+
+La police des titres, Fredoka (Milena Brandão, Hafontia), est sous licence SIL Open Font
+License 1.1 : voir `src/main/resources/assets/galdurui/font/fredoka_OFL.txt`. Le fichier inclus
+est une instance SemiBold de la police variable, réduite aux alphabets latins.

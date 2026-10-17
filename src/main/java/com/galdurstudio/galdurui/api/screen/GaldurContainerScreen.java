@@ -1,5 +1,6 @@
 package com.galdurstudio.galdurui.api.screen;
 
+import com.galdurstudio.galdurui.api.text.GaldurFonts;
 import com.galdurstudio.galdurui.api.anim.GaldurEasing;
 import com.galdurstudio.galdurui.api.anim.GaldurAnimations;
 import net.minecraft.world.item.ItemStack;
@@ -243,7 +244,7 @@ public class GaldurContainerScreen<M extends AbstractContainerMenu> extends Abst
     /** Titre de l'écran en {@code text}, titre « Inventaire » en {@code text_muted}. */
     @Override
     protected void renderLabels(GuiGraphics guiGraphics, int mouseX, int mouseY) {
-        GaldurRender.text(guiGraphics, title, titleLabelX, titleLabelY, GaldurTheme.text(), false);
+        GaldurRender.text(guiGraphics, GaldurFonts.title(title), titleLabelX, titleLabelY, GaldurTheme.text(), false);
         if (showInventoryLabel) {
             GaldurRender.text(guiGraphics, playerInventoryTitle, inventoryLabelX, inventoryLabelY,
                     GaldurTheme.textMuted(), false);
