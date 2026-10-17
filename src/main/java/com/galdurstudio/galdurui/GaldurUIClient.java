@@ -1,5 +1,6 @@
 package com.galdurstudio.galdurui;
 
+import com.galdurstudio.galdurui.internal.dev.DevPacks;
 import com.galdurstudio.galdurui.internal.dev.DevScreens;
 import com.galdurstudio.galdurui.internal.dev.GaldurDevCommands;
 import com.galdurstudio.galdurui.internal.dev.LayoutDebug;
@@ -26,6 +27,7 @@ public class GaldurUIClient {
             GaldurDevCommands.register();
             LayoutDebug.register();
             DevScreens.register(modEventBus);
+            DevPacks.register(modEventBus);
         }
     }
 }

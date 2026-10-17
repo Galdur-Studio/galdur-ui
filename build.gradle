@@ -140,6 +140,11 @@ publishing {
     }
 }
 
+// Packs de ressources de développement (internal.dev.DevPacks) : jamais livrés aux joueurs.
+tasks.named('jar') {
+    exclude 'resourcepacks/**'
+}
+
 tasks.named('test', Test) {
     useJUnitPlatform()
 }
