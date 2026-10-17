@@ -13,6 +13,8 @@ import net.minecraft.network.chat.FormattedText;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.FormattedCharSequence;
 import net.minecraft.world.item.ItemStack;
+import org.joml.Matrix4f;
+import org.joml.Vector3f;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -126,8 +128,9 @@ public final class GaldurRender {
      *
      * <p>Implémentation 1.21.1 : {@link GuiGraphics#enableScissor(int, int, int, int)}, qui gère
      * la pile et vide le tampon de dessin en attente. Le rectangle est en coordonnées d'écran
-     * (pixels d'interface) : une translation appliquée à la pose de {@code graphics} n'est
-     * <strong>pas</strong> prise en compte en 1.21.1. Une largeur ou une hauteur négative est
+     * (pixels d'interface) et Minecraft 1.21.1 n'y applique pas la pose de {@code graphics} :
+     * on le fait ici, pour qu'une zone découpée suive son contenu quand il est déplacé (par
+     * exemple par {@link #drawOffset}, pendant une animation). Une largeur ou une hauteur négative est
      * ramenée à zéro, ce qui ne laisse rien passer.</p>
      *
      * @param graphics contexte de rendu fourni par l'écran
@@ -137,7 +140,39 @@ public final class GaldurRender {
      * @param height   hauteur de la zone visible, en pixels d'interface
      */
     public static void pushClip(GuiGraphics graphics, int x, int y, int width, int height) {
-        graphics.enableScissor(x, y, x + Math.max(0, width), y + Math.max(0, height));
+        Matrix4f pose = graphics.pose().last().pose();
+        Vector3f a = pose.transformPosition(x, y, 0, new Vector3f());
+        Vector3f b = pose.transformPosition(x + Math.max(0, width), y + Math.max(0, height), 0, new Vector3f());
+        graphics.enableScissor(Math.round(Math.min(a.x, b.x)), Math.round(Math.min(a.y, b.y)),
+                Math.round(Math.max(a.x, b.x)), Math.round(Math.max(a.y, b.y)));
+    }
+
+    /**
+     * Exécute {@code draw} décalé de {@code (dx, dy)} pixels d'interface, puis rétablit la
+     * position, même si le dessin lève une exception. Sert aux animations de mouvement : tout ce
+     * que dessine {@code draw} (sprites, texte, objets, zones découpées) est déplacé d'un bloc.
+     *
+     * <p>Seul le dessin bouge : les zones de clic des widgets restent où elles sont. Implémentation
+     * 1.21.1 : {@code pose().pushPose()}, {@code translate}, {@code popPose()}.</p>
+     *
+     * @param graphics contexte de rendu fourni par l'écran
+     * @param dx       décalage horizontal, en pixels d'interface
+     * @param dy       décalage vertical, en pixels d'interface
+     * @param draw     le dessin à décaler
+     */
+    public static void drawOffset(GuiGraphics graphics, float dx, float dy, Runnable draw) {
+        if (dx == 0 && dy == 0) {
+            draw.run();
+            return;
+        }
+        PoseStack pose = graphics.pose();
+        pose.pushPose();
+        try {
+            pose.translate(dx, dy, 0);
+            draw.run();
+        } finally {
+            pose.popPose();
+        }
     }
 
     /**

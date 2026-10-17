@@ -67,6 +67,15 @@ Le générateur (`tools/GenerateSprites.java`) est compilé dans un source set s
 tourne pas au build et n'est pas inclus dans le jar du mod. La CI le relance et échoue si les
 PNG commités ne correspondent plus à ce qu'il produit.
 
+## Animations
+
+Survol des boutons et des onglets en fondu, case qui se coche en grandissant, fenêtres et écrans
+de menu qui montent légèrement à l'ouverture, contenu d'onglet qui glisse depuis son côté,
+défilement fluide des listes. Durées courtes (90 à 180 ms) et courbes de `api.anim.GaldurEasing`.
+Le joueur peut tout couper : Mods → Galdur UI → Configurer → Animations
+(`config/galdurui-client.toml`). Un mod qui anime ses propres widgets utilise
+`api.anim.AnimatedValue`, qui respecte ce réglage.
+
 ## Narration
 
 Chaque widget se lit au narrateur de Minecraft (Ctrl+B), dans la langue du joueur : textes vanilla

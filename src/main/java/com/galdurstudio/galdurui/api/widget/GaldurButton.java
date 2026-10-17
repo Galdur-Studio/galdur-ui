@@ -1,5 +1,8 @@
 package com.galdurstudio.galdurui.api.widget;
 
+import com.galdurstudio.galdurui.api.anim.GaldurEasing;
+import com.galdurstudio.galdurui.api.anim.GaldurAnimations;
+import com.galdurstudio.galdurui.api.anim.AnimatedValue;
 import net.minecraft.client.gui.narration.NarratedElementType;
 import com.galdurstudio.galdurui.internal.narration.GaldurNarration;
 import com.galdurstudio.galdurui.api.theme.GaldurTheme;
@@ -73,6 +76,9 @@ public class GaldurButton extends AbstractWidget {
      * relâchement sur lui déclencherait l'action.</p>
      */
     private boolean held;
+
+    /** Part du survol affichée, de 0 (repos) à 1 (survolé) : fondu entre les deux sprites. */
+    private final AnimatedValue hover = new AnimatedValue(0, GaldurAnimations.HOVER_MS, GaldurEasing.OUT_QUAD);
 
     /**
      * Crée un bouton.
@@ -181,6 +187,12 @@ public class GaldurButton extends AbstractWidget {
         };
     }
 
+    /** {@return {@code argb} avec son alpha multiplié par {@code factor} (0 à 1)} */
+    private static int withAlpha(int argb, double factor) {
+        int alpha = (int) Math.round(((argb >>> 24) & 0xFF) * Math.max(0, Math.min(1, factor)));
+        return (alpha << 24) | (argb & 0xFFFFFF);
+    }
+
     /** {@return la teinte ARGB de l'état {@code state}, relue dans le thème} */
     private static int tint(State state) {
         return switch (state) {
@@ -200,7 +212,19 @@ public class GaldurButton extends AbstractWidget {
             held = false;
         }
         State state = currentState();
-        GaldurRender.drawNineSlice(guiGraphics, sprite(state), getX(), getY(), getWidth(), getHeight(), tint(state));
+        hover.setTarget(state == State.HOVERED || state == State.PRESSED ? 1 : 0);
+        if (state == State.PRESSED || state == State.DISABLED) {
+            GaldurRender.drawNineSlice(guiGraphics, sprite(state), getX(), getY(), getWidth(), getHeight(), tint(state));
+        } else {
+            // Fondu : le sprite de survol est posé sur celui du repos, de plus en plus opaque.
+            double amount = hover.get();
+            GaldurRender.drawNineSlice(guiGraphics, sprite(State.NORMAL), getX(), getY(), getWidth(), getHeight(),
+                    tint(State.NORMAL));
+            if (amount > 0) {
+                GaldurRender.drawNineSlice(guiGraphics, sprite(State.HOVERED), getX(), getY(), getWidth(), getHeight(),
+                        withAlpha(tint(State.HOVERED), amount));
+            }
+        }
 
         renderContent(guiGraphics);
     }

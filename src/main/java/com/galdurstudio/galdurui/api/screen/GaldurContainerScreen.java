@@ -1,5 +1,7 @@
 package com.galdurstudio.galdurui.api.screen;
 
+import com.galdurstudio.galdurui.api.anim.GaldurEasing;
+import com.galdurstudio.galdurui.api.anim.GaldurAnimations;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.client.gui.narration.NarrationElementOutput;
 import net.minecraft.client.gui.narration.NarratedElementType;
@@ -68,8 +70,13 @@ public class GaldurContainerScreen<M extends AbstractContainerMenu> extends Abst
     /** Opacité du voile posé sur le slot survolé (0 à 255), comme une case d'objet Galdur. */
     private static final int HOVER_ALPHA = 0x60;
 
+    /** Distance parcourue par le panneau en s'ouvrant (il monte), en pixels. */
+    private static final int OPEN_RISE = 8;
+
     /** Vrai si le menu contient l'inventaire du joueur : le titre « Inventaire » est affiché. */
     private final boolean showInventoryLabel;
+    /** Début de l'animation d'ouverture ; {@code -1} tant que l'écran n'a jamais été montré. */
+    private long openStart = -1;
 
     /**
      * Crée l'écran, avec un panneau dimensionné d'après les slots du menu.
@@ -142,10 +149,45 @@ public class GaldurContainerScreen<M extends AbstractContainerMenu> extends Abst
         return List.of();
     }
 
+    /** Lance l'animation d'ouverture, la première fois que l'écran est affiché seulement. */
+    @Override
+    public void added() {
+        super.added();
+        if (openStart < 0) {
+            openStart = GaldurAnimations.now();
+        }
+    }
+
+    /** {@return le décalage vertical du panneau pendant son ouverture, en pixels} */
+    private float openOffset() {
+        if (openStart < 0) {
+            return 0;
+        }
+        double t = GaldurAnimations.progress(openStart, GaldurAnimations.OPEN_MS);
+        return (float) (OPEN_RISE * (1 - GaldurEasing.OUT_CUBIC.applyAsDouble(t)));
+    }
+
+    /**
+     * Dessine l'écran ; à l'ouverture, le panneau et son contenu montent légèrement. Les
+     * infobulles, elles, restent sous le curseur.
+     */
     @Override
     public void render(GuiGraphics guiGraphics, int mouseX, int mouseY, float partialTick) {
-        super.render(guiGraphics, mouseX, mouseY, partialTick);
+        float offset = openOffset();
+        GaldurRender.drawOffset(guiGraphics, 0, offset,
+                () -> super.render(guiGraphics, mouseX, mouseY - Math.round(offset), partialTick));
         renderTooltip(guiGraphics, mouseX, mouseY);
+    }
+
+    /**
+     * Voile de fond puis panneau ({@link #renderBg}). Le voile couvre tout l'écran : il ne suit
+     * pas la montée du panneau.
+     */
+    @Override
+    public void renderBackground(GuiGraphics guiGraphics, int mouseX, int mouseY, float partialTick) {
+        float offset = openOffset();
+        GaldurRender.drawOffset(guiGraphics, 0, -offset, () -> renderTransparentBackground(guiGraphics));
+        renderBg(guiGraphics, partialTick, mouseX, mouseY);
     }
 
     /**

@@ -1,5 +1,8 @@
 package com.galdurstudio.galdurui.api.widget;
 
+import com.galdurstudio.galdurui.api.anim.GaldurEasing;
+import com.galdurstudio.galdurui.api.anim.GaldurAnimations;
+import com.galdurstudio.galdurui.api.anim.AnimatedValue;
 import com.galdurstudio.galdurui.internal.narration.GaldurNarration;
 import com.galdurstudio.galdurui.api.theme.GaldurTheme;
 import com.galdurstudio.galdurui.internal.render.GaldurRender;
@@ -59,6 +62,8 @@ public class GaldurTabs extends AbstractWidget {
     private final List<Component> titles;
     private final IntSupplier selected;
     private final IntConsumer onSelect;
+    /** Part du survol affichée pour chaque onglet, de 0 à 1 : fondu de la teinte et du texte. */
+    private final AnimatedValue[] hover;
 
     /**
      * Crée une rangée d'onglets. Préférer {@link #of(List, IntSupplier, IntConsumer)}.
@@ -73,6 +78,10 @@ public class GaldurTabs extends AbstractWidget {
         this.titles = List.copyOf(titles);
         this.selected = selected;
         this.onSelect = onSelect;
+        this.hover = new AnimatedValue[this.titles.size()];
+        for (int index = 0; index < hover.length; index++) {
+            hover[index] = new AnimatedValue(0, GaldurAnimations.HOVER_MS, GaldurEasing.OUT_QUAD);
+        }
     }
 
     /**
@@ -170,16 +179,16 @@ public class GaldurTabs extends AbstractWidget {
             boolean isSelected = index == selectedIndex;
             int top = isSelected ? getY() : getY() + INACTIVE_INSET;
             int height = lineY - top;
+            hover[index].setTarget(!isSelected && index == hovered ? 1 : 0);
+            double amount = hover[index].get();
             int textColor;
             if (isSelected) {
                 GaldurRender.drawNineSlice(guiGraphics, GaldurSprites.TAB_SELECTED, x, top, width, height, activeFill);
                 textColor = active ? GaldurTheme.text() : GaldurTheme.textMuted();
             } else {
-                int tint = index == hovered
-                        ? mix(GaldurTheme.surface(), GaldurTheme.accent(), HOVER_MIX)
-                        : GaldurTheme.surface();
+                int tint = mix(GaldurTheme.surface(), GaldurTheme.accent(), HOVER_MIX * amount);
                 GaldurRender.drawNineSlice(guiGraphics, GaldurSprites.TAB, x, top, width, height, tint);
-                textColor = index == hovered ? GaldurTheme.text() : GaldurTheme.textMuted();
+                textColor = mix(GaldurTheme.textMuted(), GaldurTheme.text(), amount);
             }
             int textY = top + (height - GaldurRender.lineHeight()) / 2 + 1;
             GaldurRender.text(guiGraphics, title, x + GaldurTheme.tabPaddingX(), textY, textColor, false);

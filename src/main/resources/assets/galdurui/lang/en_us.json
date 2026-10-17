@@ -17,5 +17,10 @@
   "narration.galdurui.search.empty": "Empty search field: %s",
   "narration.galdurui.tabs": "%s tabs",
   "narration.galdurui.tabs.usage": "Press left or right to switch tabs",
-  "narration.galdurui.window": "Galdur window"
+  "narration.galdurui.window": "Galdur window",
+  "galdurui.configuration.title": "Galdur UI settings",
+  "galdurui.configuration.section.galdurui.client.toml": "Client settings",
+  "galdurui.configuration.section.galdurui.client.toml.title": "Galdur UI: client settings",
+  "galdurui.configuration.animations": "Animations",
+  "galdurui.configuration.animations.tooltip": "Hover fades, screen opening, tab changes and smooth scrolling. Turn off for instant changes."
 }

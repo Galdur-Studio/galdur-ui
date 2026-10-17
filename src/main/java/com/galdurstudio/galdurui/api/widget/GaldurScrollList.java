@@ -1,5 +1,6 @@
 package com.galdurstudio.galdurui.api.widget;
 
+import com.galdurstudio.galdurui.api.anim.GaldurAnimations;
 import com.galdurstudio.galdurui.internal.narration.GaldurNarration;
 import com.galdurstudio.galdurui.api.theme.GaldurTheme;
 import com.galdurstudio.galdurui.internal.render.GaldurRender;
@@ -68,6 +69,13 @@ public class GaldurScrollList extends AbstractWidget {
 
     /** Défilement, en pixels depuis le haut du contenu. */
     private double scroll;
+    /**
+     * Défilement affiché, qui rattrape {@link #scroll} en douceur (molette, flèches) ;
+     * {@code NaN} avant la première image. Les clics se basent dessus : on clique ce qu'on voit.
+     */
+    private double shownScroll = Double.NaN;
+    /** Heure de l'image précédente, pour le défilement fluide. */
+    private long lastFrame;
     /** Vrai pendant que le joueur glisse le curseur de la barre de défilement. */
     private boolean draggingThumb;
 
@@ -210,7 +218,7 @@ public class GaldurScrollList extends AbstractWidget {
     private int thumbY() {
         int travel = innerHeight() - thumbHeight();
         int max = maxScroll();
-        return innerY() + (max == 0 ? 0 : (int) (scroll * travel / max));
+        return innerY() + (max == 0 ? 0 : (int) (view() * travel / max));
     }
 
     /** {@return l'index de la ligne sous ce point, ou {@code -1} s'il n'y en a pas} */
@@ -219,7 +227,7 @@ public class GaldurScrollList extends AbstractWidget {
                 || mouseY < innerY() || mouseY >= innerY() + innerHeight()) {
             return -1;
         }
-        int index = (int) ((mouseY - innerY() + scroll) / GaldurTheme.listRowHeight());
+        int index = (int) ((mouseY - innerY() + view()) / GaldurTheme.listRowHeight());
         return index < lines.get().size() ? index : -1;
     }
 
@@ -228,9 +236,26 @@ public class GaldurScrollList extends AbstractWidget {
                 && mouseY >= innerY() && mouseY < innerY() + innerHeight();
     }
 
+    /** {@return le défilement affiché, ou le défilement réel avant la première image} */
+    private double view() {
+        return Double.isNaN(shownScroll) ? scroll : shownScroll;
+    }
+
+    /** Rapproche le défilement affiché du défilement réel ; d'un coup quand on tire le curseur. */
+    private void updateShownScroll() {
+        long now = GaldurAnimations.now();
+        shownScroll = draggingThumb
+                ? scroll
+                : GaldurAnimations.approach(shownScroll, scroll, now - lastFrame,
+                        GaldurAnimations.SCROLL_SMOOTHING_MS, 0.25);
+        lastFrame = now;
+    }
+
     @Override
     protected void renderWidget(GuiGraphics guiGraphics, int mouseX, int mouseY, float partialTick) {
         setScroll(scroll);
+        updateShownScroll();
+        double view = view();
         List<Component> rows = lines.get();
         int rowHeight = GaldurTheme.listRowHeight();
         int rowsWidth = rowsWidth();
@@ -242,10 +267,10 @@ public class GaldurScrollList extends AbstractWidget {
         GaldurRender.drawNineSlice(guiGraphics, GaldurSprites.FIELD, getX(), getY(), getWidth(), getHeight(),
                 GaldurTheme.surface());
         GaldurRender.drawClipped(guiGraphics, innerX(), innerY(), rowsWidth, innerHeight(), () -> {
-            int first = (int) (scroll / rowHeight);
-            int last = Math.min(rows.size() - 1, (int) ((scroll + innerHeight()) / rowHeight));
+            int first = (int) (view / rowHeight);
+            int last = Math.min(rows.size() - 1, (int) ((view + innerHeight()) / rowHeight));
             for (int index = first; index <= last; index++) {
-                int rowY = innerY() + index * rowHeight - (int) scroll;
+                int rowY = innerY() + index * rowHeight - (int) Math.round(view);
                 if (index == selectedIndex) {
                     GaldurRender.drawFill(guiGraphics, innerX(), rowY, rowsWidth, rowHeight,
                             active ? GaldurTheme.accent() : GaldurTheme.background());

@@ -17,5 +17,10 @@
   "narration.galdurui.search.empty": "Champ de recherche vide : %s",
   "narration.galdurui.tabs": "%s onglets",
   "narration.galdurui.tabs.usage": "Flèches gauche et droite pour changer d'onglet",
-  "narration.galdurui.window": "Fenêtre Galdur"
+  "narration.galdurui.window": "Fenêtre Galdur",
+  "galdurui.configuration.title": "Réglages de Galdur UI",
+  "galdurui.configuration.section.galdurui.client.toml": "Réglages du client",
+  "galdurui.configuration.section.galdurui.client.toml.title": "Galdur UI : réglages du client",
+  "galdurui.configuration.animations": "Animations",
+  "galdurui.configuration.animations.tooltip": "Fondus au survol, ouverture des écrans, changement d'onglet et défilement fluide. Désactiver pour des changements instantanés."
 }

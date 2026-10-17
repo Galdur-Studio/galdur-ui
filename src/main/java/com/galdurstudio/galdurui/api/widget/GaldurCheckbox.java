@@ -1,5 +1,8 @@
 package com.galdurstudio.galdurui.api.widget;
 
+import com.galdurstudio.galdurui.api.anim.GaldurEasing;
+import com.galdurstudio.galdurui.api.anim.GaldurAnimations;
+import com.galdurstudio.galdurui.api.anim.AnimatedValue;
 import net.minecraft.network.chat.CommonComponents;
 import com.galdurstudio.galdurui.internal.narration.GaldurNarration;
 import com.galdurstudio.galdurui.api.theme.GaldurTheme;
@@ -42,6 +45,8 @@ public class GaldurCheckbox extends AbstractWidget {
     private final Consumer<Boolean> onToggle;
     /** Vrai entre l'appui et le relâchement de la souris sur la case. */
     private boolean held;
+    /** Taille affichée de la coche, de 0 (absente) à 1 (pleine) : elle grandit ou rétrécit. */
+    private final AnimatedValue mark;
 
     /**
      * Crée une case. Préférer {@link #of(Component, BooleanSupplier, Consumer)}.
@@ -54,6 +59,7 @@ public class GaldurCheckbox extends AbstractWidget {
         super(0, 0, BOX_SIZE + GAP + GaldurRender.textWidth(label), Math.max(BOX_SIZE, GaldurRender.lineHeight()), label);
         this.checked = checked;
         this.onToggle = onToggle;
+        this.mark = new AnimatedValue(checked.getAsBoolean() ? 1 : 0, GaldurAnimations.TOGGLE_MS, GaldurEasing.OUT_CUBIC);
     }
 
     /**
@@ -73,15 +79,20 @@ public class GaldurCheckbox extends AbstractWidget {
         int labelY = getY() + (getHeight() - GaldurRender.lineHeight()) / 2;
         boolean highlighted = active
                 && (isHovered() || (isFocused() && Minecraft.getInstance().getLastInputType().isKeyboard()));
-        int mark = active ? GaldurTheme.accent() : GaldurTheme.textMuted();
+        int markColor = active ? GaldurTheme.accent() : GaldurTheme.textMuted();
         int label = active ? GaldurTheme.text() : GaldurTheme.textMuted();
 
         GaldurRender.drawNineSlice(guiGraphics, GaldurSprites.FIELD, getX(), boxY, BOX_SIZE, BOX_SIZE, GaldurTheme.surface());
         if (highlighted) {
             GaldurRender.drawOutline(guiGraphics, getX(), boxY, BOX_SIZE, BOX_SIZE, GaldurTheme.accentHover());
         }
-        if (checked.getAsBoolean()) {
-            GaldurRender.drawFill(guiGraphics, getX() + 2, boxY + 2, BOX_SIZE - 4, BOX_SIZE - 4, mark);
+        mark.setTarget(checked.getAsBoolean() ? 1 : 0);
+        double amount = mark.get();
+        if (amount > 0) {
+            int full = BOX_SIZE - 4;
+            int size = Math.max(1, (int) Math.round(full * amount));
+            int offset = 2 + (full - size) / 2;
+            GaldurRender.drawFill(guiGraphics, getX() + offset, boxY + offset, size, size, markColor);
         }
         GaldurRender.text(guiGraphics, getMessage(), getX() + GAP + BOX_SIZE, labelY, label, true);
     }

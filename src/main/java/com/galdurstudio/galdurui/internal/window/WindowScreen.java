@@ -1,5 +1,13 @@
 package com.galdurstudio.galdurui.internal.window;
 
+import java.util.Set;
+import java.util.Map;
+import java.util.IdentityHashMap;
+import java.util.Collections;
+import net.minecraft.client.gui.GuiGraphics;
+import com.galdurstudio.galdurui.internal.render.GaldurRender;
+import com.galdurstudio.galdurui.api.anim.GaldurEasing;
+import com.galdurstudio.galdurui.api.anim.GaldurAnimations;
 import com.galdurstudio.galdurui.internal.narration.GaldurNarration;
 import com.galdurstudio.galdurui.api.layout.GaldurPanelLayout;
 import com.galdurstudio.galdurui.api.theme.GaldurTheme;
@@ -35,6 +43,25 @@ public class WindowScreen extends Screen {
     /** Écran affiché avant celui-ci, rétabli à la fermeture ; {@code null} = retour au jeu. */
     @Nullable
     private Screen previous;
+
+    /** Distance parcourue par la fenêtre en s'ouvrant (elle monte), en pixels. */
+    private static final int OPEN_RISE = 8;
+    /** Distance parcourue par le contenu d'un onglet en arrivant, en pixels. */
+    private static final int PAGE_SLIDE = 12;
+
+    /** Début de l'animation d'ouverture ; {@code -1} tant que la fenêtre n'a jamais été montrée. */
+    private long openStart = -1;
+    /** Onglet affiché par chaque rangée d'onglets à la dernière construction. */
+    private final Map<TabsHandle, Integer> builtTabs = new IdentityHashMap<>();
+    /** Contenu de l'onglet qui vient d'être choisi, trouvé pendant la construction ; sinon {@code null}. */
+    @Nullable
+    private LinearLayout arrivingPage;
+    /** Widgets de l'onglet qui arrive, dessinés décalés pendant {@link GaldurAnimations#PAGE_MS}. */
+    private final Set<AbstractWidget> slidingWidgets = Collections.newSetFromMap(new IdentityHashMap<>());
+    /** Sens d'arrivée : {@code 1} depuis la droite (onglet suivant), {@code -1} depuis la gauche. */
+    private int pageDirection;
+    /** Début du glissement de l'onglet qui arrive. */
+    private long pageStart;
 
     /**
      * @param model    le contenu à afficher
@@ -94,7 +121,44 @@ public class WindowScreen extends Screen {
     @Override
     public void added() {
         super.added();
+        if (openStart < 0) {
+            openStart = GaldurAnimations.now();
+        }
         onShown.accept(this);
+    }
+
+    /** {@return le décalage vertical de la fenêtre pendant son ouverture, en pixels} */
+    private float openOffset() {
+        if (openStart < 0) {
+            return 0;
+        }
+        double t = GaldurAnimations.progress(openStart, GaldurAnimations.OPEN_MS);
+        return (float) (OPEN_RISE * (1 - GaldurEasing.OUT_CUBIC.applyAsDouble(t)));
+    }
+
+    /** {@return le décalage horizontal du contenu de l'onglet qui arrive, en pixels} */
+    private float pageOffset() {
+        double t = GaldurAnimations.progress(pageStart, GaldurAnimations.PAGE_MS);
+        return (float) (pageDirection * PAGE_SLIDE * (1 - GaldurEasing.OUT_CUBIC.applyAsDouble(t)));
+    }
+
+    /**
+     * Dessine l'écran : la fenêtre monte légèrement à l'ouverture. Les zones de clic ne bougent
+     * pas ; l'animation est trop courte pour que ça se remarque.
+     */
+    @Override
+    public void render(GuiGraphics guiGraphics, int mouseX, int mouseY, float partialTick) {
+        float offset = openOffset();
+        GaldurRender.drawOffset(guiGraphics, 0, offset,
+                () -> super.render(guiGraphics, mouseX, mouseY - Math.round(offset), partialTick));
+    }
+
+    /** Le fond (flou, voile) ne suit pas la montée de la fenêtre : il couvre tout l'écran. */
+    @Override
+    public void renderBackground(GuiGraphics guiGraphics, int mouseX, int mouseY, float partialTick) {
+        float offset = openOffset();
+        GaldurRender.drawOffset(guiGraphics, 0, -offset,
+                () -> super.renderBackground(guiGraphics, mouseX, mouseY, partialTick));
     }
 
     /**
@@ -132,7 +196,7 @@ public class WindowScreen extends Screen {
      * @return le widget, ou {@code null} si l'élément est caché et ne prend donc aucune place
      */
     @Nullable
-    private static LayoutElement build(WindowElement element, boolean parentEnabled, @Nullable Component parentTooltip) {
+    private LayoutElement build(WindowElement element, boolean parentEnabled, @Nullable Component parentTooltip) {
         ElementHandle handle = element.handle();
         if (!handle.isVisible()) {
             return null;
@@ -158,7 +222,7 @@ public class WindowScreen extends Screen {
      * @return la ligne, ou {@code null} si aucun de ses éléments n'est visible
      */
     @Nullable
-    private static LayoutElement buildRow(RowElement row, boolean enabled, @Nullable Component tooltip) {
+    private LayoutElement buildRow(RowElement row, boolean enabled, @Nullable Component tooltip) {
         LinearLayout line = LinearLayout.horizontal().spacing(GaldurTheme.gap());
         boolean empty = true;
         for (WindowElement child : row.children().elements()) {
@@ -185,7 +249,7 @@ public class WindowScreen extends Screen {
      * @return la rangée et son contenu, ou {@code null} s'il n'y a encore aucun onglet
      */
     @Nullable
-    private static LayoutElement buildTabs(TabsElement element, boolean enabled, @Nullable Component tooltip) {
+    private LayoutElement buildTabs(TabsElement element, boolean enabled, @Nullable Component tooltip) {
         List<Component> titles = element.tabs().titles();
         List<WindowModel> contents = element.tabs().contents();
         if (titles.isEmpty()) {
@@ -193,6 +257,7 @@ public class WindowScreen extends Screen {
         }
         TabsHandle handle = element.handle();
         int selected = handle.getSelected();
+        Integer before = builtTabs.put(handle, selected);
         LinearLayout shown = null;
         int contentWidth = 0;
         int contentHeight = 0;
@@ -212,6 +277,12 @@ public class WindowScreen extends Screen {
         area.defaultChildLayoutSetting().alignHorizontallyLeft().alignVerticallyTop();
         if (shown != null) {
             area.addChild(shown);
+            if (before != null && before != selected) {
+                // Le joueur vient de changer d'onglet : le nouveau contenu glisse depuis son côté.
+                arrivingPage = shown;
+                pageDirection = selected > before ? 1 : -1;
+                pageStart = GaldurAnimations.now();
+            }
         }
 
         LinearLayout column = LinearLayout.vertical().spacing(GaldurTheme.gap());
@@ -227,7 +298,7 @@ public class WindowScreen extends Screen {
      * @param enabled {@code false} si ce qui les contient est désactivé
      * @return la colonne, vide si aucun élément n'est visible
      */
-    private static LinearLayout buildColumn(WindowModel model, boolean enabled) {
+    private LinearLayout buildColumn(WindowModel model, boolean enabled) {
         LinearLayout column = LinearLayout.vertical().spacing(GaldurTheme.gap());
         for (WindowElement element : model.elements()) {
             LayoutElement widget = build(element, enabled, null);
@@ -257,11 +328,30 @@ public class WindowScreen extends Screen {
 
     @Override
     protected void init() {
+        arrivingPage = null;
         LinearLayout layout = buildColumn(model, true);
         GaldurPanelLayout panel = new GaldurPanelLayout(layout);
         addRenderableOnly(panel);
         panel.arrangeElements();
         FrameLayout.centerInRectangle(panel, getRectangle());
-        layout.visitWidgets(this::addRenderableWidget);
+
+        slidingWidgets.clear();
+        if (arrivingPage != null) {
+            arrivingPage.visitWidgets(slidingWidgets::add);
+        }
+        layout.visitWidgets(widget -> {
+            if (!slidingWidgets.contains(widget)) {
+                addRenderableWidget(widget);
+                return;
+            }
+            // Widget de l'onglet qui arrive : il reçoit clics et clavier normalement, mais il
+            // est dessiné décalé tant que le glissement dure.
+            addWidget(widget);
+            addRenderableOnly((guiGraphics, mouseX, mouseY, partialTick) -> {
+                float offset = pageOffset();
+                GaldurRender.drawOffset(guiGraphics, offset, 0,
+                        () -> widget.render(guiGraphics, mouseX - Math.round(offset), mouseY, partialTick));
+            });
+        });
     }
 }

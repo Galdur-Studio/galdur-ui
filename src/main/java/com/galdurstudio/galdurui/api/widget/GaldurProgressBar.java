@@ -1,5 +1,6 @@
 package com.galdurstudio.galdurui.api.widget;
 
+import com.galdurstudio.galdurui.api.anim.GaldurAnimations;
 import com.galdurstudio.galdurui.internal.narration.GaldurNarration;
 import com.galdurstudio.galdurui.api.theme.GaldurTheme;
 import com.galdurstudio.galdurui.internal.render.GaldurRender;
@@ -138,7 +139,7 @@ public class GaldurProgressBar extends AbstractWidget {
     private double updateShown() {
         double target = clampedProgress();
         long now = Util.getMillis();
-        if (Double.isNaN(shown) || target < shown || !active) {
+        if (Double.isNaN(shown) || target < shown || !active || !GaldurAnimations.enabled()) {
             shown = target;
         } else {
             double elapsed = Math.max(0, now - lastFrame);
@@ -191,7 +192,7 @@ public class GaldurProgressBar extends AbstractWidget {
         } else if (filled > 0) {
             int from = GaldurTheme.accent();
             int to = GaldurTheme.ember();
-            boolean shining = clampedProgress() < 1;
+            boolean shining = clampedProgress() < 1 && GaldurAnimations.enabled();
             long now = Util.getMillis();
             int white = 0xFFFFFFFF;
             for (int column = 0; column < filled; column++) {
