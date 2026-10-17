@@ -1,5 +1,7 @@
 package com.galdurstudio.galdurui.api.widget;
 
+import net.minecraft.client.gui.narration.NarratedElementType;
+import com.galdurstudio.galdurui.internal.narration.GaldurNarration;
 import com.galdurstudio.galdurui.api.theme.GaldurTheme;
 import com.galdurstudio.galdurui.internal.input.GaldurInput;
 import com.galdurstudio.galdurui.internal.render.GaldurRender;
@@ -249,7 +251,10 @@ public class GaldurButton extends AbstractWidget {
 
     @Override
     protected void updateWidgetNarration(NarrationElementOutput narrationElementOutput) {
-        defaultButtonNarrationText(narrationElementOutput);
+        // « Bouton : Valider », « désactivé » en plus si besoin, puis la consigne vanilla.
+        narrationElementOutput.add(NarratedElementType.TITLE, GaldurNarration.withState(createNarrationMessage(), active));
+        GaldurNarration.usage(narrationElementOutput, active, isFocused(),
+                "narration.button.usage.focused", "narration.button.usage.hovered");
     }
 
     /** {@return {@code true} si le bouton est actuellement maintenu enfoncé} */

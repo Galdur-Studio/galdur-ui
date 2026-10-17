@@ -1,5 +1,6 @@
 package com.galdurstudio.galdurui.api.widget;
 
+import com.galdurstudio.galdurui.internal.narration.GaldurNarration;
 import com.galdurstudio.galdurui.api.text.GaldurFormat;
 import com.galdurstudio.galdurui.api.theme.GaldurTheme;
 import com.galdurstudio.galdurui.internal.render.GaldurRender;
@@ -166,12 +167,10 @@ public class GaldurItemSlot extends AbstractWidget {
     @Override
     protected void updateWidgetNarration(NarrationElementOutput narrationElementOutput) {
         ItemStack item = stack.get();
-        if (item.isEmpty()) {
-            narrationElementOutput.add(NarratedElementType.TITLE, Component.literal("Case vide"));
-            return;
-        }
-        narrationElementOutput.add(NarratedElementType.TITLE, Component.empty()
-                .append(item.getHoverName())
-                .append(" × " + GaldurFormat.fullAmount(amount.getAsLong())));
+        Component title = item.isEmpty()
+                ? GaldurNarration.ours("slot.empty")
+                : GaldurNarration.item(item, amount.getAsLong());
+        // Pas de consigne : ce que fait un clic dépend du mod.
+        narrationElementOutput.add(NarratedElementType.TITLE, GaldurNarration.withState(title, active));
     }
 }

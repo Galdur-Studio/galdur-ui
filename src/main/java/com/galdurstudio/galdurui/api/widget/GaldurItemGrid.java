@@ -1,5 +1,6 @@
 package com.galdurstudio.galdurui.api.widget;
 
+import com.galdurstudio.galdurui.internal.narration.GaldurNarration;
 import com.galdurstudio.galdurui.api.text.GaldurFormat;
 import com.galdurstudio.galdurui.api.theme.GaldurTheme;
 import com.galdurstudio.galdurui.internal.render.GaldurRender;
@@ -99,6 +100,8 @@ public class GaldurItemGrid extends AbstractWidget {
     private boolean draggingThumb;
     /** Ordonnée de la souris dans le curseur au moment où on l'a saisi. */
     private double grabOffset;
+    /** Index de l'objet survolé à la dernière image, ou {@code -1} ; lu par la narration. */
+    private int hoveredIndex = -1;
 
     /**
      * Crée une grille. Préférer {@link #of(int, int, Supplier)}.
@@ -220,6 +223,7 @@ public class GaldurItemGrid extends AbstractWidget {
         setScrollRow(scrollRow); // la liste a pu raccourcir depuis l'image précédente
         List<Entry> list = entries.get();
         int hovered = active && isHovered() ? indexAt(mouseX, mouseY) : -1;
+        hoveredIndex = hovered;
         int countColor = active ? GaldurTheme.text() : GaldurTheme.textMuted();
         Entry hoveredEntry = null;
 
@@ -358,7 +362,18 @@ public class GaldurItemGrid extends AbstractWidget {
 
     @Override
     protected void updateWidgetNarration(NarrationElementOutput narrationElementOutput) {
-        narrationElementOutput.add(NarratedElementType.TITLE,
-                Component.literal("Grille de " + entries.get().size() + " objets"));
+        // Case survolée : « Lingot de fer, 1 234 », puis « Objet 5 sur 120 ».
+        // Sinon : « Grille d'objets : 120 objets ».
+        List<Entry> list = entries.get();
+        Component title;
+        if (hoveredIndex >= 0 && hoveredIndex < list.size()) {
+            Entry entry = list.get(hoveredIndex);
+            title = GaldurNarration.item(entry.stack(), entry.amount());
+            narrationElementOutput.add(NarratedElementType.POSITION,
+                    GaldurNarration.ours("grid.position", hoveredIndex + 1, list.size()));
+        } else {
+            title = list.isEmpty() ? GaldurNarration.ours("grid.empty") : GaldurNarration.ours("grid", list.size());
+        }
+        narrationElementOutput.add(NarratedElementType.TITLE, GaldurNarration.withState(title, active));
     }
 }

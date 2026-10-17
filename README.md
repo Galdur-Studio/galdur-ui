@@ -67,6 +67,15 @@ Le générateur (`tools/GenerateSprites.java`) est compilé dans un source set s
 tourne pas au build et n'est pas inclus dans le jar du mod. La CI le relance et échoue si les
 PNG commités ne correspondent plus à ce qu'il produit.
 
+## Narration
+
+Chaque widget se lit au narrateur de Minecraft (Ctrl+B), dans la langue du joueur : textes vanilla
+quand ils existent (« Bouton », « Case à cocher », « Onglet 1 sur 3 sélectionné »...), sinon clés
+`narration.galdurui.*` de `assets/galdurui/lang`. Un widget désactivé ajoute « désactivé » ; une
+case ou une grille lit l'objet et sa quantité complète ; un écran de menu lit l'objet du slot
+survolé ; une fenêtre lit son premier titre à l'ouverture. Le code est dans
+`internal.narration.GaldurNarration`.
+
 ## Structure
 
 - `com.galdurstudio.galdurui.api` : API publique et stable, utilisée par nos mods.

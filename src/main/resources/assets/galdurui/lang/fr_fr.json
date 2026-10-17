@@ -1,4 +1,21 @@
 {
   "block.galdurui.test_chest": "Coffre Galdur de test",
-  "container.galdurui.test_chest": "Coffre Galdur"
+  "container.galdurui.test_chest": "Coffre Galdur",
+  "narration.galdurui.disabled": "désactivé",
+  "narration.galdurui.checked": "coché",
+  "narration.galdurui.unchecked": "non coché",
+  "narration.galdurui.amount": "%s, %s",
+  "narration.galdurui.slot.empty": "Case vide",
+  "narration.galdurui.grid": "Grille d'objets : %s objets",
+  "narration.galdurui.grid.empty": "Grille d'objets vide",
+  "narration.galdurui.grid.position": "Objet %s sur %s",
+  "narration.galdurui.list": "Liste : %s lignes",
+  "narration.galdurui.list.empty": "Liste vide",
+  "narration.galdurui.progress": "Barre de progression : %s",
+  "narration.galdurui.progress.percent": "%s pour cent",
+  "narration.galdurui.search": "Champ de recherche : %s",
+  "narration.galdurui.search.empty": "Champ de recherche vide : %s",
+  "narration.galdurui.tabs": "%s onglets",
+  "narration.galdurui.tabs.usage": "Flèches gauche et droite pour changer d'onglet",
+  "narration.galdurui.window": "Fenêtre Galdur"
 }

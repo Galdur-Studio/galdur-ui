@@ -1,5 +1,6 @@
 package com.galdurstudio.galdurui.api.widget;
 
+import com.galdurstudio.galdurui.internal.narration.GaldurNarration;
 import com.galdurstudio.galdurui.api.theme.GaldurTheme;
 import com.galdurstudio.galdurui.internal.render.GaldurRender;
 import com.galdurstudio.galdurui.internal.render.GaldurSprites;
@@ -221,13 +222,19 @@ public class GaldurTabs extends AbstractWidget {
 
     @Override
     protected void updateWidgetNarration(NarrationElementOutput narrationElementOutput) {
+        // « Onglet Stockage », puis « Onglet 1 sur 3 sélectionné » (textes vanilla).
         int index = selected.getAsInt();
+        Component title;
         if (index >= 0 && index < titles.size()) {
-            narrationElementOutput.add(NarratedElementType.TITLE, titles.get(index));
+            title = Component.translatable("gui.narrate.tab", titles.get(index));
             narrationElementOutput.add(NarratedElementType.POSITION,
-                    Component.literal("Onglet " + (index + 1) + " / " + titles.size()));
+                    Component.translatable("narrator.position.tab", index + 1, titles.size()));
         } else {
-            narrationElementOutput.add(NarratedElementType.TITLE, Component.literal(titles.size() + " onglets"));
+            title = GaldurNarration.ours("tabs", titles.size());
+        }
+        narrationElementOutput.add(NarratedElementType.TITLE, GaldurNarration.withState(title, active));
+        if (active && isFocused() && titles.size() > 1) {
+            narrationElementOutput.add(NarratedElementType.USAGE, GaldurNarration.ours("tabs.usage"));
         }
     }
 }

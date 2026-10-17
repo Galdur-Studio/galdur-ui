@@ -1,5 +1,6 @@
 package com.galdurstudio.galdurui.internal.window;
 
+import com.galdurstudio.galdurui.internal.narration.GaldurNarration;
 import com.galdurstudio.galdurui.api.layout.GaldurPanelLayout;
 import com.galdurstudio.galdurui.api.theme.GaldurTheme;
 import com.galdurstudio.galdurui.api.widget.GaldurTabs;
@@ -44,10 +45,24 @@ public class WindowScreen extends Screen {
      *                 prévenir la fenêtre sans que ce package dépende de {@code api}.
      */
     public WindowScreen(WindowModel model, Consumer<WindowScreen> onShown, Consumer<WindowScreen> onHidden) {
-        super(Component.literal("Galdur"));
+        super(GaldurNarration.ours("window"));
         this.model = model;
         this.onShown = onShown;
         this.onHidden = onHidden;
+    }
+
+    /**
+     * {@return ce que le narrateur lit à l'ouverture : le premier titre de la fenêtre
+     * ({@code addTitle}), ou « Fenêtre Galdur » s'il n'y en a pas}
+     */
+    @Override
+    public Component getNarrationMessage() {
+        for (WindowElement element : model.elements()) {
+            if (element instanceof TitleElement title && title.handle().isVisible()) {
+                return title.title();
+            }
+        }
+        return getTitle();
     }
 
     /**

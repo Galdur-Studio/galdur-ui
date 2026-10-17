@@ -1,5 +1,6 @@
 package com.galdurstudio.galdurui.api.widget;
 
+import com.galdurstudio.galdurui.internal.narration.GaldurNarration;
 import com.galdurstudio.galdurui.api.theme.GaldurTheme;
 import com.galdurstudio.galdurui.internal.render.GaldurRender;
 import com.galdurstudio.galdurui.internal.render.GaldurSprites;
@@ -166,8 +167,11 @@ public class GaldurSearchField extends AbstractWidget {
 
     @Override
     protected void updateWidgetNarration(NarrationElementOutput narrationElementOutput) {
+        // « Champ de recherche : fer », ou « Champ de recherche vide : Rechercher... ».
         String value = input.getValue();
-        narrationElementOutput.add(NarratedElementType.TITLE,
-                value.isEmpty() ? placeholder : Component.literal(value));
+        Component title = value.isEmpty()
+                ? GaldurNarration.ours("search.empty", placeholder)
+                : GaldurNarration.ours("search", value);
+        narrationElementOutput.add(NarratedElementType.TITLE, GaldurNarration.withState(title, active));
     }
 }

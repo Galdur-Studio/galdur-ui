@@ -1,5 +1,7 @@
 package com.galdurstudio.galdurui.api.widget;
 
+import net.minecraft.network.chat.CommonComponents;
+import com.galdurstudio.galdurui.internal.narration.GaldurNarration;
 import com.galdurstudio.galdurui.api.theme.GaldurTheme;
 import com.galdurstudio.galdurui.internal.render.GaldurRender;
 import com.galdurstudio.galdurui.internal.render.GaldurSprites;
@@ -86,7 +88,13 @@ public class GaldurCheckbox extends AbstractWidget {
 
     @Override
     protected void updateWidgetNarration(NarrationElementOutput narrationElementOutput) {
-        narrationElementOutput.add(NarratedElementType.TITLE, getMessage());
+        // « Case à cocher : Activer le son, coché », puis la consigne vanilla.
+        Component state = GaldurNarration.ours(checked.getAsBoolean() ? "checked" : "unchecked");
+        Component title = CommonComponents.joinForNarration(
+                Component.translatable("narration.checkbox", getMessage()), state);
+        narrationElementOutput.add(NarratedElementType.TITLE, GaldurNarration.withState(title, active));
+        GaldurNarration.usage(narrationElementOutput, active, isFocused(),
+                "narration.checkbox.usage.focused", "narration.checkbox.usage.hovered");
     }
 
     /**

@@ -1,5 +1,9 @@
 package com.galdurstudio.galdurui.api.screen;
 
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.client.gui.narration.NarrationElementOutput;
+import net.minecraft.client.gui.narration.NarratedElementType;
+import com.galdurstudio.galdurui.internal.narration.GaldurNarration;
 import com.galdurstudio.galdurui.api.theme.GaldurTheme;
 import com.galdurstudio.galdurui.internal.render.GaldurRender;
 import com.galdurstudio.galdurui.internal.render.GaldurSprites;
@@ -142,6 +146,21 @@ public class GaldurContainerScreen<M extends AbstractContainerMenu> extends Abst
     public void render(GuiGraphics guiGraphics, int mouseX, int mouseY, float partialTick) {
         super.render(guiGraphics, mouseX, mouseY, partialTick);
         renderTooltip(guiGraphics, mouseX, mouseY);
+    }
+
+    /**
+     * Ajoute à la narration l'objet du slot survolé (« Lingot de fer, 32 ») : Minecraft ne lit
+     * pas les slots d'un menu. Placé un niveau plus bas que les widgets pour ne pas remplacer
+     * celui qui a le focus.
+     */
+    @Override
+    protected void updateNarratedWidget(NarrationElementOutput narrationElementOutput) {
+        super.updateNarratedWidget(narrationElementOutput);
+        if (hoveredSlot != null && hoveredSlot.hasItem()) {
+            ItemStack stack = hoveredSlot.getItem();
+            narrationElementOutput.nest().nest().add(NarratedElementType.TITLE,
+                    GaldurNarration.item(stack, stack.getCount()));
+        }
     }
 
     /**

@@ -1,5 +1,6 @@
 package com.galdurstudio.galdurui.api.widget;
 
+import com.galdurstudio.galdurui.internal.narration.GaldurNarration;
 import com.galdurstudio.galdurui.api.theme.GaldurTheme;
 import com.galdurstudio.galdurui.internal.render.GaldurRender;
 import com.galdurstudio.galdurui.internal.render.GaldurSprites;
@@ -351,14 +352,21 @@ public class GaldurScrollList extends AbstractWidget {
 
     @Override
     protected void updateWidgetNarration(NarrationElementOutput narrationElementOutput) {
+        // Ligne choisie : « Fer », puis « Ligne 2 sur 5 sélectionnée » (texte vanilla).
+        // Sinon : « Liste : 5 lignes ».
         List<Component> rows = lines.get();
         int index = selected.getAsInt();
+        Component title;
         if (index >= 0 && index < rows.size()) {
-            narrationElementOutput.add(NarratedElementType.TITLE, rows.get(index));
+            title = rows.get(index);
             narrationElementOutput.add(NarratedElementType.POSITION,
-                    Component.literal((index + 1) + " / " + rows.size()));
+                    Component.translatable("narrator.position.list", index + 1, rows.size()));
         } else {
-            narrationElementOutput.add(NarratedElementType.TITLE, Component.literal(rows.size() + " lignes"));
+            title = rows.isEmpty() ? GaldurNarration.ours("list.empty") : GaldurNarration.ours("list", rows.size());
+        }
+        narrationElementOutput.add(NarratedElementType.TITLE, GaldurNarration.withState(title, active));
+        if (active && !rows.isEmpty()) {
+            narrationElementOutput.add(NarratedElementType.USAGE, Component.translatable("narration.selection.usage"));
         }
     }
 }

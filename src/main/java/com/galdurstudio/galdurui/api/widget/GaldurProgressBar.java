@@ -1,5 +1,6 @@
 package com.galdurstudio.galdurui.api.widget;
 
+import com.galdurstudio.galdurui.internal.narration.GaldurNarration;
 import com.galdurstudio.galdurui.api.theme.GaldurTheme;
 import com.galdurstudio.galdurui.internal.render.GaldurRender;
 import com.galdurstudio.galdurui.internal.render.GaldurSprites;
@@ -237,9 +238,11 @@ public class GaldurProgressBar extends AbstractWidget {
 
     @Override
     protected void updateWidgetNarration(NarrationElementOutput narrationElementOutput) {
+        // « Barre de progression : Lingots de fer : 16 / 64 », puis « 25 pour cent ».
         Component text = label.get();
-        Component percent = Component.literal(Math.round(clampedProgress() * 100) + " %");
-        narrationElementOutput.add(NarratedElementType.TITLE, text != null ? text : percent);
+        Component percent = GaldurNarration.ours("progress.percent", Math.round(clampedProgress() * 100));
+        narrationElementOutput.add(NarratedElementType.TITLE,
+                GaldurNarration.withState(GaldurNarration.ours("progress", text != null ? text : percent), active));
         if (text != null) {
             narrationElementOutput.add(NarratedElementType.POSITION, percent);
         }

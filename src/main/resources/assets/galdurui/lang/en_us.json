@@ -1,4 +1,21 @@
 {
   "block.galdurui.test_chest": "Galdur Test Chest",
-  "container.galdurui.test_chest": "Galdur Chest"
+  "container.galdurui.test_chest": "Galdur Chest",
+  "narration.galdurui.disabled": "disabled",
+  "narration.galdurui.checked": "checked",
+  "narration.galdurui.unchecked": "not checked",
+  "narration.galdurui.amount": "%s, %s",
+  "narration.galdurui.slot.empty": "Empty slot",
+  "narration.galdurui.grid": "Item grid: %s items",
+  "narration.galdurui.grid.empty": "Empty item grid",
+  "narration.galdurui.grid.position": "Item %s out of %s",
+  "narration.galdurui.list": "List: %s rows",
+  "narration.galdurui.list.empty": "Empty list",
+  "narration.galdurui.progress": "Progress bar: %s",
+  "narration.galdurui.progress.percent": "%s percent",
+  "narration.galdurui.search": "Search field: %s",
+  "narration.galdurui.search.empty": "Empty search field: %s",
+  "narration.galdurui.tabs": "%s tabs",
+  "narration.galdurui.tabs.usage": "Press left or right to switch tabs",
+  "narration.galdurui.window": "Galdur window"
 }
