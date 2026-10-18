@@ -1,5 +1,11 @@
 package com.galdurstudio.galdurui.internal.render;
 
+import net.minecraft.client.renderer.texture.OverlayTexture;
+import net.minecraft.client.renderer.LightTexture;
+import net.minecraft.world.item.ItemDisplayContext;
+import net.minecraft.client.resources.model.BakedModel;
+import net.minecraft.client.renderer.entity.ItemRenderer;
+import com.mojang.blaze3d.platform.Lighting;
 import net.minecraft.client.resources.metadata.gui.GuiSpriteScaling;
 import net.minecraft.client.renderer.texture.TextureAtlasSprite;
 import net.minecraft.client.renderer.GameRenderer;
@@ -390,6 +396,85 @@ public final class GaldurRender {
         }
         graphics.renderItem(stack, x, y);
         graphics.renderItemDecorations(font(), stack, x, y, "");
+    }
+
+    /**
+     * Dessine plusieurs objets d'un coup, chacun comme {@link #drawItem} (icône, usure, temps de
+     * recharge, sans la quantité) : les cases d'une grille, par exemple.
+     *
+     * <p>Minecraft vide son tampon de dessin après <strong>chaque</strong> objet, parce que
+     * l'éclairage change entre objets plats (lingots, outils) et objets en volume (blocs). Ici,
+     * les objets sont dessinés en deux passes, tous les objets en volume puis tous les objets
+     * plats, avec un seul vidage par passe ; les barres d'usure et les temps de recharge sont
+     * ensuite regroupés en un seul envoi. Mesuré avec Spark (UI-38) : le dessin des objets était
+     * le premier poste du terminal.</p>
+     *
+     * <p>Implémentation 1.21.1 : reprend {@code GuiGraphics.renderItem} (modèle, décalage, échelle
+     * 16, éclairage plat ou 3D, {@code ItemRenderer.render}), puis
+     * {@code renderItemDecorations} dans {@link #drawBatched}.</p>
+     *
+     * @param graphics contexte de rendu fourni par l'écran
+     * @param stacks   les objets ; les piles vides sont ignorées
+     * @param xs       abscisse du coin supérieur gauche de chaque objet
+     * @param ys       ordonnée du coin supérieur gauche de chaque objet
+     * @param count    nombre d'objets à prendre dans les trois tableaux
+     */
+    public static void drawItems(GuiGraphics graphics, ItemStack[] stacks, int[] xs, int[] ys, int count) {
+        Minecraft minecraft = Minecraft.getInstance();
+        ItemRenderer itemRenderer = minecraft.getItemRenderer();
+        BakedModel[] models = new BakedModel[count];
+        boolean anyFlat = false;
+        boolean anyBlockLit = false;
+        for (int index = 0; index < count; index++) {
+            if (!stacks[index].isEmpty()) {
+                models[index] = itemRenderer.getModel(stacks[index], minecraft.level, minecraft.player, 0);
+                if (models[index].usesBlockLight()) {
+                    anyBlockLit = true;
+                } else {
+                    anyFlat = true;
+                }
+            }
+        }
+        if (anyBlockLit) {
+            drawItemPass(graphics, itemRenderer, stacks, xs, ys, models, count, true);
+        }
+        if (anyFlat) {
+            Lighting.setupForFlatItems();
+            try {
+                drawItemPass(graphics, itemRenderer, stacks, xs, ys, models, count, false);
+            } finally {
+                Lighting.setupFor3DItems();
+            }
+        }
+        drawBatched(graphics, () -> {
+            for (int index = 0; index < count; index++) {
+                if (models[index] != null) {
+                    graphics.renderItemDecorations(font(), stacks[index], xs[index], ys[index], "");
+                }
+            }
+        });
+    }
+
+    /** Dessine les objets d'un seul type d'éclairage, puis vide le tampon une fois. */
+    private static void drawItemPass(GuiGraphics graphics, ItemRenderer itemRenderer, ItemStack[] stacks, int[] xs,
+                                     int[] ys, BakedModel[] models, int count, boolean blockLight) {
+        PoseStack pose = graphics.pose();
+        for (int index = 0; index < count; index++) {
+            BakedModel model = models[index];
+            if (model == null || model.usesBlockLight() != blockLight) {
+                continue;
+            }
+            pose.pushPose();
+            try {
+                pose.translate(xs[index] + 8, ys[index] + 8, 150);
+                pose.scale(16.0F, -16.0F, 16.0F);
+                itemRenderer.render(stacks[index], ItemDisplayContext.GUI, false, pose, graphics.bufferSource(),
+                        LightTexture.FULL_BRIGHT, OverlayTexture.NO_OVERLAY, model);
+            } finally {
+                pose.popPose();
+            }
+        }
+        graphics.flush();
     }
 
     /**

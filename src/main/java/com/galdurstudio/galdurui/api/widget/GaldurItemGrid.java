@@ -233,6 +233,10 @@ public class GaldurItemGrid extends AbstractWidget {
                 columns, rows, GaldurTheme.background());
         int first = scrollRow * columns;
         int last = Math.min(list.size(), first + rows * columns);
+        int shown = Math.max(0, last - first);
+        ItemStack[] stacks = new ItemStack[shown];
+        int[] itemX = new int[shown];
+        int[] itemY = new int[shown];
         for (int index = first; index < last; index++) {
             int cellX = getX() + (index - first) % columns * CELL_SIZE;
             int cellY = getY() + (index - first) / columns * CELL_SIZE;
@@ -243,8 +247,11 @@ public class GaldurItemGrid extends AbstractWidget {
                 GaldurRender.drawFill(guiGraphics, cellX + 1, cellY + 1, GaldurRender.ITEM_SIZE,
                         GaldurRender.ITEM_SIZE, (HOVER_ALPHA << 24) | (GaldurTheme.accent() & 0xFFFFFF));
             }
-            GaldurRender.drawItem(guiGraphics, entry.stack(), cellX + 1, cellY + 1);
+            stacks[index - first] = entry.stack();
+            itemX[index - first] = cellX + 1;
+            itemY[index - first] = cellY + 1;
         }
+        GaldurRender.drawItems(guiGraphics, stacks, itemX, itemY, shown);
         GaldurRender.drawBatched(guiGraphics, () -> {
             for (int index = first; index < last; index++) {
                 Entry entry = list.get(index);
