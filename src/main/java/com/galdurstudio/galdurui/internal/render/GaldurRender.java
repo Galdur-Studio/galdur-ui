@@ -1,5 +1,15 @@
 package com.galdurstudio.galdurui.internal.render;
 
+import net.minecraft.client.resources.metadata.gui.GuiSpriteScaling;
+import net.minecraft.client.renderer.texture.TextureAtlasSprite;
+import net.minecraft.client.renderer.GameRenderer;
+import net.minecraft.client.gui.GuiSpriteManager;
+import com.mojang.blaze3d.vertex.VertexFormat;
+import com.mojang.blaze3d.vertex.Tesselator;
+import com.mojang.blaze3d.vertex.MeshData;
+import com.mojang.blaze3d.vertex.DefaultVertexFormat;
+import com.mojang.blaze3d.vertex.BufferUploader;
+import com.mojang.blaze3d.vertex.BufferBuilder;
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.PoseStack;
 import net.minecraft.client.Minecraft;
@@ -47,20 +57,19 @@ public final class GaldurRender {
      * {@code argb} rend le sprite translucide.</p>
      *
      * <p>Le découpage vient du {@code .png.mcmeta} du sprite : les coins gardent leur taille,
-     * les bords et le centre sont répétés (tuilés) puis rognés, jamais étirés : Minecraft 1.21.1
-     * n'a pas de mode « étirement ». Un quad est dessiné par tuile, donc le sprite doit être
-     * assez grand pour limiter leur nombre, et ses bords et son centre doivent être uniformes
-     * (sinon la répétition se voit). Si le rectangle est plus petit que deux fois la
-     * bordure, Minecraft 1.21.1 réduit la bordure à la moitié de la largeur (ou de la
-     * hauteur) : les coins ne se chevauchent pas, mais ils sont rognés.</p>
+     * les bords et le centre sont répétés (tuilés) puis rognés, jamais étirés, exactement comme
+     * {@code GuiGraphics.blitNineSlicedSprite}. Si le rectangle est plus petit que deux fois la
+     * bordure, la bordure est réduite à la moitié de la largeur (ou de la hauteur), comme en
+     * vanilla.</p>
      *
-     * <p>Implémentation 1.21.1 : {@link GuiGraphics#setColor} (qui vide le tampon en attente
-     * puis règle la couleur du shader), puis le même état que {@code AbstractButton.renderWidget}
-     * (blending et test de profondeur activés) ; {@code blitSprite} sans couleur ne règle aucun
-     * de ces états lui-même. La fonction de mélange standard est rétablie, comme le fait
-     * {@code AbstractSliderButton}, car la transparence des coins et l'alpha de la teinte en
-     * dépendent. La couleur est remise à blanc après le dessin pour ne pas teinter la suite ;
-     * comme en vanilla, blending et profondeur restent activés.</p>
+     * <p>Implémentation 1.21.1, choisie après mesure avec Spark (UI-38) : Minecraft dessine un
+     * 9-slice avec un appel de dessin par tuile, et changer la teinte par
+     * {@link GuiGraphics#setColor} vide en plus le tampon de dessin à chaque sprite. Ici, toutes
+     * les tuiles partent dans <strong>un seul</strong> tampon, la teinte étant portée par chaque
+     * sommet (shader {@code position_tex_color}) : un seul appel de dessin par sprite, et plus de
+     * vidage. Comme {@code blitSprite}, le dessin est immédiat ; blending et test de profondeur
+     * restent activés. Un sprite qui n'est pas en 9-slice ({@code stretch}, {@code tile}) passe
+     * par le chemin vanilla.</p>
      *
      * @param graphics contexte de rendu fourni par l'écran
      * @param sprite   identifiant du sprite dans l'atlas d'interface
@@ -71,6 +80,150 @@ public final class GaldurRender {
      * @param argb     teinte, en ARGB empaqueté ({@code 0xFFFFFFFF} = aucune teinte)
      */
     public static void drawNineSlice(GuiGraphics graphics, ResourceLocation sprite, int x, int y, int width, int height, int argb) {
+        drawNineSliceGrid(graphics, sprite, x, y, width, height, 1, 1, argb);
+    }
+
+    /**
+     * Dessine le même sprite 9-slice teinté {@code columns} × {@code rows} fois, côte à côte, en
+     * un seul appel de dessin : le fond des cases d'une grille, par exemple. Même rendu que
+     * {@code columns × rows} appels à {@link #drawNineSlice}, en beaucoup moins coûteux.
+     *
+     * @param graphics contexte de rendu fourni par l'écran
+     * @param sprite   identifiant du sprite dans l'atlas d'interface
+     * @param x        abscisse du coin supérieur gauche de la première copie
+     * @param y        ordonnée du coin supérieur gauche de la première copie
+     * @param width    largeur d'une copie, qui est aussi le pas horizontal
+     * @param height   hauteur d'une copie, qui est aussi le pas vertical
+     * @param columns  nombre de copies par rangée
+     * @param rows     nombre de rangées
+     * @param argb     teinte, en ARGB empaqueté
+     */
+    public static void drawNineSliceGrid(GuiGraphics graphics, ResourceLocation sprite, int x, int y, int width, int height,
+                                         int columns, int rows, int argb) {
+        if (width <= 0 || height <= 0 || columns <= 0 || rows <= 0) {
+            return;
+        }
+        GuiSpriteManager sprites = Minecraft.getInstance().getGuiSprites();
+        TextureAtlasSprite atlasSprite = sprites.getSprite(sprite);
+        if (!(sprites.getSpriteScaling(atlasSprite) instanceof GuiSpriteScaling.NineSlice nineSlice)) {
+            for (int row = 0; row < rows; row++) {
+                for (int column = 0; column < columns; column++) {
+                    drawSpriteVanilla(graphics, sprite, x + column * width, y + row * height, width, height, argb);
+                }
+            }
+            return;
+        }
+        int sliceWidth = nineSlice.width();
+        int sliceHeight = nineSlice.height();
+        GuiSpriteScaling.NineSlice.Border border = nineSlice.border();
+        int left = Math.min(border.left(), width / 2);
+        int right = Math.min(border.right(), width / 2);
+        int top = Math.min(border.top(), height / 2);
+        int bottom = Math.min(border.bottom(), height / 2);
+
+        // Colonnes et rangées du 9-slice : zone à l'écran (début, taille) et zone source dans le sprite.
+        int[] areaX = {0, left, width - right};
+        int[] areaW = {left, width - left - right, right};
+        int[] srcX = {0, left, sliceWidth - right};
+        int[] srcW = {left, sliceWidth - left - right, right};
+        int[] areaY = {0, top, height - bottom};
+        int[] areaH = {top, height - top - bottom, bottom};
+        int[] srcY = {0, top, sliceHeight - bottom};
+        int[] srcH = {top, sliceHeight - top - bottom, bottom};
+
+        Matrix4f pose = graphics.pose().last().pose();
+        BufferBuilder buffer = Tesselator.getInstance().begin(VertexFormat.Mode.QUADS, DefaultVertexFormat.POSITION_TEX_COLOR);
+        for (int copyRow = 0; copyRow < rows; copyRow++) {
+            for (int copyColumn = 0; copyColumn < columns; copyColumn++) {
+                int originX = x + copyColumn * width;
+                int originY = y + copyRow * height;
+                for (int row = 0; row < 3; row++) {
+                    for (int column = 0; column < 3; column++) {
+                        addTiled(buffer, pose, atlasSprite, argb,
+                                originX + areaX[column], originY + areaY[row], areaW[column], areaH[row],
+                                srcX[column], srcY[row], srcW[column], srcH[row], sliceWidth, sliceHeight);
+                    }
+                }
+            }
+        }
+        MeshData mesh = buffer.build();
+        if (mesh == null) {
+            return;
+        }
+        RenderSystem.setShaderTexture(0, atlasSprite.atlasLocation());
+        RenderSystem.setShader(GameRenderer::getPositionTexColorShader);
+        RenderSystem.enableBlend();
+        RenderSystem.defaultBlendFunc();
+        RenderSystem.enableDepthTest();
+        BufferUploader.drawWithShader(mesh);
+    }
+
+    /**
+     * Exécute {@code draw} en regroupant le texte et les aplats ({@link #text},
+     * {@link #drawFill}, {@link #drawItemCount}...) : ils partent en un seul envoi à la carte
+     * graphique à la fin, au lieu d'un envoi par appel. Utile pour beaucoup de petits textes,
+     * comme les quantités d'une grille.
+     *
+     * <p>Ce qui est dessiné dans {@code draw} passe donc <strong>au-dessus</strong> des sprites et
+     * des objets dessinés pendant ce temps : n'y mettre que des éléments qui se superposent à
+     * tout le reste. Implémentation 1.21.1 : {@link GuiGraphics#drawManaged(Runnable)}, marquée
+     * dépréciée par Minecraft car remplacée en 1.21.6 ; c'est la raison d'être de cette couche.</p>
+     *
+     * @param graphics contexte de rendu fourni par l'écran
+     * @param draw     les dessins à regrouper
+     */
+    @SuppressWarnings("deprecation")
+    public static void drawBatched(GuiGraphics graphics, Runnable draw) {
+        graphics.drawManaged(draw);
+    }
+
+    /**
+     * Ajoute au tampon les tuiles qui couvrent une zone de l'écran en répétant une zone du
+     * sprite ; la dernière tuile de chaque rangée et de chaque colonne est rognée.
+     *
+     * @param areaX        abscisse de la zone à couvrir
+     * @param areaY        ordonnée de la zone à couvrir
+     * @param areaW        largeur de la zone à couvrir ; rien n'est ajouté si elle est nulle
+     * @param areaH        hauteur de la zone à couvrir
+     * @param srcX         abscisse de la zone source, en pixels du sprite
+     * @param srcY         ordonnée de la zone source
+     * @param srcW         largeur de la zone source ; rien n'est ajouté si elle est nulle
+     * @param srcH         hauteur de la zone source
+     * @param spriteWidth  largeur du sprite en pixels (celle du {@code .mcmeta})
+     * @param spriteHeight hauteur du sprite en pixels
+     */
+    private static void addTiled(BufferBuilder buffer, Matrix4f pose, TextureAtlasSprite sprite, int argb,
+                                 int areaX, int areaY, int areaW, int areaH,
+                                 int srcX, int srcY, int srcW, int srcH, int spriteWidth, int spriteHeight) {
+        if (areaW <= 0 || areaH <= 0 || srcW <= 0 || srcH <= 0) {
+            return;
+        }
+        for (int dy = 0; dy < areaH; dy += srcH) {
+            int tileH = Math.min(srcH, areaH - dy);
+            float v0 = sprite.getV((float) srcY / spriteHeight);
+            float v1 = sprite.getV((float) (srcY + tileH) / spriteHeight);
+            for (int dx = 0; dx < areaW; dx += srcW) {
+                int tileW = Math.min(srcW, areaW - dx);
+                float u0 = sprite.getU((float) srcX / spriteWidth);
+                float u1 = sprite.getU((float) (srcX + tileW) / spriteWidth);
+                float x0 = areaX + dx;
+                float y0 = areaY + dy;
+                float x1 = x0 + tileW;
+                float y1 = y0 + tileH;
+                buffer.addVertex(pose, x0, y0, 0).setUv(u0, v0).setColor(argb);
+                buffer.addVertex(pose, x0, y1, 0).setUv(u0, v1).setColor(argb);
+                buffer.addVertex(pose, x1, y1, 0).setUv(u1, v1).setColor(argb);
+                buffer.addVertex(pose, x1, y0, 0).setUv(u1, v0).setColor(argb);
+            }
+        }
+    }
+
+    /**
+     * Chemin vanilla, pour un sprite qui n'est pas en 9-slice : {@link GuiGraphics#setColor} (qui
+     * vide le tampon en attente), le même état que {@code AbstractButton.renderWidget}, puis
+     * {@code blitSprite}. La couleur est remise à blanc après le dessin.
+     */
+    private static void drawSpriteVanilla(GuiGraphics graphics, ResourceLocation sprite, int x, int y, int width, int height, int argb) {
         graphics.setColor(channel(argb, 16), channel(argb, 8), channel(argb, 0), channel(argb, 24));
         RenderSystem.enableBlend();
         RenderSystem.defaultBlendFunc();

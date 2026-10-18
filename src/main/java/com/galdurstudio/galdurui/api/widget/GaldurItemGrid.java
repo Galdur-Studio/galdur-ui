@@ -227,30 +227,35 @@ public class GaldurItemGrid extends AbstractWidget {
         int countColor = active ? GaldurTheme.text() : GaldurTheme.textMuted();
         Entry hoveredEntry = null;
 
-        for (int row = 0; row < rows; row++) {
-            for (int column = 0; column < columns; column++) {
-                int cellX = getX() + column * CELL_SIZE;
-                int cellY = getY() + row * CELL_SIZE;
-                GaldurRender.drawNineSlice(guiGraphics, GaldurSprites.SLOT, cellX, cellY, CELL_SIZE, CELL_SIZE,
-                        GaldurTheme.background());
-                int index = (scrollRow + row) * columns + column;
-                if (index >= list.size()) {
-                    continue;
-                }
+        // Trois passes, pour limiter les envois à la carte graphique : le fond de toutes les
+        // cases d'un coup, puis les objets, puis toutes les quantités regroupées par-dessus.
+        GaldurRender.drawNineSliceGrid(guiGraphics, GaldurSprites.SLOT, getX(), getY(), CELL_SIZE, CELL_SIZE,
+                columns, rows, GaldurTheme.background());
+        int first = scrollRow * columns;
+        int last = Math.min(list.size(), first + rows * columns);
+        for (int index = first; index < last; index++) {
+            int cellX = getX() + (index - first) % columns * CELL_SIZE;
+            int cellY = getY() + (index - first) / columns * CELL_SIZE;
+            Entry entry = list.get(index);
+            if (index == hovered) {
+                hoveredEntry = entry;
+                GaldurRender.drawOutline(guiGraphics, cellX, cellY, CELL_SIZE, CELL_SIZE, GaldurTheme.accentHover());
+                GaldurRender.drawFill(guiGraphics, cellX + 1, cellY + 1, GaldurRender.ITEM_SIZE,
+                        GaldurRender.ITEM_SIZE, (HOVER_ALPHA << 24) | (GaldurTheme.accent() & 0xFFFFFF));
+            }
+            GaldurRender.drawItem(guiGraphics, entry.stack(), cellX + 1, cellY + 1);
+        }
+        GaldurRender.drawBatched(guiGraphics, () -> {
+            for (int index = first; index < last; index++) {
                 Entry entry = list.get(index);
-                if (index == hovered) {
-                    hoveredEntry = entry;
-                    GaldurRender.drawOutline(guiGraphics, cellX, cellY, CELL_SIZE, CELL_SIZE, GaldurTheme.accentHover());
-                    GaldurRender.drawFill(guiGraphics, cellX + 1, cellY + 1, GaldurRender.ITEM_SIZE,
-                            GaldurRender.ITEM_SIZE, (HOVER_ALPHA << 24) | (GaldurTheme.accent() & 0xFFFFFF));
-                }
-                GaldurRender.drawItem(guiGraphics, entry.stack(), cellX + 1, cellY + 1);
                 if (entry.amount() > 1) {
+                    int cellX = getX() + (index - first) % columns * CELL_SIZE;
+                    int cellY = getY() + (index - first) / columns * CELL_SIZE;
                     GaldurRender.drawItemCount(guiGraphics, GaldurFormat.amount(entry.amount()), cellX + 1, cellY + 1,
                             countColor);
                 }
             }
-        }
+        });
 
         if (hasScrollbar()) {
             int barWidth = GaldurTheme.scrollbarWidth();
