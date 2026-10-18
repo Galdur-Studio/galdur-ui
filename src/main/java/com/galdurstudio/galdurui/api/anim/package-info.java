@@ -1,6 +1,6 @@
 /**
- * Animations : courbes d'accélération ({@link com.galdurstudio.galdurui.api.anim.GaldurEasing}),
- * valeurs animées ({@link com.galdurstudio.galdurui.api.anim.AnimatedValue}) et réglage global
- * ({@link com.galdurstudio.galdurui.api.anim.GaldurAnimations}), que le joueur peut couper.
+ * Animations: easing curves ({@link com.galdurstudio.galdurui.api.anim.GaldurEasing}), animated
+ * values ({@link com.galdurstudio.galdurui.api.anim.AnimatedValue}) and the global switch the
+ * player can turn off ({@link com.galdurstudio.galdurui.api.anim.GaldurAnimations}).
  */
 package com.galdurstudio.galdurui.api.anim;

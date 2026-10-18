@@ -7,17 +7,17 @@ import net.minecraft.client.gui.layouts.LayoutSettings;
 import net.minecraft.network.chat.Component;
 
 /**
- * Élément de fenêtre qui affiche un champ de recherche.
+ * Window element showing a search field.
  *
- * <p>Le texte vit dans le {@link SearchHandle} : le widget le relit à chaque image et lui
- * transmet chaque frappe du joueur.</p>
+ * <p>The text lives in the {@link SearchHandle}: the widget reads it every frame and passes it
+ * every keystroke.</p>
  *
- * @param placeholder texte d'indication, affiché tant que le champ est vide
- * @param handle      l'état du champ, partagé avec le mod
- * @param centered    {@code true} pour centrer le champ dans la fenêtre, {@code false} pour l'aligner à gauche
+ * @param placeholder hint text, shown while the field is empty
+ * @param handle      the field state, shared with the mod
+ * @param centered    {@code true} to centre the field in the window, {@code false} to align it left
  */
 public record SearchElement(Component placeholder, SearchHandle handle, boolean centered) implements WindowElement {
-    /** Largeur minimale d'un champ, en pixels, même si son texte d'indication est court. */
+    /** Minimum field width, in pixels, even with a short placeholder. */
     private static final int MIN_WIDTH = 100;
 
     @Override

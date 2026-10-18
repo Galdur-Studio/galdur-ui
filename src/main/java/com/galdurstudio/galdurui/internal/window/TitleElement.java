@@ -8,14 +8,14 @@ import net.minecraft.client.gui.layouts.LayoutSettings;
 import net.minecraft.network.chat.Component;
 
 /**
- * Élément de fenêtre qui affiche un titre, dans la police des titres ({@link GaldurFonts#TITLE}).
+ * Window element showing a title, in the title font ({@link GaldurFonts#TITLE}).
  *
- * <p>Le texte reçu n'est pas modifié : la police est appliquée sur une copie, pour ne pas changer le
- * {@code Component} du mod qui nous l'a donné.</p>
+ * <p>The given text is not modified: the font is applied to a copy, so the mod's
+ * {@code Component} stays unchanged.</p>
  *
- * @param title    le titre à afficher
- * @param centered {@code true} pour centrer le titre dans la fenêtre, {@code false} pour l'aligner à gauche
- * @param handle   l'état commun (désactivé, caché, infobulle), partagé avec le mod
+ * @param title    the title to show
+ * @param centered {@code true} to centre the title in the window, {@code false} to align it left
+ * @param handle   the common state (disabled, hidden, tooltip), shared with the mod
  */
 public record TitleElement(Component title, boolean centered, ElementHandle handle) implements WindowElement {
     @Override

@@ -1,0 +1,14 @@
+{
+  "_comment": "Test mod pack. PARTIAL theme: 'text' and most spacings are missing and must fall back to the defaults. 'text_muted' is deliberately invalid: a warning must be logged and the default kept.",
+  "background": "#18222E",
+  "surface": "#22303F",
+  "text_muted": "pas-une-couleur",
+  "accent": "#2F6FB8",
+  "accent_hover": "#4F8FD9",
+  "accent_pressed": "#24568F",
+  "ember": "#3FC1D9",
+  "spacing": {
+    "button_height": 24,
+    "gap": 12
+  }
+}

@@ -11,38 +11,32 @@ import java.util.Map;
 import java.util.function.Consumer;
 
 /**
- * Lecture du format {@code theme.json}, sans dépendance à Minecraft.
+ * Reads the {@code theme.json} format. Depends on Gson only, so it can be unit tested without the
+ * game.
  *
- * <p>Utilisé par {@link ThemeLoader} (thème des ressources, relu à chaque rechargement) et par
- * {@link ThemeDefaults} (thème embarqué dans le jar, servant de valeurs par défaut). Ne dépend
- * que de Gson, ce qui permet de le tester sans démarrer le jeu.</p>
- *
- * <p>Format : un objet de noms de couleurs vers des chaînes hexadécimales {@code "#RRGGBB"}
- * (alpha forcé à 100 %) ou {@code "#AARRGGBB"} (le {@code #} est optionnel ; un entier JSON est
- * également accepté, et lu comme {@code RRGGBB} opaque s'il tient sur 24 bits), plus une
- * section {@code "spacing"} d'entiers positifs ou nuls, en pixels d'interface. Les clés qui
- * commencent par {@code _} sont des commentaires.</p>
+ * <p>Format: an object mapping colour names to {@code "#RRGGBB"} (opaque) or {@code "#AARRGGBB"}
+ * strings ({@code #} optional; a JSON integer is accepted too, read as opaque {@code RRGGBB} if it
+ * fits in 24 bits), plus a {@code "spacing"} section of non-negative integers, in GUI pixels. Keys
+ * starting with {@code _} are comments.</p>
  *
  * <pre>{@code
  * { "background": "#2A2420", "accent": "#B8341F", "spacing": { "gap": 8 } }
  * }</pre>
  *
- * <p>Les entrées invalides sont ignorées une à une, avec un avertissement : une seule valeur
- * mal écrite ne fait pas perdre tout le fichier.</p>
+ * <p>Invalid entries are skipped one by one, with a warning: one typo does not lose the whole
+ * file.</p>
  */
 public final class ThemeParser {
     public static final String SPACING = "spacing";
 
-    /** Octet alpha à 100 %, ajouté aux couleurs données sans alpha. */
     private static final int OPAQUE = 0xFF000000;
-    /** Plus grande couleur sans octet alpha ({@code RRGGBB}). */
     private static final int RGB_MASK = 0xFFFFFF;
 
     /**
-     * Thème lu : couleurs en ARGB et espacements en pixels, dans l'ordre du fichier.
+     * A parsed theme: ARGB colours and pixel spacings, in file order.
      *
-     * @param colors  couleurs, par nom
-     * @param spacing espacements, par nom
+     * @param colors  colours by name
+     * @param spacing spacings by name
      */
     public record Theme(Map<String, Integer> colors, Map<String, Integer> spacing) {
         public Theme {
@@ -52,18 +46,18 @@ public final class ThemeParser {
     }
 
     /**
-     * Lit un thème.
+     * Parses a theme.
      *
-     * @param reader source JSON, non fermée par cette méthode
-     * @param warn   reçoit un message pour chaque entrée ignorée ou corrigée
-     * @return le thème lu
-     * @throws IllegalArgumentException si le document n'est pas un objet JSON
-     * @throws com.google.gson.JsonParseException si le JSON est mal formé
+     * @param reader JSON source, not closed by this method
+     * @param warn   receives a message for each skipped or corrected entry
+     * @return the parsed theme
+     * @throws IllegalArgumentException if the document is not a JSON object
+     * @throws com.google.gson.JsonParseException if the JSON is malformed
      */
     public static Theme parse(Reader reader, Consumer<String> warn) {
         JsonElement root = JsonParser.parseReader(reader);
         if (!root.isJsonObject()) {
-            throw new IllegalArgumentException("theme.json n'est pas un objet JSON");
+            throw new IllegalArgumentException("theme.json is not a JSON object");
         }
         JsonObject json = root.getAsJsonObject();
         return new Theme(readColors(json, warn), readSpacing(json, warn));
@@ -73,14 +67,13 @@ public final class ThemeParser {
         Map<String, Integer> colors = new LinkedHashMap<>();
         for (Map.Entry<String, JsonElement> entry : json.entrySet()) {
             String key = entry.getKey();
-            // Clé réservée aux commentaires du fichier, ou section d'espacements : pas une couleur.
             if (key.startsWith("_") || key.equals(SPACING)) {
                 continue;
             }
             try {
                 colors.put(key, parseColor(key, entry.getValue(), warn));
             } catch (RuntimeException exception) {
-                warn.accept("Couleur '" + key + "' invalide dans theme.json (" + entry.getValue() + ") : entrée ignorée.");
+                warn.accept("Invalid colour '" + key + "' in theme.json (" + entry.getValue() + "): entry ignored.");
             }
         }
         return colors;
@@ -92,7 +85,7 @@ public final class ThemeParser {
             return spacing;
         }
         if (!json.get(SPACING).isJsonObject()) {
-            warn.accept("La section '" + SPACING + "' de theme.json n'est pas un objet : espacements par défaut.");
+            warn.accept("The '" + SPACING + "' section of theme.json is not an object: default spacings used.");
             return spacing;
         }
         for (Map.Entry<String, JsonElement> entry : json.getAsJsonObject(SPACING).entrySet()) {
@@ -102,17 +95,17 @@ public final class ThemeParser {
             }
             JsonElement value = entry.getValue();
             if (!value.isJsonPrimitive() || !value.getAsJsonPrimitive().isNumber()) {
-                warn.accept("Espacement '" + key + "' invalide dans theme.json (" + value + ") : nombre attendu, entrée ignorée.");
+                warn.accept("Invalid spacing '" + key + "' in theme.json (" + value + "): number expected, entry ignored.");
                 continue;
             }
             double number = value.getAsDouble();
             if (number < 0) {
-                warn.accept("Espacement '" + key + "' négatif dans theme.json (" + value + ") : entrée ignorée.");
+                warn.accept("Negative spacing '" + key + "' in theme.json (" + value + "): entry ignored.");
                 continue;
             }
             int pixels = (int) Math.floor(number);
             if (pixels != number) {
-                warn.accept("Espacement '" + key + "' décimal dans theme.json (" + value + ") : arrondi à " + pixels + ".");
+                warn.accept("Decimal spacing '" + key + "' in theme.json (" + value + "): rounded down to " + pixels + ".");
             }
             spacing.put(key, pixels);
         }
@@ -120,22 +113,22 @@ public final class ThemeParser {
     }
 
     /**
-     * {@return la couleur ARGB décrite par {@code element}}
+     * {@return the ARGB colour described by {@code element}}
      *
-     * <p>Un entier qui tient sur 24 bits ({@code <= 0xFFFFFF}) n'a pas d'octet alpha : il est lu
-     * comme {@code RRGGBB} opaque, avec un avertissement, plutôt que de donner une couleur
-     * invisible. Un entier plus grand est pris tel quel ({@code AARRGGBB}).</p>
+     * <p>An integer that fits in 24 bits has no alpha byte: it is read as opaque {@code RRGGBB},
+     * with a warning, rather than giving an invisible colour. A larger integer is taken as
+     * {@code AARRGGBB}.</p>
      */
     private static int parseColor(String key, JsonElement element, Consumer<String> warn) {
         if (!element.isJsonPrimitive()) {
-            throw new IllegalArgumentException("couleur attendue sous forme de chaîne ou d'entier");
+            throw new IllegalArgumentException("colour must be a string or an integer");
         }
         JsonPrimitive primitive = element.getAsJsonPrimitive();
         if (primitive.isNumber()) {
             int value = primitive.getAsInt();
             if (value >= 0 && value <= RGB_MASK) {
-                warn.accept("Couleur '" + key + "' donnée en entier sans alpha dans theme.json (" + element
-                        + ") : alpha forcé à FF. Écrire plutôt \"#" + String.format("%06X", value) + "\".");
+                warn.accept("Colour '" + key + "' given as an integer without alpha in theme.json (" + element
+                        + "): alpha forced to FF. Prefer \"#" + String.format("%06X", value) + "\".");
                 return OPAQUE | value;
             }
             return value;
@@ -145,11 +138,10 @@ public final class ThemeParser {
         if (raw.startsWith("#")) {
             raw = raw.substring(1);
         }
-        // 6 chiffres : on complète l'alpha à 100 %. 8 chiffres : alpha explicite (AARRGGBB).
         return switch (raw.length()) {
             case 6 -> OPAQUE | Integer.parseInt(raw, 16);
             case 8 -> (int) Long.parseLong(raw, 16);
-            default -> throw new IllegalArgumentException("longueur hexadécimale inattendue : " + raw.length());
+            default -> throw new IllegalArgumentException("unexpected hexadecimal length: " + raw.length());
         };
     }
 

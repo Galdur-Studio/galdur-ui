@@ -7,15 +7,15 @@ import net.minecraft.client.gui.layouts.LayoutSettings;
 import net.minecraft.network.chat.Component;
 
 /**
- * Élément de fenêtre qui affiche un bouton cliquable.
+ * Window element showing a clickable button.
  *
- * <p>Le widget attend une action qui reçoit le bouton ; l'API publique donne un simple
- * {@link Runnable}. {@link #createWidget(boolean)} fait le pont entre les deux.</p>
+ * <p>The widget expects an action that receives the button; the public API takes a plain
+ * {@link Runnable}. {@link #createWidget(boolean)} bridges the two.</p>
  *
- * @param label     le libellé du bouton
- * @param action   exécutée à chaque activation du bouton, à la souris ou au clavier
- * @param centered {@code true} pour centrer le bouton dans la fenêtre, {@code false} pour l'aligner à gauche
- * @param handle   l'état commun (désactivé, caché, infobulle), partagé avec le mod
+ * @param label    the button label
+ * @param action   run every time the button is activated, by mouse or keyboard
+ * @param centered {@code true} to centre the button in the window, {@code false} to align it left
+ * @param handle   the common state (disabled, hidden, tooltip), shared with the mod
  */
 public record ButtonElement(Component label, Runnable action, boolean centered, ElementHandle handle) implements WindowElement  {
     @Override

@@ -36,18 +36,18 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * Couche de dessin de Galdur UI.
+ * Galdur UI drawing layer.
  *
- * <p>C'est la <strong>seule</strong> classe de la bibliothèque qui appelle {@link GuiGraphics}.
- * Les widgets de {@code api.widget} décrivent ce qu'ils veulent voir (un sprite étiré ici, une
- * ligne de texte là) et laissent cette classe s'occuper de l'API de rendu de la version du jeu.
- * Le jour où ce rendu change — il a changé en 1.21.6 — seul ce fichier sera à réécrire.</p>
+ * <p>This is the <strong>only</strong> class of the library that calls {@link GuiGraphics}. The
+ * widgets of {@code api.widget} describe what they want to see (a stretched sprite here, a line of
+ * text there) and let this class deal with the game version's rendering API. When that rendering
+ * changes (it did in 1.21.6), only this file needs rewriting.</p>
  *
- * <p>Implémentation visant Minecraft 1.21.1.</p>
+ * <p>Implementation for Minecraft 1.21.1.</p>
  */
 public final class GaldurRender {
     /**
-     * Côté d'une icône d'objet, en pixels d'interface.
+     * Side of an item icon, in GUI pixels.
      */
     public static final int ITEM_SIZE = 16;
 
@@ -55,54 +55,52 @@ public final class GaldurRender {
     }
 
     /**
-     * Dessine un sprite 9-slice teinté.
+     * Draws a tinted 9-slice sprite.
      *
-     * <p>Chaque pixel du sprite est multiplié par {@code argb} : un pixel blanc prend exactement
-     * la couleur demandée, un pixel gris une version plus sombre. Les sprites de Galdur UI sont
-     * donc en niveaux de gris, et leur couleur vient du thème à chaque image. L'alpha de
-     * {@code argb} rend le sprite translucide.</p>
+     * <p>Each sprite pixel is multiplied by {@code argb}: a white pixel takes exactly the requested
+     * colour, a gray pixel a darker version. Galdur UI sprites are therefore grayscale, and their
+     * colour comes from the theme every frame. The alpha of {@code argb} makes the sprite
+     * translucent.</p>
      *
-     * <p>Le découpage vient du {@code .png.mcmeta} du sprite : les coins gardent leur taille,
-     * les bords et le centre sont répétés (tuilés) puis rognés, jamais étirés, exactement comme
-     * {@code GuiGraphics.blitNineSlicedSprite}. Si le rectangle est plus petit que deux fois la
-     * bordure, la bordure est réduite à la moitié de la largeur (ou de la hauteur), comme en
-     * vanilla.</p>
+     * <p>The slicing comes from the sprite's {@code .png.mcmeta}: corners keep their size, edges
+     * and centre are repeated (tiled) then cropped, never stretched, exactly like
+     * {@code GuiGraphics.blitNineSlicedSprite}. If the rectangle is smaller than twice the border,
+     * the border is reduced to half the width (or height), as in vanilla.</p>
      *
-     * <p>Implémentation 1.21.1, choisie après mesure avec Spark (UI-38) : Minecraft dessine un
-     * 9-slice avec un appel de dessin par tuile, et changer la teinte par
-     * {@link GuiGraphics#setColor} vide en plus le tampon de dessin à chaque sprite. Ici, toutes
-     * les tuiles partent dans <strong>un seul</strong> tampon, la teinte étant portée par chaque
-     * sommet (shader {@code position_tex_color}) : un seul appel de dessin par sprite, et plus de
-     * vidage. Comme {@code blitSprite}, le dessin est immédiat ; blending et test de profondeur
-     * restent activés. Un sprite qui n'est pas en 9-slice ({@code stretch}, {@code tile}) passe
-     * par le chemin vanilla.</p>
+     * <p>1.21.1 implementation, chosen after measuring with Spark (UI-38): Minecraft draws a
+     * 9-slice with one draw call per tile, and changing the tint through
+     * {@link GuiGraphics#setColor} also flushes the buffer on every sprite. Here all tiles go into
+     * <strong>a single</strong> buffer, the tint being carried by each vertex
+     * ({@code position_tex_color} shader): one draw call per sprite, and no flush. Like
+     * {@code blitSprite}, drawing is immediate; blending and depth test stay enabled. A sprite that
+     * is not 9-slice ({@code stretch}, {@code tile}) takes the vanilla path.</p>
      *
-     * @param graphics contexte de rendu fourni par l'écran
-     * @param sprite   identifiant du sprite dans l'atlas d'interface
-     * @param x        abscisse du coin supérieur gauche
-     * @param y        ordonnée du coin supérieur gauche
-     * @param width    largeur voulue, en pixels d'interface
-     * @param height   hauteur voulue, en pixels d'interface
-     * @param argb     teinte, en ARGB empaqueté ({@code 0xFFFFFFFF} = aucune teinte)
+     * @param graphics render context given by the screen
+     * @param sprite   sprite id in the GUI atlas
+     * @param x        x of the top-left corner
+     * @param y        y of the top-left corner
+     * @param width    wanted width, in GUI pixels
+     * @param height   wanted height, in GUI pixels
+     * @param argb     tint, packed ARGB ({@code 0xFFFFFFFF} = no tint)
      */
     public static void drawNineSlice(GuiGraphics graphics, ResourceLocation sprite, int x, int y, int width, int height, int argb) {
         drawNineSliceGrid(graphics, sprite, x, y, width, height, 1, 1, argb);
     }
 
     /**
-     * Dessine le même sprite 9-slice teinté {@code columns} × {@code rows} fois, côte à côte, en
-     * un seul appel de dessin : le fond des cases d'une grille, par exemple. Même rendu que
-     * {@code columns × rows} appels à {@link #drawNineSlice}, en beaucoup moins coûteux.
+     * Draws the same tinted 9-slice sprite {@code columns} × {@code rows} times, side by side, in a
+     * single draw call: the cell backgrounds of a grid, for instance. Same result as
+     * {@code columns × rows} calls to {@link #drawNineSlice}, much cheaper.
      *
-     * @param graphics contexte de rendu fourni par l'écran
-     * @param sprite   identifiant du sprite dans l'atlas d'interface
-     * @param x        abscisse du coin supérieur gauche de la première copie
-     * @param y        ordonnée du coin supérieur gauche de la première copie
-     * @param width    largeur d'une copie, qui est aussi le pas horizontal
-     * @param height   hauteur d'une copie, qui est aussi le pas vertical
-     * @param columns  nombre de copies par rangée
-     * @param rows     nombre de rangées
-     * @param argb     teinte, en ARGB empaqueté
+     * @param graphics render context given by the screen
+     * @param sprite   sprite id in the GUI atlas
+     * @param x        x of the top-left corner of the first copy
+     * @param y        y of the top-left corner of the first copy
+     * @param width    width of one copy, which is also the horizontal step
+     * @param height   height of one copy, which is also the vertical step
+     * @param columns  copies per row
+     * @param rows     number of rows
+     * @param argb     tint, packed ARGB
      */
     public static void drawNineSliceGrid(GuiGraphics graphics, ResourceLocation sprite, int x, int y, int width, int height,
                                          int columns, int rows, int argb) {
@@ -127,7 +125,7 @@ public final class GaldurRender {
         int top = Math.min(border.top(), height / 2);
         int bottom = Math.min(border.bottom(), height / 2);
 
-        // Colonnes et rangées du 9-slice : zone à l'écran (début, taille) et zone source dans le sprite.
+        // 9-slice columns and rows: area on screen (start, size) and source area in the sprite.
         int[] areaX = {0, left, width - right};
         int[] areaW = {left, width - left - right, right};
         int[] srcX = {0, left, sliceWidth - right};
@@ -165,18 +163,17 @@ public final class GaldurRender {
     }
 
     /**
-     * Exécute {@code draw} en regroupant le texte et les aplats ({@link #text},
-     * {@link #drawFill}, {@link #drawItemCount}...) : ils partent en un seul envoi à la carte
-     * graphique à la fin, au lieu d'un envoi par appel. Utile pour beaucoup de petits textes,
-     * comme les quantités d'une grille.
+     * Runs {@code draw} while batching text and fills ({@link #text}, {@link #drawFill},
+     * {@link #drawItemCount}...): they reach the GPU in a single submission at the end, instead of
+     * one per call. Useful for many small texts, like the amounts of a grid.
      *
-     * <p>Ce qui est dessiné dans {@code draw} passe donc <strong>au-dessus</strong> des sprites et
-     * des objets dessinés pendant ce temps : n'y mettre que des éléments qui se superposent à
-     * tout le reste. Implémentation 1.21.1 : {@link GuiGraphics#drawManaged(Runnable)}, marquée
-     * dépréciée par Minecraft car remplacée en 1.21.6 ; c'est la raison d'être de cette couche.</p>
+     * <p>What is drawn in {@code draw} therefore ends up <strong>above</strong> the sprites and
+     * items drawn meanwhile: only put there elements that sit on top of everything else. 1.21.1
+     * implementation: {@link GuiGraphics#drawManaged(Runnable)}, deprecated by Minecraft because
+     * it is replaced in 1.21.6; that is what this layer is for.</p>
      *
-     * @param graphics contexte de rendu fourni par l'écran
-     * @param draw     les dessins à regrouper
+     * @param graphics render context given by the screen
+     * @param draw     the drawing to batch
      */
     @SuppressWarnings("deprecation")
     public static void drawBatched(GuiGraphics graphics, Runnable draw) {
@@ -184,19 +181,19 @@ public final class GaldurRender {
     }
 
     /**
-     * Ajoute au tampon les tuiles qui couvrent une zone de l'écran en répétant une zone du
-     * sprite ; la dernière tuile de chaque rangée et de chaque colonne est rognée.
+     * Adds to the buffer the tiles covering a screen area by repeating a sprite area; the last
+     * tile of each row and column is cropped.
      *
-     * @param areaX        abscisse de la zone à couvrir
-     * @param areaY        ordonnée de la zone à couvrir
-     * @param areaW        largeur de la zone à couvrir ; rien n'est ajouté si elle est nulle
-     * @param areaH        hauteur de la zone à couvrir
-     * @param srcX         abscisse de la zone source, en pixels du sprite
-     * @param srcY         ordonnée de la zone source
-     * @param srcW         largeur de la zone source ; rien n'est ajouté si elle est nulle
-     * @param srcH         hauteur de la zone source
-     * @param spriteWidth  largeur du sprite en pixels (celle du {@code .mcmeta})
-     * @param spriteHeight hauteur du sprite en pixels
+     * @param areaX        x of the area to cover
+     * @param areaY        y of the area to cover
+     * @param areaW        width of the area to cover; nothing is added when zero
+     * @param areaH        height of the area to cover
+     * @param srcX         x of the source area, in sprite pixels
+     * @param srcY         y of the source area
+     * @param srcW         width of the source area; nothing is added when zero
+     * @param srcH         height of the source area
+     * @param spriteWidth  sprite width in pixels (from the {@code .mcmeta})
+     * @param spriteHeight sprite height in pixels
      */
     private static void addTiled(BufferBuilder buffer, Matrix4f pose, TextureAtlasSprite sprite, int argb,
                                  int areaX, int areaY, int areaW, int areaH,
@@ -225,9 +222,9 @@ public final class GaldurRender {
     }
 
     /**
-     * Chemin vanilla, pour un sprite qui n'est pas en 9-slice : {@link GuiGraphics#setColor} (qui
-     * vide le tampon en attente), le même état que {@code AbstractButton.renderWidget}, puis
-     * {@code blitSprite}. La couleur est remise à blanc après le dessin.
+     * Vanilla path, for a sprite that is not 9-slice: {@link GuiGraphics#setColor} (which flushes
+     * the pending buffer), the same state as {@code AbstractButton.renderWidget}, then
+     * {@code blitSprite}. The colour is reset to white afterwards.
      */
     private static void drawSpriteVanilla(GuiGraphics graphics, ResourceLocation sprite, int x, int y, int width, int height, int argb) {
         graphics.setColor(channel(argb, 16), channel(argb, 8), channel(argb, 0), channel(argb, 24));
@@ -239,64 +236,63 @@ public final class GaldurRender {
     }
 
     /**
-     * Dessine le contour d'un rectangle, sans remplir l'intérieur.
+     * Draws the outline of a rectangle, without filling it.
      *
-     * <p>Le trait fait 1 pixel d'interface et reste à l'intérieur de la zone donnée : le contour
-     * n'empiète jamais sur les pixels voisins. L'alpha de {@code argb} est respecté, ce qui permet
-     * un trait translucide qui ne cache pas ce qu'il entoure. Aucun état de rendu n'est modifié.</p>
+     * <p>The line is 1 GUI pixel wide and stays inside the given area: the outline never spills
+     * onto neighbouring pixels. The alpha of {@code argb} is respected, allowing a translucent line
+     * that does not hide what it surrounds. No render state is changed.</p>
      *
-     * <p>Sert surtout au mode debug des layouts, mais reste utilisable pour tout cadre.</p>
+     * <p>Mostly used by the layout debug mode, but usable for any frame.</p>
      *
-     * @param graphics contexte de rendu fourni par l'écran
-     * @param x        abscisse du coin supérieur gauche
-     * @param y        ordonnée du coin supérieur gauche
-     * @param width    largeur, en pixels d'interface
-     * @param height   hauteur, en pixels d'interface
-     * @param argb     couleur du trait, en ARGB empaqueté
+     * @param graphics render context given by the screen
+     * @param x        x of the top-left corner
+     * @param y        y of the top-left corner
+     * @param width    width, in GUI pixels
+     * @param height   height, in GUI pixels
+     * @param argb     line colour, packed ARGB
      */
     public static void drawOutline(GuiGraphics graphics, int x, int y, int width, int height, int argb) {
         graphics.renderOutline(x, y, width, height, argb);
     }
 
     /**
-     * Remplit un rectangle d'une couleur unie.
+     * Fills a rectangle with a flat colour.
      *
-     * <p>L'alpha de {@code argb} est respecté : une couleur translucide laisse voir ce qui est
-     * dessous. Aucun état de rendu n'est modifié.</p>
+     * <p>The alpha of {@code argb} is respected: a translucent colour shows what is below. No
+     * render state is changed.</p>
      *
-     * @param graphics contexte de rendu fourni par l'écran
-     * @param x        abscisse du coin supérieur gauche
-     * @param y        ordonnée du coin supérieur gauche
-     * @param width    largeur, en pixels d'interface
-     * @param height   hauteur, en pixels d'interface
-     * @param argb     couleur de remplissage, en ARGB empaqueté
+     * @param graphics render context given by the screen
+     * @param x        x of the top-left corner
+     * @param y        y of the top-left corner
+     * @param width    width, in GUI pixels
+     * @param height   height, in GUI pixels
+     * @param argb     fill colour, packed ARGB
      */
     public static void drawFill(GuiGraphics graphics, int x, int y, int width, int height, int argb) {
         graphics.fill(x, y, x + width, y + height, argb);
     }
 
     /**
-     * Commence un découpage : jusqu'au {@link #popClip(GuiGraphics)} correspondant, seuls les
-     * pixels situés dans ce rectangle sont dessinés, le reste est coupé.
+     * Starts clipping: until the matching {@link #popClip(GuiGraphics)}, only pixels inside this
+     * rectangle are drawn, the rest is cut.
      *
-     * <p>Les découpages s'empilent : un découpage ouvert à l'intérieur d'un autre ne garde que
-     * l'intersection des deux (une liste dans un onglet dans un panneau ne déborde d'aucun des
-     * trois). Chaque {@code pushClip} doit être suivi de son {@code popClip}, y compris quand le
-     * dessin lève une exception, sinon tout le reste de l'écran resterait découpé :
-     * {@link #drawClipped(GuiGraphics, int, int, int, int, Runnable)} s'en charge.</p>
+     * <p>Clips stack: a clip opened inside another keeps only the intersection of both (a list in
+     * a tab in a panel overflows none of the three). Every {@code pushClip} must be followed by its
+     * {@code popClip}, even when drawing throws, or the rest of the screen would stay clipped:
+     * {@link #drawClipped(GuiGraphics, int, int, int, int, Runnable)} takes care of it.</p>
      *
-     * <p>Implémentation 1.21.1 : {@link GuiGraphics#enableScissor(int, int, int, int)}, qui gère
-     * la pile et vide le tampon de dessin en attente. Le rectangle est en coordonnées d'écran
-     * (pixels d'interface) et Minecraft 1.21.1 n'y applique pas la pose de {@code graphics} :
-     * on le fait ici, pour qu'une zone découpée suive son contenu quand il est déplacé (par
-     * exemple par {@link #drawOffset}, pendant une animation). Une largeur ou une hauteur négative est
-     * ramenée à zéro, ce qui ne laisse rien passer.</p>
+     * <p>1.21.1 implementation: {@link GuiGraphics#enableScissor(int, int, int, int)}, which
+     * manages the stack and flushes the pending buffer. The rectangle is in screen coordinates (GUI
+     * pixels) and Minecraft 1.21.1 does not apply the {@code graphics} pose to it: it is done here,
+     * so a clipped area follows its content when it is moved (by {@link #drawOffset} during an
+     * animation, for instance). A negative width or height is clamped to zero, which lets nothing
+     * through.</p>
      *
-     * @param graphics contexte de rendu fourni par l'écran
-     * @param x        abscisse du coin supérieur gauche de la zone visible
-     * @param y        ordonnée du coin supérieur gauche de la zone visible
-     * @param width    largeur de la zone visible, en pixels d'interface
-     * @param height   hauteur de la zone visible, en pixels d'interface
+     * @param graphics render context given by the screen
+     * @param x        x of the top-left corner of the visible area
+     * @param y        y of the top-left corner of the visible area
+     * @param width    width of the visible area, in GUI pixels
+     * @param height   height of the visible area, in GUI pixels
      */
     public static void pushClip(GuiGraphics graphics, int x, int y, int width, int height) {
         Matrix4f pose = graphics.pose().last().pose();
@@ -307,17 +303,17 @@ public final class GaldurRender {
     }
 
     /**
-     * Exécute {@code draw} décalé de {@code (dx, dy)} pixels d'interface, puis rétablit la
-     * position, même si le dessin lève une exception. Sert aux animations de mouvement : tout ce
-     * que dessine {@code draw} (sprites, texte, objets, zones découpées) est déplacé d'un bloc.
+     * Runs {@code draw} offset by {@code (dx, dy)} GUI pixels, then restores the position, even if
+     * drawing throws. Used by movement animations: everything {@code draw} draws (sprites, text,
+     * items, clipped areas) moves as one block.
      *
-     * <p>Seul le dessin bouge : les zones de clic des widgets restent où elles sont. Implémentation
-     * 1.21.1 : {@code pose().pushPose()}, {@code translate}, {@code popPose()}.</p>
+     * <p>Only the drawing moves: widget click areas stay where they are. 1.21.1 implementation:
+     * {@code pose().pushPose()}, {@code translate}, {@code popPose()}.</p>
      *
-     * @param graphics contexte de rendu fourni par l'écran
-     * @param dx       décalage horizontal, en pixels d'interface
-     * @param dy       décalage vertical, en pixels d'interface
-     * @param draw     le dessin à décaler
+     * @param graphics render context given by the screen
+     * @param dx       horizontal offset, in GUI pixels
+     * @param dy       vertical offset, in GUI pixels
+     * @param draw     the drawing to offset
      */
     public static void drawOffset(GuiGraphics graphics, float dx, float dy, Runnable draw) {
         if (dx == 0 && dy == 0) {
@@ -335,38 +331,36 @@ public final class GaldurRender {
     }
 
     /**
-     * Termine le dernier découpage ouvert par {@link #pushClip(GuiGraphics, int, int, int, int)}
-     * et rétablit le précédent (ou plus aucun découpage s'il n'y en avait qu'un).
+     * Ends the last clip opened by {@link #pushClip(GuiGraphics, int, int, int, int)} and restores
+     * the previous one (or no clip at all if there was only one).
      *
-     * <p>Implémentation 1.21.1 : {@link GuiGraphics#disableScissor()}. Appeler cette méthode sans
-     * découpage ouvert est une erreur de programmation : Minecraft lève alors une
-     * {@link IllegalStateException}.</p>
+     * <p>1.21.1 implementation: {@link GuiGraphics#disableScissor()}. Calling this without an open
+     * clip is a programming error: Minecraft then throws an {@link IllegalStateException}.</p>
      *
-     * @param graphics contexte de rendu fourni par l'écran
+     * @param graphics render context given by the screen
      */
     public static void popClip(GuiGraphics graphics) {
         graphics.disableScissor();
     }
 
     /**
-     * Exécute {@code draw} avec un découpage actif, puis le termine dans tous les cas, même si le
-     * dessin lève une exception. Forme à préférer à un {@code pushClip} / {@code popClip} écrit
-     * à la main.
+     * Runs {@code draw} with an active clip, then ends it in every case, even if drawing throws.
+     * Prefer this to a hand-written {@code pushClip} / {@code popClip}.
      *
      * <pre>{@code
      * GaldurRender.drawClipped(graphics, getX(), getY(), getWidth(), getHeight(), () -> {
-     *     for (Ligne ligne : lignesVisibles) {
-     *         ligne.render(graphics, ...);
+     *     for (Row row : visibleRows) {
+     *         row.render(graphics, ...);
      *     }
      * });
      * }</pre>
      *
-     * @param graphics contexte de rendu fourni par l'écran
-     * @param x        abscisse du coin supérieur gauche de la zone visible
-     * @param y        ordonnée du coin supérieur gauche de la zone visible
-     * @param width    largeur de la zone visible, en pixels d'interface
-     * @param height   hauteur de la zone visible, en pixels d'interface
-     * @param draw     le dessin à découper
+     * @param graphics render context given by the screen
+     * @param x        x of the top-left corner of the visible area
+     * @param y        y of the top-left corner of the visible area
+     * @param width    width of the visible area, in GUI pixels
+     * @param height   height of the visible area, in GUI pixels
+     * @param draw     the drawing to clip
      */
     public static void drawClipped(GuiGraphics graphics, int x, int y, int width, int height, Runnable draw) {
         pushClip(graphics, x, y, width, height);
@@ -378,17 +372,17 @@ public final class GaldurRender {
     }
 
     /**
-     * Dessine l'icône d'un objet, avec sa barre d'usure s'il en a une, mais sans sa quantité :
-     * voir {@link #drawItemCount(GuiGraphics, String, int, int, int)}.
+     * Draws an item icon, with its durability bar if any, but without its amount: see
+     * {@link #drawItemCount(GuiGraphics, String, int, int, int)}.
      *
-     * <p>Implémentation 1.21.1 : {@link GuiGraphics#renderItem(ItemStack, int, int)} puis
-     * {@link GuiGraphics#renderItemDecorations(Font, ItemStack, int, int, String)} avec un texte
-     * vide, qui dessine l'usure et le temps de recharge sans le nombre vanilla.</p>
+     * <p>1.21.1 implementation: {@link GuiGraphics#renderItem(ItemStack, int, int)} then
+     * {@link GuiGraphics#renderItemDecorations(Font, ItemStack, int, int, String)} with an empty
+     * text, which draws durability and cooldown without the vanilla count.</p>
      *
-     * @param graphics contexte de rendu fourni par l'écran
-     * @param stack    l'objet ; rien n'est dessiné s'il est vide
-     * @param x        abscisse du coin supérieur gauche de l'icône (16 × 16)
-     * @param y        ordonnée du coin supérieur gauche de l'icône
+     * @param graphics render context given by the screen
+     * @param stack    the item; nothing is drawn when empty
+     * @param x        x of the icon's top-left corner (16 × 16)
+     * @param y        y of the icon's top-left corner
      */
     public static void drawItem(GuiGraphics graphics, ItemStack stack, int x, int y) {
         if (stack.isEmpty()) {
@@ -399,25 +393,24 @@ public final class GaldurRender {
     }
 
     /**
-     * Dessine plusieurs objets d'un coup, chacun comme {@link #drawItem} (icône, usure, temps de
-     * recharge, sans la quantité) : les cases d'une grille, par exemple.
+     * Draws several items at once, each like {@link #drawItem} (icon, durability, cooldown, no
+     * amount): the cells of a grid, for instance.
      *
-     * <p>Minecraft vide son tampon de dessin après <strong>chaque</strong> objet, parce que
-     * l'éclairage change entre objets plats (lingots, outils) et objets en volume (blocs). Ici,
-     * les objets sont dessinés en deux passes, tous les objets en volume puis tous les objets
-     * plats, avec un seul vidage par passe ; les barres d'usure et les temps de recharge sont
-     * ensuite regroupés en un seul envoi. Mesuré avec Spark (UI-38) : le dessin des objets était
-     * le premier poste du terminal.</p>
+     * <p>Minecraft flushes its buffer after <strong>every</strong> item, because lighting differs
+     * between flat items (ingots, tools) and 3D items (blocks). Here items are drawn in two passes,
+     * all 3D items then all flat items, with one flush per pass; durability bars and cooldowns are
+     * then batched into a single submission. Measured with Spark (UI-38): item drawing was the
+     * terminal's top cost.</p>
      *
-     * <p>Implémentation 1.21.1 : reprend {@code GuiGraphics.renderItem} (modèle, décalage, échelle
-     * 16, éclairage plat ou 3D, {@code ItemRenderer.render}), puis
-     * {@code renderItemDecorations} dans {@link #drawBatched}.</p>
+     * <p>1.21.1 implementation: follows {@code GuiGraphics.renderItem} (model, offset, scale 16,
+     * flat or 3D lighting, {@code ItemRenderer.render}), then {@code renderItemDecorations} inside
+     * {@link #drawBatched}.</p>
      *
-     * @param graphics contexte de rendu fourni par l'écran
-     * @param stacks   les objets ; les piles vides sont ignorées
-     * @param xs       abscisse du coin supérieur gauche de chaque objet
-     * @param ys       ordonnée du coin supérieur gauche de chaque objet
-     * @param count    nombre d'objets à prendre dans les trois tableaux
+     * @param graphics render context given by the screen
+     * @param stacks   the items; empty stacks are skipped
+     * @param xs       x of each item's top-left corner
+     * @param ys       y of each item's top-left corner
+     * @param count    number of items to take from the three arrays
      */
     public static void drawItems(GuiGraphics graphics, ItemStack[] stacks, int[] xs, int[] ys, int count) {
         Minecraft minecraft = Minecraft.getInstance();
@@ -455,7 +448,7 @@ public final class GaldurRender {
         });
     }
 
-    /** Dessine les objets d'un seul type d'éclairage, puis vide le tampon une fois. */
+    /** Draws the items of a single lighting type, then flushes the buffer once. */
     private static void drawItemPass(GuiGraphics graphics, ItemRenderer itemRenderer, ItemStack[] stacks, int[] xs,
                                      int[] ys, BakedModel[] models, int count, boolean blockLight) {
         PoseStack pose = graphics.pose();
@@ -478,17 +471,16 @@ public final class GaldurRender {
     }
 
     /**
-     * Voile une icône d'objet déjà dessinée, par exemple pour la montrer désactivée.
+     * Veils an already drawn item icon, for instance to show it disabled.
      *
-     * <p>Implémentation 1.21.1 : les objets sont dessinés en avant de l'interface ({@code z}
-     * + 150) ; un simple remplissage passerait derrière eux. La pose de {@code graphics} est donc
-     * décalée vers l'avant ({@code z} + 200, comme la quantité) le temps du remplissage, puis
-     * rétablie.</p>
+     * <p>1.21.1 implementation: items are drawn in front of the GUI ({@code z} + 150); a plain fill
+     * would end up behind them. The {@code graphics} pose is therefore moved forward ({@code z} +
+     * 200, like the amount) for the fill, then restored.</p>
      *
-     * @param graphics contexte de rendu fourni par l'écran
-     * @param x        abscisse du coin supérieur gauche de l'icône (16 × 16)
-     * @param y        ordonnée du coin supérieur gauche de l'icône
-     * @param argb     couleur du voile, en ARGB empaqueté ; son alpha règle l'opacité
+     * @param graphics render context given by the screen
+     * @param x        x of the icon's top-left corner (16 × 16)
+     * @param y        y of the icon's top-left corner
+     * @param argb     veil colour, packed ARGB; its alpha sets the opacity
      */
     public static void dimItem(GuiGraphics graphics, int x, int y, int argb) {
         PoseStack pose = graphics.pose();
@@ -499,20 +491,19 @@ public final class GaldurRender {
     }
 
     /**
-     * Dessine une quantité dans le coin inférieur droit d'une icône d'objet, par-dessus l'icône.
+     * Draws an amount in the bottom-right corner of an item icon, on top of the icon.
      *
-     * <p>Un texte qui tient dans les 16 pixels de l'icône (« 64 ») est écrit à la taille normale,
-     * à la même place que le nombre vanilla. Un texte plus large (« 1,2k ») est écrit à demi-taille
-     * pour rester dans la case.</p>
+     * <p>A text that fits in the icon's 16 pixels ("64") is drawn at normal size, where the vanilla
+     * count goes. A wider text ("1,2k") is drawn at half size to stay inside the cell.</p>
      *
-     * <p>Implémentation 1.21.1 : la pose de {@code graphics} est décalée vers l'avant
-     * ({@code z} + 200, comme vanilla) pour passer devant l'objet, puis rétablie.</p>
+     * <p>1.21.1 implementation: the {@code graphics} pose is moved forward ({@code z} + 200, as in
+     * vanilla) to pass in front of the item, then restored.</p>
      *
-     * @param graphics contexte de rendu fourni par l'écran
-     * @param text     le texte à écrire, en général {@code GaldurFormat.amount(...)}
-     * @param x        abscisse du coin supérieur gauche de l'icône
-     * @param y        ordonnée du coin supérieur gauche de l'icône
-     * @param argb     couleur du texte, en ARGB empaqueté
+     * @param graphics render context given by the screen
+     * @param text     the text to draw, usually {@code GaldurFormat.amount(...)}
+     * @param x        x of the icon's top-left corner
+     * @param y        y of the icon's top-left corner
+     * @param argb     text colour, packed ARGB
      */
     public static void drawItemCount(GuiGraphics graphics, String text, int x, int y, int argb) {
         Font font = font();
@@ -531,18 +522,18 @@ public final class GaldurRender {
     }
 
     /**
-     * Demande à l'écran courant d'afficher l'infobulle d'un objet à la fin de son rendu, par-dessus
-     * tous les widgets : nom, description, enchantements... comme dans un inventaire.
+     * Asks the current screen to show an item's tooltip at the end of its render, above every
+     * widget: name, description, enchantments... as in an inventory.
      *
-     * <p>À appeler pendant le rendu, à chaque image où la souris survole l'objet. Les lignes de
-     * {@code extra} sont ajoutées à la fin (par exemple la quantité exacte).</p>
+     * <p>Call during rendering, on every frame where the mouse hovers the item. The {@code extra}
+     * lines are appended (the exact amount, for instance).</p>
      *
-     * <p>Implémentation 1.21.1 : {@link Screen#getTooltipFromItem(Minecraft, ItemStack)} puis
-     * {@link Screen#setTooltipForNextRenderPass(List)}. Les infobulles à image (contenu d'un sac)
-     * ne sont pas affichées.</p>
+     * <p>1.21.1 implementation: {@link Screen#getTooltipFromItem(Minecraft, ItemStack)} then
+     * {@link Screen#setTooltipForNextRenderPass(List)}. Image tooltips (bundle contents) are not
+     * shown.</p>
      *
-     * @param stack l'objet ; sans effet s'il est vide ou s'il n'y a pas d'écran ouvert
-     * @param extra lignes ajoutées après celles de l'objet
+     * @param stack the item; no effect when empty or when no screen is open
+     * @param extra lines added after the item's own
      */
     public static void showItemTooltip(ItemStack stack, List<Component> extra) {
         Minecraft minecraft = Minecraft.getInstance();
@@ -560,24 +551,24 @@ public final class GaldurRender {
     }
 
     /**
-     * {@return la composante de {@code argb} décalée de {@code shift} bits, entre 0 et 1}
+     * {@return the component of {@code argb} shifted by {@code shift} bits, between 0 and 1}
      */
     private static float channel(int argb, int shift) {
         return ((argb >>> shift) & 0xFF) / 255.0F;
     }
 
     /**
-     * Dessine une ligne de texte alignée à gauche.
+     * Draws a left-aligned line of text.
      *
-     * <p>Seul appel à {@link GuiGraphics#drawString} de la bibliothèque : les autres méthodes
-     * de texte passent par ici.</p>
+     * <p>The library's only call to {@link GuiGraphics#drawString}: the other text methods go
+     * through here.</p>
      *
-     * @param graphics contexte de rendu
-     * @param text     texte à dessiner
-     * @param x        abscisse du premier caractère
-     * @param y        ordonnée du haut de la ligne
-     * @param argb     couleur du texte, en ARGB empaqueté
-     * @param shadow   {@code true} pour dessiner l'ombre portée
+     * @param graphics render context
+     * @param text     text to draw
+     * @param x        x of the first character
+     * @param y        y of the top of the line
+     * @param argb     text colour, packed ARGB
+     * @param shadow   {@code true} to draw the drop shadow
      */
     public static void text(GuiGraphics graphics, Component text, int x, int y, int argb, boolean shadow) {
         graphics.drawString(font(), text, x, y, argb, shadow);
@@ -588,13 +579,13 @@ public final class GaldurRender {
     }
 
     /**
-     * Dessine une ligne de texte avec ombre portée, centrée horizontalement.
+     * Draws a line of text with drop shadow, centred horizontally.
      *
-     * @param graphics contexte de rendu
-     * @param text     texte à dessiner
-     * @param centerX  abscisse du centre de la ligne
-     * @param y        ordonnée du haut de la ligne
-     * @param argb     couleur du texte, en ARGB empaqueté
+     * @param graphics render context
+     * @param text     text to draw
+     * @param centerX  x of the line centre
+     * @param y        y of the top of the line
+     * @param argb     text colour, packed ARGB
      */
     public static void drawCenteredText(GuiGraphics graphics, Component text, int centerX, int y, int argb) {
         text(graphics, text, centerX - textWidth(text) / 2, y, argb, true);
@@ -611,18 +602,18 @@ public final class GaldurRender {
     }
 
     /**
-     * {@return la largeur de {@code text} en pixels d'interface}
+     * {@return the width of {@code text} in GUI pixels}
      *
-     * <p>Permet aux widgets de se dimensionner sans toucher à {@link Font}.</p>
+     * <p>Lets widgets size themselves without touching {@link Font}.</p>
      *
-     * @param text texte à mesurer
+     * @param text text to measure
      */
     public static int textWidth(Component text) {
         return font().width(text);
     }
 
     /**
-     * {@return la hauteur d'une ligne de texte de la police courante, en pixels d'interface}
+     * {@return the line height of the current font, in GUI pixels}
      */
     public static int lineHeight() {
         return font().lineHeight;

@@ -22,39 +22,38 @@ import net.minecraft.world.item.ItemStack;
 import org.lwjgl.glfw.GLFW;
 
 /**
- * Case d'objet aux couleurs de la charte : l'icône d'un objet et sa quantité abrégée
- * (« 64 », « 1,2k », « 64k », « 1,2M »), utilisable dans les layouts vanilla.
+ * Themed item cell: an item icon and its short amount ("64", "1,2k", "64k", "1,2M"), usable in
+ * vanilla layouts.
  *
- * <p>C'est une case <strong>d'affichage</strong>, pas un vrai slot de menu : elle ne déplace aucun
- * objet et ne parle pas au serveur. Elle sert à montrer des objets en grand nombre (le contenu
- * d'un réseau de stockage, une recette) et prévient le mod quand on clique dessus ; au mod de
- * décider quoi faire.</p>
+ * <p>This is a <strong>display</strong> cell, not a real menu slot: it moves no item and does not
+ * talk to the server. It shows items in large numbers (a storage network's contents, a recipe)
+ * and tells the mod when it is clicked; the mod decides what to do.</p>
  *
- * <p>Comme {@link GaldurCheckbox}, le widget relit l'objet et la quantité <strong>à chaque
- * image</strong> auprès de fournisseurs : la case suit le contenu sans être recréée. La quantité
- * est un {@code long} distinct de la taille de la pile, pour dépasser 64 et même
+ * <p>Like {@link GaldurCheckbox}, the widget reads the item and the amount <strong>every
+ * frame</strong> from suppliers, so the cell follows the contents without being rebuilt. The
+ * amount is a {@code long}, separate from the stack size, so it can go past 64 and even
  * {@code Integer.MAX_VALUE}.</p>
  *
  * <pre>{@code
- * GaldurItemSlot fer = GaldurItemSlot.of(() -> new ItemStack(Items.IRON_INGOT), () -> reseau.quantite(fer))
- *         .onPress(bouton -> bouton == 0 ? prendrePile() : prendreMoitie());
+ * GaldurItemSlot iron = GaldurItemSlot.of(() -> new ItemStack(Items.IRON_INGOT), () -> network.amount(iron))
+ *         .onPress(button -> button == 0 ? takeStack() : takeHalf());
  * }</pre>
  *
  * <ul>
- *   <li><strong>Quantité</strong> : masquée si elle vaut 1, comme en vanilla.</li>
- *   <li><strong>Infobulle</strong> : celle de l'objet, comme dans un inventaire, suivie de la
- *       quantité exacte quand elle est abrégée.</li>
- *   <li><strong>Clic</strong> : gauche ({@code 0}) ou droit ({@code 1}), transmis au mod ; Entrée
- *       ou Espace au clavier valent un clic gauche.</li>
- *   <li><strong>Désactivée</strong> ({@code active = false}) : quantité atténuée, plus de clic ;
- *       l'infobulle reste.</li>
- *   <li><strong>Vide</strong> : une pile vide affiche une case vide, sans infobulle.</li>
+ *   <li><strong>Amount</strong>: hidden when it is 1, as in vanilla.</li>
+ *   <li><strong>Tooltip</strong>: the item's own, as in an inventory, followed by the exact
+ *       amount when it is shortened.</li>
+ *   <li><strong>Click</strong>: left ({@code 0}) or right ({@code 1}), passed to the mod; Enter or
+ *       Space count as a left click.</li>
+ *   <li><strong>Disabled</strong> ({@code active = false}): muted amount, no click; the tooltip
+ *       stays.</li>
+ *   <li><strong>Empty</strong>: an empty stack shows an empty cell, without tooltip.</li>
  * </ul>
  */
 public class GaldurItemSlot extends AbstractWidget {
-    /** Côté d'une case, cadre compris, en pixels : celui d'un slot vanilla. */
+    /** Side of a cell, frame included, in pixels: the size of a vanilla slot. */
     public static final int SIZE = GaldurRender.ITEM_SIZE + 2;
-    /** Opacité du surlignage de la case survolée (0 à 255). */
+    /** Opacity of the hover highlight (0 to 255). */
     private static final int HOVER_ALPHA = 0x60;
 
     private final Supplier<ItemStack> stack;
@@ -62,10 +61,10 @@ public class GaldurItemSlot extends AbstractWidget {
     private IntConsumer onPress = button -> {};
 
     /**
-     * Crée une case. Préférer {@link #of(Supplier)} ou {@link #of(Supplier, LongSupplier)}.
+     * Prefer {@link #of(Supplier)} or {@link #of(Supplier, LongSupplier)}.
      *
-     * @param stack  fournisseur de l'objet affiché, appelé à chaque image
-     * @param amount fournisseur de la quantité affichée, appelé à chaque image
+     * @param stack  supplier of the shown item, called every frame
+     * @param amount supplier of the shown amount, called every frame
      */
     protected GaldurItemSlot(Supplier<ItemStack> stack, LongSupplier amount) {
         super(0, 0, SIZE, SIZE, Component.empty());
@@ -74,29 +73,29 @@ public class GaldurItemSlot extends AbstractWidget {
     }
 
     /**
-     * {@return une case qui affiche la taille de la pile comme quantité}
+     * {@return a cell that shows the stack size as amount}
      *
-     * @param stack fournisseur de l'objet affiché, appelé à chaque image
+     * @param stack supplier of the shown item, called every frame
      */
     public static GaldurItemSlot of(Supplier<ItemStack> stack) {
         return new GaldurItemSlot(stack, () -> stack.get().getCount());
     }
 
     /**
-     * {@return une case dont la quantité affichée est fournie à part}
+     * {@return a cell whose shown amount is supplied separately}
      *
-     * @param stack  fournisseur de l'objet affiché, appelé à chaque image ; sa taille est ignorée
-     * @param amount fournisseur de la quantité affichée, appelé à chaque image
+     * @param stack  supplier of the shown item, called every frame; its size is ignored
+     * @param amount supplier of the shown amount, called every frame
      */
     public static GaldurItemSlot of(Supplier<ItemStack> stack, LongSupplier amount) {
         return new GaldurItemSlot(stack, amount);
     }
 
     /**
-     * Définit l'action appelée quand on clique sur la case. Une seule action est conservée.
+     * Sets the action called when the cell is clicked. Only one action is kept.
      *
-     * @param onPress reçoit le bouton de la souris : {@code 0} gauche, {@code 1} droit
-     * @return cette case, pour chaîner les appels
+     * @param onPress receives the mouse button: {@code 0} left, {@code 1} right
+     * @return this cell, for chaining
      */
     public GaldurItemSlot onPress(IntConsumer onPress) {
         this.onPress = onPress;
@@ -135,7 +134,7 @@ public class GaldurItemSlot extends AbstractWidget {
         }
     }
 
-    /** Accepte le clic gauche et le clic droit. */
+    /** Accepts left and right clicks. */
     @Override
     protected boolean isValidClickButton(int button) {
         return button == GLFW.GLFW_MOUSE_BUTTON_LEFT || button == GLFW.GLFW_MOUSE_BUTTON_RIGHT;
@@ -159,7 +158,7 @@ public class GaldurItemSlot extends AbstractWidget {
         return true;
     }
 
-    /** Une case d'objet ne fait pas le son d'un bouton. */
+    /** An item cell does not play the button sound. */
     @Override
     public void playDownSound(SoundManager handler) {
     }
@@ -170,7 +169,7 @@ public class GaldurItemSlot extends AbstractWidget {
         Component title = item.isEmpty()
                 ? GaldurNarration.ours("slot.empty")
                 : GaldurNarration.item(item, amount.getAsLong());
-        // Pas de consigne : ce que fait un clic dépend du mod.
+        // No usage hint: what a click does depends on the mod.
         narrationElementOutput.add(NarratedElementType.TITLE, GaldurNarration.withState(title, active));
     }
 }

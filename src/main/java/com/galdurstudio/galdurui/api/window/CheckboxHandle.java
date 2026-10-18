@@ -3,19 +3,19 @@ package com.galdurstudio.galdurui.api.window;
 import java.util.function.Consumer;
 
 /**
- * Poignée vers une case à cocher d'une {@link GaldurWindow} : permet de lire son état, de le
- * changer et d'être prévenu quand il change.
+ * Handle to a checkbox of a {@link GaldurWindow}: read its state, change it and be told when it
+ * changes.
  *
- * <p>On l'obtient avec {@code GaldurWindow.addCheckbox(...)}. Comme toute {@link ElementHandle},
- * elle permet aussi de désactiver la case, de la cacher ou de lui donner une infobulle.</p>
+ * <p>Returned by {@code GaldurWindow.addCheckbox(...)}. Like any {@link ElementHandle}, it can
+ * also disable the checkbox, hide it or give it a tooltip.</p>
  *
- * <p>L'état vit ici et non dans le widget affiché : Minecraft recrée les widgets à chaque
- * redimensionnement, la case reste donc cochée (ou non) et le widget relit cet état.</p>
+ * <p>The state lives here, not in the shown widget: Minecraft rebuilds widgets on every resize,
+ * so the checkbox stays checked (or not) and the widget reads this state back.</p>
  *
  * <pre>{@code
- * CheckboxHandle son = window.addCheckbox(Component.literal("Activer le son"), false);
- * son.onChange(active -> System.out.println("Son : " + active));
- * son.setChecked(true);   // affiche "Son : true"
+ * CheckboxHandle sound = window.addCheckbox(Component.literal("Enable sound"), false);
+ * sound.onChange(on -> System.out.println("Sound: " + on));
+ * sound.setChecked(true);   // prints "Sound: true"
  * }</pre>
  */
 public class CheckboxHandle extends ElementHandle {
@@ -23,22 +23,22 @@ public class CheckboxHandle extends ElementHandle {
     private Consumer<Boolean> action;
 
     /**
-     * Crée une case dans l'état donné. Non publique : seule {@link GaldurWindow} en crée.
+     * Package-private: only {@link GaldurWindow} creates checkboxes.
      *
-     * @param defaultState {@code true} si la case est cochée au départ
+     * @param defaultState {@code true} if the checkbox starts checked
      */
     CheckboxHandle(boolean defaultState) {
         this.checked = defaultState;
     }
 
     /**
-     * Coche ou décoche la case.
+     * Checks or unchecks the checkbox.
      *
-     * <p>Si la valeur change réellement, l'action donnée à {@link #onChange(Consumer)} est appelée
-     * avec la nouvelle valeur, que le changement vienne du joueur ou de ce code. Si la case est
-     * déjà dans cet état, il ne se passe rien.</p>
+     * <p>When the value really changes, the action given to {@link #onChange(Consumer)} is called
+     * with the new value, whether the change comes from the player or from code. Nothing happens
+     * when the checkbox is already in that state.</p>
      *
-     * @param checked {@code true} pour cocher, {@code false} pour décocher
+     * @param checked {@code true} to check, {@code false} to uncheck
      */
     public void setChecked(boolean checked) {
         if (checked == this.checked) {
@@ -50,18 +50,18 @@ public class CheckboxHandle extends ElementHandle {
         }
     }
 
-    /** {@return {@code true} si la case est cochée} */
+    /** {@return {@code true} if the checkbox is checked} */
     public boolean isChecked() {
         return checked;
     }
 
     /**
-     * Définit l'action appelée quand l'état de la case change.
+     * Sets the action called when the state changes.
      *
-     * <p>Une seule action est conservée : un nouvel appel remplace la précédente. Elle reçoit le
-     * nouvel état ({@code true} si la case vient d'être cochée).</p>
+     * <p>Only one action is kept: a new call replaces the previous one. It receives the new state
+     * ({@code true} if the checkbox was just checked).</p>
      *
-     * @param action appelée à chaque changement d'état
+     * @param action called on every state change
      */
     public void onChange(Consumer<Boolean> action) {
         this.action = action;

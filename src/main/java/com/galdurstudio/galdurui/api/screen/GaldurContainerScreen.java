@@ -1,103 +1,80 @@
 package com.galdurstudio.galdurui.api.screen;
 
-import com.galdurstudio.galdurui.api.text.GaldurFonts;
-import com.galdurstudio.galdurui.api.anim.GaldurEasing;
 import com.galdurstudio.galdurui.api.anim.GaldurAnimations;
-import net.minecraft.world.item.ItemStack;
-import net.minecraft.client.gui.narration.NarrationElementOutput;
-import net.minecraft.client.gui.narration.NarratedElementType;
-import com.galdurstudio.galdurui.internal.narration.GaldurNarration;
+import com.galdurstudio.galdurui.api.anim.GaldurEasing;
+import com.galdurstudio.galdurui.api.text.GaldurFonts;
 import com.galdurstudio.galdurui.api.theme.GaldurTheme;
+import com.galdurstudio.galdurui.internal.narration.GaldurNarration;
 import com.galdurstudio.galdurui.internal.render.GaldurRender;
 import com.galdurstudio.galdurui.internal.render.GaldurSprites;
+import java.util.List;
 import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.narration.NarratedElementType;
+import net.minecraft.client.gui.narration.NarrationElementOutput;
 import net.minecraft.client.gui.screens.MenuScreens;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
 import net.minecraft.client.renderer.Rect2i;
-import java.util.List;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.minecraft.world.inventory.Slot;
+import net.minecraft.world.item.ItemStack;
 
 /**
- * Écran d'un menu à slots aux couleurs de Galdur UI : panneau du thème, cadre de chaque slot,
- * titres en couleurs du thème. Le glisser-déposer, le Maj+clic, les touches 1 à 9 et les
- * infobulles d'objets sont ceux de Minecraft ({@link AbstractContainerScreen}).
+ * Themed screen for a slot menu: theme panel, a frame per slot, theme-coloured titles (the
+ * screen title in the brand font). Drag and drop, Shift-click, number keys and item tooltips are
+ * Minecraft's ({@link AbstractContainerScreen}).
  *
- * <p>Utilisable tel quel pour n'importe quel menu, y compris un menu vanilla, grâce à
- * {@link #factory()} :</p>
+ * <p>Works as is for any menu, vanilla ones included, through {@link #factory()}:</p>
  *
  * <pre>{@code
- * // côté client, sur le bus du mod
- * event.register(MES_MENUS.COFFRE.get(), GaldurContainerScreen.factory());
+ * // client side, on the mod bus
+ * event.register(MY_MENUS.CHEST.get(), GaldurContainerScreen.factory());
  * }</pre>
  *
- * <p>La taille du panneau est déduite des slots : la marge à gauche du premier slot est reprise
- * à droite et en bas. Un menu sans slot prend la taille d'un coffre vanilla (176 × 166). Une
- * sous-classe peut imposer sa taille avec
- * {@link #GaldurContainerScreen(AbstractContainerMenu, Inventory, Component, int, int)}, et
- * redéfinir {@link #renderBg} ou {@link #renderLabels} pour ajouter son contenu.</p>
+ * <p>The panel size is derived from the slots: the margin left of the first slot is repeated on
+ * the right and at the bottom. A menu without slots gets the size of a vanilla chest
+ * (176 × 166). A subclass can force its size with
+ * {@link #GaldurContainerScreen(AbstractContainerMenu, Inventory, Component, int, int)} and
+ * override {@link #renderBg} or {@link #renderLabels} to add content.</p>
  *
- * <p>Avec JEI ou EMI installé, leur liste d'objets évite le panneau et les zones de
- * {@link #getExclusionZones()}.</p>
+ * <p>The "Inventory" label sits right above the player inventory when the menu has one, and is
+ * hidden otherwise. The hovered slot gets a translucent {@code accent} veil and an
+ * {@code accent_hover} outline, as does every slot targeted by a drag-spread. With JEI or EMI
+ * installed, their item list avoids the panel and the {@link #getExclusionZones()}. The panel rises
+ * slightly when the screen opens.</p>
  *
- * <p>Le titre « Inventaire » est placé juste au-dessus de l'inventaire du joueur, s'il y en a
- * un dans le menu, et masqué sinon.</p>
- *
- * <p>Aux couleurs du thème :</p>
- * <ul>
- *   <li>le slot survolé reçoit un voile {@code accent} par-dessus l'objet (au lieu du blanc
- *       vanilla) et un contour {@code accent_hover} ;</li>
- *   <li>pendant un glisser pour répartir (clic maintenu sur plusieurs slots), chaque slot visé
- *       reçoit le même contour. Le léger voile blanc posé sous l'objet reste celui de
- *       Minecraft.</li>
- * </ul>
- *
- * @param <M> le type du menu affiché
+ * @param <M> the menu type
  */
 public class GaldurContainerScreen<M extends AbstractContainerMenu> extends AbstractContainerScreen<M> {
-    /** Taille d'un panneau sans slot, celle d'un coffre vanilla. */
+    /** Size of a panel without slots: a vanilla chest. */
     private static final int DEFAULT_WIDTH = 176;
     private static final int DEFAULT_HEIGHT = 166;
-    /** Côté du cadre d'un slot : l'objet (16) et un pixel de chaque côté. */
+    /** Slot frame: the 16-pixel item and one pixel on each side. */
     private static final int SLOT_FRAME = 18;
-    /** Côté de l'objet dans un slot. */
     private static final int ITEM_SIZE = 16;
-    /** Écart entre le haut du titre « Inventaire » et la première rangée de l'inventaire. */
+    /** Gap between the top of the "Inventory" label and the first inventory row. */
     private static final int INVENTORY_LABEL_GAP = 12;
-    /** Ordonnée du titre de l'écran dans le panneau. */
     private static final int TITLE_Y = 6;
-    /** Opacité du voile posé sur le slot survolé (0 à 255), comme une case d'objet Galdur. */
+    /** Opacity of the hovered slot veil (0 to 255), same as a Galdur item slot. */
     private static final int HOVER_ALPHA = 0x60;
-
-    /** Distance parcourue par le panneau en s'ouvrant (il monte), en pixels. */
+    /** How far the panel rises while opening, in pixels. */
     private static final int OPEN_RISE = 8;
 
-    /** Vrai si le menu contient l'inventaire du joueur : le titre « Inventaire » est affiché. */
     private final boolean showInventoryLabel;
-    /** Début de l'animation d'ouverture ; {@code -1} tant que l'écran n'a jamais été montré. */
+    /** Start of the opening animation; {@code -1} until the screen is first shown. */
     private long openStart = -1;
 
-    /**
-     * Crée l'écran, avec un panneau dimensionné d'après les slots du menu.
-     *
-     * @param menu      le menu affiché
-     * @param inventory l'inventaire du joueur
-     * @param title     le titre de l'écran
-     */
+    /** Creates the screen, with a panel sized from the menu slots. */
     public GaldurContainerScreen(M menu, Inventory inventory, Component title) {
         this(menu, inventory, title, -1, -1);
     }
 
     /**
-     * Crée l'écran avec une taille de panneau imposée.
+     * Creates the screen with a given panel size.
      *
-     * @param menu      le menu affiché
-     * @param inventory l'inventaire du joueur
-     * @param title     le titre de l'écran
-     * @param width     largeur du panneau, en pixels ; négative pour la déduire des slots
-     * @param height    hauteur du panneau, en pixels ; négative pour la déduire des slots
+     * @param width  panel width in pixels; negative to derive it from the slots
+     * @param height panel height in pixels; negative to derive it from the slots
      */
     public GaldurContainerScreen(M menu, Inventory inventory, Component title, int width, int height) {
         super(menu, inventory, title);
@@ -126,31 +103,26 @@ public class GaldurContainerScreen<M extends AbstractContainerMenu> extends Abst
     }
 
     /**
-     * {@return de quoi enregistrer cet écran pour un type de menu, sans sous-classe}
+     * {@return a screen constructor for {@code RegisterMenuScreensEvent.register}, without a
+     * subclass}; a plain {@code GaldurContainerScreen::new} does not work there because Java cannot
+     * infer the screen type
      *
-     * <p>À passer à {@code RegisterMenuScreensEvent.register} : une référence de constructeur
-     * ({@code GaldurContainerScreen::new}) ne suffit pas, Java ne sachant pas en déduire le type
-     * de l'écran.</p>
-     *
-     * @param <M> le type du menu
+     * @param <M> the menu type
      */
     public static <M extends AbstractContainerMenu> MenuScreens.ScreenConstructor<M, GaldurContainerScreen<M>> factory() {
         return GaldurContainerScreen::new;
     }
 
     /**
-     * {@return les zones de l'écran, en coordonnées d'écran, que JEI et EMI doivent laisser libres
-     * en plus du panneau : onglets latéraux, boutons qui dépassent...}
-     *
-     * <p>Aucune par défaut : le panneau ({@code leftPos}, {@code topPos}, {@code imageWidth},
-     * {@code imageHeight}) est déjà évité. Relue par JEI et EMI quand ils en ont besoin, elle peut
-     * dépendre de l'état de l'écran.</p>
+     * {@return extra screen areas, in screen coordinates, that JEI and EMI must keep clear besides
+     * the panel: side tabs, buttons sticking out...}; none by default. Read again whenever JEI or
+     * EMI need it, so it may depend on the screen state.
      */
     public List<Rect2i> getExclusionZones() {
         return List.of();
     }
 
-    /** Lance l'animation d'ouverture, la première fois que l'écran est affiché seulement. */
+    /** Starts the opening animation, the first time the screen is shown only. */
     @Override
     public void added() {
         super.added();
@@ -159,7 +131,6 @@ public class GaldurContainerScreen<M extends AbstractContainerMenu> extends Abst
         }
     }
 
-    /** {@return le décalage vertical du panneau pendant son ouverture, en pixels} */
     private float openOffset() {
         if (openStart < 0) {
             return 0;
@@ -168,10 +139,7 @@ public class GaldurContainerScreen<M extends AbstractContainerMenu> extends Abst
         return (float) (OPEN_RISE * (1 - GaldurEasing.OUT_CUBIC.applyAsDouble(t)));
     }
 
-    /**
-     * Dessine l'écran ; à l'ouverture, le panneau et son contenu montent légèrement. Les
-     * infobulles, elles, restent sous le curseur.
-     */
+    /** While opening, the panel and its contents rise slightly; tooltips stay under the cursor. */
     @Override
     public void render(GuiGraphics guiGraphics, int mouseX, int mouseY, float partialTick) {
         float offset = openOffset();
@@ -180,10 +148,7 @@ public class GaldurContainerScreen<M extends AbstractContainerMenu> extends Abst
         renderTooltip(guiGraphics, mouseX, mouseY);
     }
 
-    /**
-     * Voile de fond puis panneau ({@link #renderBg}). Le voile couvre tout l'écran : il ne suit
-     * pas la montée du panneau.
-     */
+    /** Background dim, then the panel ({@link #renderBg}). The dim covers the whole screen and does not rise. */
     @Override
     public void renderBackground(GuiGraphics guiGraphics, int mouseX, int mouseY, float partialTick) {
         float offset = openOffset();
@@ -192,9 +157,8 @@ public class GaldurContainerScreen<M extends AbstractContainerMenu> extends Abst
     }
 
     /**
-     * Ajoute à la narration l'objet du slot survolé (« Lingot de fer, 32 ») : Minecraft ne lit
-     * pas les slots d'un menu. Placé un niveau plus bas que les widgets pour ne pas remplacer
-     * celui qui a le focus.
+     * Narrates the hovered slot item ("Iron Ingot, 32"), which Minecraft does not. Nested one
+     * level below the widgets so it does not replace the focused one.
      */
     @Override
     protected void updateNarratedWidget(NarrationElementOutput narrationElementOutput) {
@@ -207,9 +171,8 @@ public class GaldurContainerScreen<M extends AbstractContainerMenu> extends Abst
     }
 
     /**
-     * Dessine le panneau (sprite {@code panel} teinté {@code background}) puis le cadre de chaque
-     * slot actif (sprite {@code slot}), entouré en {@code accent_hover} s'il est survolé ou visé par
-     * un glisser. Les objets sont dessinés ensuite par Minecraft.
+     * Draws the panel, then a frame for each active slot, outlined when hovered or targeted by a
+     * drag-spread. Minecraft draws the items afterwards.
      */
     @Override
     protected void renderBg(GuiGraphics guiGraphics, float partialTick, int mouseX, int mouseY) {
@@ -231,17 +194,12 @@ public class GaldurContainerScreen<M extends AbstractContainerMenu> extends Abst
         }
     }
 
-    /**
-     * {@return la couleur du voile posé sur le slot survolé : {@code accent} translucide}
-     *
-     * <p>Minecraft la dessine par-dessus l'objet. Relue à chaque image, elle suit le thème.</p>
-     */
+    /** {@return the hovered slot veil, drawn by Minecraft over the item: translucent {@code accent}} */
     @Override
     public int getSlotColor(int index) {
         return (HOVER_ALPHA << 24) | (GaldurTheme.accent() & 0xFFFFFF);
     }
 
-    /** Titre de l'écran en {@code text}, titre « Inventaire » en {@code text_muted}. */
     @Override
     protected void renderLabels(GuiGraphics guiGraphics, int mouseX, int mouseY) {
         GaldurRender.text(guiGraphics, GaldurFonts.title(title), titleLabelX, titleLabelY, GaldurTheme.text(), false);

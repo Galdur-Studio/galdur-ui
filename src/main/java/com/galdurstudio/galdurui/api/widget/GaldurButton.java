@@ -1,56 +1,43 @@
 package com.galdurstudio.galdurui.api.widget;
 
-import com.galdurstudio.galdurui.api.anim.GaldurEasing;
-import com.galdurstudio.galdurui.api.anim.GaldurAnimations;
 import com.galdurstudio.galdurui.api.anim.AnimatedValue;
-import net.minecraft.client.gui.narration.NarratedElementType;
-import com.galdurstudio.galdurui.internal.narration.GaldurNarration;
+import com.galdurstudio.galdurui.api.anim.GaldurAnimations;
+import com.galdurstudio.galdurui.api.anim.GaldurEasing;
 import com.galdurstudio.galdurui.api.theme.GaldurTheme;
 import com.galdurstudio.galdurui.internal.input.GaldurInput;
+import com.galdurstudio.galdurui.internal.narration.GaldurNarration;
 import com.galdurstudio.galdurui.internal.render.GaldurRender;
 import com.galdurstudio.galdurui.internal.render.GaldurSprites;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.AbstractWidget;
 import net.minecraft.client.gui.navigation.CommonInputs;
+import net.minecraft.client.gui.narration.NarratedElementType;
 import net.minecraft.client.gui.narration.NarrationElementOutput;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 
 /**
- * Bouton aux couleurs de la charte, avec libellé centré.
+ * Themed button with a centred label.
  *
- * <p>Quatre états, chacun avec son sprite 9-slice en niveaux de gris, teinté au rendu par une
- * couleur du thème : au repos ({@code accent}), survolé ou ciblé au clavier
- * ({@code accent_hover}), appuyé ({@code accent_pressed}) et désactivé ({@code surface}). Le
- * libellé passe en {@code text_muted} quand le bouton est désactivé.</p>
+ * <p>Four states, each with a grayscale 9-slice sprite tinted by a theme colour: idle
+ * ({@code accent}), hovered or keyboard-focused ({@code accent_hover}, faded in), pressed
+ * ({@code accent_pressed}) and disabled ({@code surface}, label in {@code text_muted}). Disable it
+ * with the inherited {@code active} field.</p>
  *
  * <pre>{@code
- * layout.addChild(GaldurButton.of(Component.literal("Valider"), bouton -> valider()));
+ * layout.addChild(GaldurButton.of(Component.literal("Confirm"), button -> confirm()));
  * }</pre>
  *
- * <p>{@link #of(Component, OnPress)} dimensionne le bouton d'après son libellé et le thème ;
- * le constructeur complet reste disponible pour une position et une taille imposées.</p>
- *
- * <p>Désactiver un bouton se fait par le champ {@code active} hérité d'{@link AbstractWidget} :
- * {@code bouton.active = false;}</p>
- *
- * <p>Les couleurs (teintes et libellé) sont relues dans le thème à chaque image : elles suivent
- * immédiatement un rechargement des ressources. Attention, Minecraft ignore F3+T tant qu'un
- * écran est ouvert ; le rechargement doit alors venir d'ailleurs, par exemple de
- * {@code Minecraft.reloadResourcePacks()}. La taille, elle, est fixée à la construction
- * ({@link #of(Component, OnPress)}) et ne suit le thème qu'à la reconstruction de l'écran.</p>
+ * <p>Colours are read from the theme every frame. The size is fixed at construction:
+ * {@link #of(Component, OnPress)} sizes the button from its label and the theme spacings.</p>
  */
 public class GaldurButton extends AbstractWidget {
-    /** Action déclenchée quand le bouton est activé. */
+    /** Action run when the button is activated, by mouse or keyboard. */
     @FunctionalInterface
     public interface OnPress {
-        /**
-         * Appelé lorsque l'utilisateur active le bouton, à la souris ou au clavier.
-         *
-         * @param button le bouton activé
-         */
+        /** @param button the activated button */
         void onPress(GaldurButton button);
     }
 
@@ -62,33 +49,18 @@ public class GaldurButton extends AbstractWidget {
     private ResourceLocation spriteDisabled = GaldurSprites.BUTTON_DISABLED;
 
     /**
-     * Vrai entre l'enfoncement et le relâchement du bouton de souris sur ce widget. Repasse à
-     * faux dans {@link #onRelease}, que l'action soit déclenchée ou non, à chaque image où le
-     * bouton gauche n'est plus enfoncé ({@link #renderWidget}), et par {@link #clearHeld()}.
-     *
-     * <p>Surtout pas dans {@code setFocused(false)} : à chaque clic, Minecraft retire puis
-     * redonne le focus au bouton déjà ciblé, entre l'appui et le relâchement
-     * ({@code AbstractContainerEventHandler.setFocused}), ce qui effacerait l'appui.</p>
-     *
-     * <p>Si le relâchement part vers un autre widget (Tab pendant l'appui), {@link #onRelease}
-     * n'est jamais appelée sur ce bouton. Sans la remise à faux au rendu, {@code held} resterait
-     * vrai : le bouton s'afficherait enfoncé au retour du focus, et un appui ailleurs suivi d'un
-     * relâchement sur lui déclencherait l'action.</p>
+     * True between the mouse press and release on this button. Cleared in {@link #onRelease},
+     * on every frame where the left mouse button is up, and by {@link #clearHeld()}; never in
+     * {@code setFocused(false)}, because Minecraft removes and gives back focus between press and
+     * release on every click.
      */
     private boolean held;
 
-    /** Part du survol affichée, de 0 (repos) à 1 (survolé) : fondu entre les deux sprites. */
     private final AnimatedValue hover = new AnimatedValue(0, GaldurAnimations.HOVER_MS, GaldurEasing.OUT_QUAD);
 
     /**
-     * Crée un bouton.
-     *
-     * @param x       abscisse du coin supérieur gauche
-     * @param y       ordonnée du coin supérieur gauche
-     * @param width   largeur, en pixels d'interface
-     * @param height  hauteur, en pixels d'interface
-     * @param label   libellé affiché au centre
-     * @param onPress action déclenchée à l'activation
+     * Creates a button with a given position and size; {@link #of(Component, OnPress)} sizes it from
+     * its label instead.
      */
     public GaldurButton(int x, int y, int width, int height, Component label, OnPress onPress) {
         super(x, y, width, height, label);
@@ -96,41 +68,24 @@ public class GaldurButton extends AbstractWidget {
     }
 
     /**
-     * Crée un bouton dimensionné d'après son libellé, à placer dans un layout.
-     *
-     * <p>Largeur : celle du libellé plus {@code spacing.button_padding_x} de chaque côté, sans
-     * descendre sous {@code spacing.button_min_width}. Hauteur : {@code spacing.button_height}.
-     * La position est laissée à {@code (0, 0)} : c'est le layout qui la fixe.</p>
-     *
-     * <pre>{@code
-     * ligne.addChild(GaldurButton.of(Component.literal("Valider"), bouton -> valider()));
-     * }</pre>
-     *
-     * @param label   libellé affiché au centre
-     * @param onPress action déclenchée à l'activation
-     * @return le bouton créé
+     * {@return a button sized from its label, at {@code (0, 0)} for a layout to place}: label
+     * width plus {@code spacing.button_padding_x} on each side, at least
+     * {@code spacing.button_min_width}, {@code spacing.button_height} high
      */
     public static GaldurButton of(Component label, OnPress onPress) {
         int width = Math.max(GaldurTheme.buttonMinWidth(), preferredWidth(label));
         return new GaldurButton(0, 0, width, GaldurTheme.buttonHeight(), label, onPress);
     }
 
-    /** {@return la largeur du libellé augmentée de la marge intérieure du thème, des deux côtés} */
     private static int preferredWidth(Component label) {
         return GaldurRender.textWidth(label) + 2 * GaldurTheme.buttonPaddingX();
     }
 
     /**
-     * Remplace le jeu de sprites du bouton, par exemple pour qu'un mod utilise le sien.
+     * Replaces the sprites. They are tinted like the default ones, so provide them in grayscale:
+     * white takes the exact theme colour.
      *
-     * <p>Ces sprites sont teintés comme ceux d'origine (couleur du thème selon l'état) : les
-     * fournir en niveaux de gris, le blanc prenant exactement la couleur du thème.</p>
-     *
-     * @param normal   sprite au repos
-     * @param hovered  sprite au survol ou au focus clavier
-     * @param pressed  sprite pendant l'appui
-     * @param disabled sprite à l'état désactivé
-     * @return ce bouton, pour chaîner les appels
+     * @return this button
      */
     public GaldurButton withSprites(ResourceLocation normal, ResourceLocation hovered,
                                     ResourceLocation pressed, ResourceLocation disabled) {
@@ -141,39 +96,26 @@ public class GaldurButton extends AbstractWidget {
         return this;
     }
 
-    /**
-     * {@return la largeur minimale permettant d'afficher le libellé en entier}
-     *
-     * <p>Pratique pour dimensionner un bouton d'après son texte plutôt qu'en dur.</p>
-     */
+    /** {@return the smallest width that shows the whole label} */
     public int getPreferredWidth() {
         return preferredWidth(getMessage());
     }
 
-    /** États visuels du bouton, chacun avec son sprite et sa teinte. */
     private enum State { NORMAL, HOVERED, PRESSED, DISABLED }
 
     private State currentState() {
         if (!active) {
             return State.DISABLED;
         }
-        // Un appui en cours a toujours le focus : Minecraft le donne au bouton juste après
-        // onClick. Si le focus est parti pendant l'appui (Tab bouton maintenu), on n'affiche
-        // plus l'état enfoncé : le relâchement ira à un autre widget.
+        // A press in progress always has focus. If focus left during the press (Tab with the mouse
+        // held), the release will go to another widget: stop showing the pressed state.
         if (held && isHovered() && isFocused()) {
             return State.PRESSED;
         }
         return isHovered() || isKeyboardFocused() ? State.HOVERED : State.NORMAL;
     }
 
-    /**
-     * {@return {@code true} si le bouton a le focus et que la dernière entrée vient du clavier}
-     *
-     * <p>Un clic souris donne aussi le focus au bouton. Sans ce filtre, il garderait
-     * l'apparence du survol une fois le curseur parti. Minecraft mémorise le type de la dernière
-     * entrée : Tab ou les flèches le passent en clavier, tout appui ou relâchement de bouton de
-     * souris le repasse en souris.</p>
-     */
+    /** A mouse click also gives focus; only keyboard focus should look like hover. */
     private boolean isKeyboardFocused() {
         return isFocused() && Minecraft.getInstance().getLastInputType().isKeyboard();
     }
@@ -187,13 +129,11 @@ public class GaldurButton extends AbstractWidget {
         };
     }
 
-    /** {@return {@code argb} avec son alpha multiplié par {@code factor} (0 à 1)} */
     private static int withAlpha(int argb, double factor) {
         int alpha = (int) Math.round(((argb >>> 24) & 0xFF) * Math.max(0, Math.min(1, factor)));
         return (alpha << 24) | (argb & 0xFFFFFF);
     }
 
-    /** {@return la teinte ARGB de l'état {@code state}, relue dans le thème} */
     private static int tint(State state) {
         return switch (state) {
             case NORMAL -> GaldurTheme.accent();
@@ -205,9 +145,7 @@ public class GaldurButton extends AbstractWidget {
 
     @Override
     protected void renderWidget(GuiGraphics guiGraphics, int mouseX, int mouseY, float partialTick) {
-        // Souris relâchée : l'appui est terminé, même si onRelease n'a pas été appelée sur ce
-        // bouton (relâchement parti vers un autre widget). Un clic rapide n'est pas concerné :
-        // appui et relâchement sont traités avant l'image suivante.
+        // Mouse released: the press is over, even if onRelease went to another widget.
         if (held && !GaldurInput.isLeftMouseDown()) {
             held = false;
         }
@@ -216,7 +154,7 @@ public class GaldurButton extends AbstractWidget {
         if (state == State.PRESSED || state == State.DISABLED) {
             GaldurRender.drawNineSlice(guiGraphics, sprite(state), getX(), getY(), getWidth(), getHeight(), tint(state));
         } else {
-            // Fondu : le sprite de survol est posé sur celui du repos, de plus en plus opaque.
+            // Hover fade: the hover sprite is drawn over the idle one, more and more opaque.
             double amount = hover.get();
             GaldurRender.drawNineSlice(guiGraphics, sprite(State.NORMAL), getX(), getY(), getWidth(), getHeight(),
                     tint(State.NORMAL));
@@ -225,18 +163,13 @@ public class GaldurButton extends AbstractWidget {
                         withAlpha(tint(State.HOVERED), amount));
             }
         }
-
         renderContent(guiGraphics);
     }
 
     /**
-     * Dessine le contenu du bouton par-dessus son fond : par défaut, le libellé centré, en
-     * {@code text} ou en {@code text_muted} s'il est désactivé.
-     *
-     * <p>Une sous-classe la redéfinit pour afficher autre chose que du texte (voir
-     * {@link GaldurIconButton}) en gardant le fond, les états et le comportement du bouton.</p>
-     *
-     * @param guiGraphics contexte de rendu
+     * Draws the button contents over its background: by default the centred label, in
+     * {@code text} or {@code text_muted} when disabled. Override it to show something else while
+     * keeping the states and behaviour (see {@link GaldurIconButton}).
      */
     protected void renderContent(GuiGraphics guiGraphics) {
         int labelColor = active ? GaldurTheme.text() : GaldurTheme.textMuted();
@@ -249,10 +182,9 @@ public class GaldurButton extends AbstractWidget {
         held = true;
     }
 
+    /** Fires only if the press started on this button and ends on it: dragging away cancels, as everywhere in the game. */
     @Override
     public void onRelease(double mouseX, double mouseY) {
-        // On n'agit que si l'appui a commencé sur ce bouton et s'y termine : glisser le curseur
-        // en dehors avant de relâcher annule le clic, comme partout ailleurs dans le jeu.
         boolean wasHeld = held;
         held = false;
         if (wasHeld && clicked(mouseX, mouseY)) {
@@ -262,10 +194,7 @@ public class GaldurButton extends AbstractWidget {
 
     @Override
     public boolean keyPressed(int keyCode, int scanCode, int modifiers) {
-        if (!active || !visible) {
-            return false;
-        }
-        if (!CommonInputs.selected(keyCode)) {
+        if (!active || !visible || !CommonInputs.selected(keyCode)) {
             return false;
         }
         playDownSound(Minecraft.getInstance().getSoundManager());
@@ -275,26 +204,20 @@ public class GaldurButton extends AbstractWidget {
 
     @Override
     protected void updateWidgetNarration(NarrationElementOutput narrationElementOutput) {
-        // « Bouton : Valider », « désactivé » en plus si besoin, puis la consigne vanilla.
         narrationElementOutput.add(NarratedElementType.TITLE, GaldurNarration.withState(createNarrationMessage(), active));
         GaldurNarration.usage(narrationElementOutput, active, isFocused(),
                 "narration.button.usage.focused", "narration.button.usage.hovered");
     }
 
-    /** {@return {@code true} si le bouton est actuellement maintenu enfoncé} */
+    /** {@return {@code true} while the mouse button is held down on this button} */
     public boolean isHeld() {
         return held;
     }
 
     /**
-     * Réinitialise l'état d'appui.
-     *
-     * <p>Rarement nécessaire : un appui dont le relâchement n'a pas été vu (bouton retiré de
-     * l'écran, ou relâchement parti vers un autre widget) est oublié tout seul dès la première
-     * image où le bouton gauche de la souris n'est plus enfoncé. Cette méthode l'oublie tout de
-     * suite, par exemple pour un écran qui garde ses boutons d'un {@link Screen#init()} à
-     * l'autre (en surchargeant {@code repositionElements()}) et veut repartir d'un état propre
-     * avant la prochaine image.</p>
+     * Forgets the pressed state now. Rarely needed: a press whose release was not seen is forgotten
+     * on the first frame where the mouse button is up. Useful for a {@link Screen} that keeps its
+     * buttons across {@code init()} calls and wants a clean state before the next frame.
      */
     public void clearHeld() {
         held = false;

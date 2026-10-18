@@ -1,20 +1,19 @@
-// Génère les sprites 9-slice de Galdur UI.
+// Generates the Galdur UI 9-slice sprites.
 //
-// Les sprites sont en niveaux de gris : la couleur vient du thème et est appliquée au rendu
-// (GaldurRender.drawNineSlice multiplie chaque pixel par la teinte). Un pixel blanc prend
-// exactement la couleur du thème, un pixel gris une version assombrie. Modifier theme.json
-// suffit donc à recolorer l'interface, sans régénérer les images.
+// Sprites are grayscale: the colour comes from the theme and is applied at render time
+// (GaldurRender.drawNineSlice multiplies each pixel by the tint). A white pixel takes exactly
+// the theme colour, a gray pixel a darker version. Editing theme.json is therefore enough to
+// recolour the interface, without regenerating the images.
 //
 //     .\gradlew.bat generateSprites
 //
-// Chaque sprite est accompagné d'un .png.mcmeta en nine_slice (bordure de 4 px, 2 px pour
-// la barre de défilement) : les coins restent nets quelle que soit la taille du widget. Les bords et le centre ne sont
-// PAS étirés en 1.21.1 : ils sont répétés par tuiles de (taille - 2 * bordure), à raison d'un
-// quad (donc d'un appel de dessin) par tuile. D'où des sprites grands (panel 256, boutons 64)
-// pour limiter les quads ; bords et centre doivent rester uniformes pour que la répétition
-// ne se voie pas.
+// Each sprite comes with a nine_slice .png.mcmeta (4 px border, 2 px for the scrollbar): corners
+// stay sharp whatever the widget size. Edges and centre are NOT stretched in 1.21.1: they are
+// repeated in tiles of (size - 2 * border), one quad per tile (GaldurRender batches them into a
+// single draw call). Hence large sprites (panel 256, buttons 64) to keep the quad count low;
+// edges and centre must stay uniform so the repetition does not show.
 //
-// Ce fichier vit hors de src/main (source set Gradle « tools ») : il ne finit pas dans le jar.
+// This file lives outside src/main (Gradle "tools" source set): it does not end up in the jar.
 
 import java.awt.image.BufferedImage;
 import java.io.IOException;
@@ -25,21 +24,21 @@ import java.nio.file.Paths;
 import javax.imageio.ImageIO;
 
 public final class GenerateSprites {
-    private static final int SIZE_BUTTON = 64;     // côté du sprite, en pixels
+    private static final int SIZE_BUTTON = 64;     // sprite side, in pixels
     private static final int SIZE_PANEL = 256;
     private static final int SIZE_SCROLLBAR = 32;
-    private static final int RADIUS = 4;    // rayon des coins arrondis, égal à la bordure 9-slice
+    private static final int RADIUS = 4;    // corner radius, equal to the 9-slice border
     private static final int BORDER = 4;
-    private static final int RADIUS_WELL = 3;   // creux (champ, case) : coins un peu plus vifs
-    private static final int BORDER_SCROLLBAR = 2;  // la barre ne fait que 4 px de large
+    private static final int RADIUS_WELL = 3;   // sunken (field, slot): slightly sharper corners
+    private static final int BORDER_SCROLLBAR = 2;  // the scrollbar is only 4 px wide
     private static final int RADIUS_SCROLLBAR = 2;
 
-    // Niveaux de gris, en fraction du blanc. La teinte ne pouvant qu'assombrir, l'arête
-    // éclairée est blanche et le remplissage un peu en dessous, pour garder le relief.
-    private static final double LIGHT = 1.0;          // arête éclairée
-    private static final double FILL = 0.9;           // remplissage
-    private static final double DARK = FILL * 0.75;   // arête dans l'ombre
-    private static final double OUTLINE = FILL * 0.45; // liseré sombre : détache le widget du fond
+    // Gray levels, as a fraction of white. Since the tint can only darken, the lit edge is
+    // white and the fill a bit below it, to keep the relief.
+    private static final double LIGHT = 1.0;          // lit edge
+    private static final double FILL = 0.9;           // fill
+    private static final double DARK = FILL * 0.75;   // shadowed edge
+    private static final double OUTLINE = FILL * 0.45; // dark outline: separates the widget from the background
 
     private static final Path OUT = Paths.get("src", "main", "resources", "assets", "galdurui",
             "textures", "gui", "sprites");
@@ -60,21 +59,20 @@ public final class GenerateSprites {
     }
 
     /**
-     * Forme d'un sprite.
+     * Shape of a sprite.
      *
      * <ul>
-     *   <li>{@code ROUNDED} : rectangle aux quatre coins arrondis (panneau, bouton, champ...).</li>
-     *   <li>{@code TAB} : coins arrondis en haut seulement, et ni liseré ni ombre en bas : l'onglet
-     *       s'ouvre sur le trait posé dessous.</li>
+     *   <li>{@code ROUNDED}: rectangle with four rounded corners (panel, button, field...).</li>
+     *   <li>{@code TAB}: rounded corners at the top only, and no outline or shadow at the bottom:
+     *       the tab opens onto the line drawn below it.</li>
      * </ul>
      */
     private enum Shape { ROUNDED, TAB }
 
     /**
-     * Nom du sprite, relief, taille, bordure 9-slice, rayon des coins et forme. La couleur de
-     * chaque sprite est choisie au rendu (voir les widgets de api.widget).
-     * « inset » inverse le relief : la lumière passe en bas, le widget paraît enfoncé (champ de
-     * saisie, case d'objet, rail de défilement).
+     * Sprite name, relief, size, 9-slice border, corner radius and shape. Each sprite's colour is
+     * chosen at render time (see the widgets of api.widget). "inset" inverts the relief: light
+     * comes from the bottom and the widget looks pressed in (text field, item slot, scroll track).
      */
     private record Sprite(String name, boolean inset, int size, int border, int radius, Shape shape) {
         Sprite(String name, boolean inset, int size) {
@@ -88,9 +86,9 @@ public final class GenerateSprites {
             new Sprite("button_hover", false, SIZE_BUTTON),
             new Sprite("button_pressed", true,  SIZE_BUTTON),
             new Sprite("button_disabled", false,  SIZE_BUTTON),
-            // Creux : champ de recherche, cadre de liste, rail de la barre de progression.
+            // Sunken: search field, list frame, progress bar track.
             new Sprite("field", true, SIZE_BUTTON, BORDER, RADIUS_WELL, Shape.ROUNDED),
-            // Case d'objet : mêmes pixels que field, séparée pour qu'un pack puisse la redessiner.
+            // Item slot: same pixels as field, separate so a pack can redraw it.
             new Sprite("slot", true, SIZE_BUTTON, BORDER, RADIUS_WELL, Shape.ROUNDED),
             new Sprite("tab", false, SIZE_BUTTON, BORDER, RADIUS, Shape.TAB),
             new Sprite("tab_selected", false, SIZE_BUTTON, BORDER, RADIUS, Shape.TAB),
@@ -105,7 +103,7 @@ public final class GenerateSprites {
             ImageIO.write(build(sprite), "PNG", png.toFile());
             Files.writeString(png.resolveSibling(sprite.name() + ".png.mcmeta"),
                     mcmeta(sprite.size(), sprite.border()), StandardCharsets.UTF_8);
-            System.out.println("écrit " + png);
+            System.out.println("wrote " + png);
         }
     }
 
@@ -127,7 +125,7 @@ public final class GenerateSprites {
                 double d = distanceToRoundedRect(x, y, size, radius, tab);
                 int argb;
                 if (d > radius) {
-                    argb = 0;                       // coin taillé : transparent
+                    argb = 0;                       // cut corner: transparent
                 } else if (d > radius - 1.0) {
                     argb = 0xFF000000 | outline;
                 } else if (y == 1) {
@@ -144,11 +142,11 @@ public final class GenerateSprites {
     }
 
     /**
-     * Distance du centre du pixel au rectangle intérieur, pour tailler les coins. On ramène le
-     * point sur le rectangle central : sur les bords droits la distance vaut l'écart à l'arête,
-     * et dans les coins elle vaut la distance au centre du cercle. Pour un onglet
-     * ({@code openBottom}), le rectangle central descend jusqu'en bas de l'image : ni coin
-     * arrondi ni liseré en bas.
+     * Distance from the pixel centre to the inner rectangle, to cut the corners. The point is
+     * clamped onto the central rectangle: on straight edges the distance is the gap to the edge,
+     * and in the corners it is the distance to the circle centre. For a tab ({@code openBottom}),
+     * the central rectangle reaches the bottom of the image: no rounded corner or outline at the
+     * bottom.
      */
     private static double distanceToRoundedRect(int x, int y, int size, int radius, boolean openBottom) {
         double px = x + 0.5;
@@ -158,7 +156,7 @@ public final class GenerateSprites {
         return Math.hypot(px - cx, py - cy);
     }
 
-    /** {@return le gris RGB d'intensité {@code level} (0 = noir, 1 = blanc)} */
+    /** {@return the RGB gray of intensity {@code level} (0 = black, 1 = white)} */
     private static int gray(double level) {
         int v = Math.max(0, Math.min(255, (int) Math.round(level * 255)));
         return (v << 16) | (v << 8) | v;

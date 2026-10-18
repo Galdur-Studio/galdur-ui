@@ -1,0 +1,18 @@
+# Galdur UI test mod: demo screens, test blocks and dev tools. Development only, never published.
+modLoader="javafml"
+loaderVersion="[1,)"
+license="LGPL-3.0-only"
+
+[[mods]]
+modId="galduruitest"
+version="0.0.0"
+displayName="Galdur UI Test Mod"
+authors="Galdur Studio"
+description='''Demo screens and dev tools for Galdur UI. Development only.'''
+
+[[dependencies.galduruitest]]
+    modId="galdurui"
+    type="required"
+    versionRange="[0,)"
+    ordering="AFTER"
+    side="BOTH"

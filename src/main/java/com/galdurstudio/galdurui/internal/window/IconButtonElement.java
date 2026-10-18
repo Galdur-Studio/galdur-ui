@@ -10,14 +10,14 @@ import net.minecraft.world.item.ItemStack;
 import org.jetbrains.annotations.Nullable;
 
 /**
- * Élément de fenêtre qui affiche un bouton icône, avec un sprite ou un objet.
+ * Window element showing an icon button, with a sprite or an item.
  *
- * @param sprite   le sprite à afficher, ou {@code null} pour afficher {@code item}
- * @param item     l'objet à afficher quand il n'y a pas de sprite (copie faite par l'appelant)
- * @param label    texte de l'infobulle et de la narration
- * @param action   exécutée quand on active le bouton
- * @param centered {@code true} pour centrer le bouton, {@code false} pour l'aligner à gauche
- * @param handle   l'état commun (désactivé, caché, infobulle), partagé avec le mod
+ * @param sprite   the sprite to show, or {@code null} to show {@code item}
+ * @param item     the item shown when there is no sprite (copied by the caller)
+ * @param label    tooltip and narration text
+ * @param action   run when the button is activated
+ * @param centered {@code true} to centre the button, {@code false} to align it left
+ * @param handle   the common state (disabled, hidden, tooltip), shared with the mod
  */
 public record IconButtonElement(@Nullable ResourceLocation sprite, ItemStack item, Component label,
                                 Runnable action, boolean centered, ElementHandle handle) implements WindowElement {

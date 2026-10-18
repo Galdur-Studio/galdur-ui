@@ -3,206 +3,188 @@ package com.galdurstudio.galdurui.api.theme;
 import com.galdurstudio.galdurui.internal.theme.ThemeStore;
 
 /**
- * Accès aux couleurs et aux espacements du thème Galdur UI.
+ * Colours and spacings of the Galdur UI theme.
  *
- * <p>Point d'entrée stable pour les mods qui utilisent la bibliothèque. Les couleurs sont
- * définies dans {@code assets/galdurui/theme.json} et rechargées avec les ressources du jeu ;
- * il ne faut donc <strong>pas</strong> mettre une couleur en cache dans un champ
- * {@code static final}, mais la relire à chaque image.</p>
- *
- * <p>Recharger les ressources : F3+T, mais Minecraft l'ignore tant qu'un écran est ouvert. Dans
- * ce cas, utiliser le bouton « Recharger le thème » de {@code /galdurui test} (environnement de
- * développement), qui appelle {@code Minecraft.reloadResourcePacks()}.</p>
- *
- * <p>Les couleurs sont renvoyées en ARGB empaqueté ({@code 0xAARRGGBB}), le format attendu
- * par les méthodes de rendu de Minecraft.</p>
+ * <p>Values come from {@code assets/galdurui/theme.json} and are reloaded with the game resources
+ * (F3+T, or a resource pack change). Read them every frame or every {@code init()}; never cache
+ * them in a {@code static final} field. Colours are packed ARGB ({@code 0xAARRGGBB}), the format
+ * Minecraft's rendering methods expect.</p>
  *
  * <pre>{@code
- * int accent = GaldurTheme.color(GaldurTheme.ACCENT);
+ * int accent = GaldurTheme.accent();
+ * int custom = GaldurTheme.colorOrDefault("mymod_energy", 0xFF3FC1D9);
  * }</pre>
  */
 public final class GaldurTheme {
-    /** Fond principal des écrans (charbon). */
+    /** Main screen background (charcoal). */
     public static final String BACKGROUND = "background";
-    /** Fond des éléments posés sur le fond principal (cartouches, listes). */
+    /** Background of elements placed on the main background (lists, fields). */
     public static final String SURFACE = "surface";
-    /** Couleur du texte courant (crème). */
+    /** Main text colour (cream). */
     public static final String TEXT = "text";
-    /** Couleur du texte secondaire, moins contrasté. */
+    /** Secondary, less contrasted text. */
     public static final String TEXT_MUTED = "text_muted";
-    /** Couleur d'accentuation au repos (redstone). */
+    /** Accent colour at rest (redstone). */
     public static final String ACCENT = "accent";
-    /** Couleur d'accentuation au survol. */
+    /** Accent colour under the mouse or keyboard focus. */
     public static final String ACCENT_HOVER = "accent_hover";
-    /** Couleur d'accentuation pendant l'appui. */
+    /** Accent colour while pressed. */
     public static final String ACCENT_PRESSED = "accent_pressed";
-    /** Couleur chaude secondaire, pour les mises en avant (braise). */
+    /** Warm secondary colour, for highlights (ember). */
     public static final String EMBER = "ember";
 
-    // Espacements (section "spacing" de theme.json), en pixels d'interface.
+    // Spacings ("spacing" section of theme.json), in GUI pixels.
 
-    /** Marge intérieure d'un panneau, entre son bord et son contenu. */
+    /** Inner margin of a panel, between its edge and its contents. */
     public static final String PANEL_PADDING = "panel_padding";
-    /** Écart entre deux éléments voisins d'un layout. */
+    /** Gap between two neighbouring layout elements. */
     public static final String GAP = "gap";
-    /** Marge horizontale entre le bord d'un bouton et son libellé. */
+    /** Horizontal margin between a button edge and its label. */
     public static final String BUTTON_PADDING_X = "button_padding_x";
-    /** Largeur minimale d'un bouton dimensionné d'après son texte. */
+    /** Minimum width of a button sized from its label. */
     public static final String BUTTON_MIN_WIDTH = "button_min_width";
-    /** Hauteur par défaut d'un bouton. */
+    /** Height of a button. */
     public static final String BUTTON_HEIGHT = "button_height";
-    /** Hauteur d'une ligne de liste défilante, texte compris. */
+    /** Height of a scrolling list row, text included. */
     public static final String LIST_ROW_HEIGHT = "list_row_height";
-    /** Largeur de la barre de défilement d'une liste. */
+    /** Width of a scrollbar (lists and item grids). */
     public static final String SCROLLBAR_WIDTH = "scrollbar_width";
-    /** Hauteur d'un champ de saisie (champ de recherche). */
+    /** Height of a text field (search field). */
     public static final String FIELD_HEIGHT = "field_height";
-    /** Hauteur d'une rangée d'onglets, trait du bas compris. */
+    /** Height of a tab row, bottom line included. */
     public static final String TAB_HEIGHT = "tab_height";
-    /** Marge horizontale entre le bord d'un onglet et son titre. */
+    /** Horizontal margin between a tab edge and its title. */
     public static final String TAB_PADDING_X = "tab_padding_x";
-    /** Hauteur d'une barre de progression, cadre compris. */
+    /** Height of a progress bar, frame included. */
     public static final String PROGRESS_HEIGHT = "progress_height";
 
     /**
-     * {@return la couleur ARGB associée à {@code key}}
+     * {@return the ARGB colour of {@code key}}
      *
-     * <p>Une clé inconnue renvoie le magenta de débogage {@code 0xFFFF00FF} plutôt que de lever
-     * une exception : le défaut saute aux yeux à l'écran sans interrompre le rendu. Un
-     * avertissement est écrit une fois par clé, jusqu'au prochain rechargement des ressources.</p>
+     * <p>An unknown key returns debug magenta ({@code 0xFFFF00FF}) instead of throwing: the
+     * mistake shows on screen without breaking rendering. A warning is logged once per key until
+     * the next resource reload.</p>
      *
-     * @param key nom de la couleur ; voir les constantes de cette classe
+     * @param key colour name; see the constants of this class
      */
     public static int color(String key) {
         return ThemeStore.color(key);
     }
 
     /**
-     * {@return la couleur ARGB associée à {@code key}, ou {@code fallback} si elle n'est pas définie}
-     *
-     * <p>À utiliser pour les couleurs propres à un mod, qu'un {@code theme.json} peut
-     * fournir mais dont l'absence doit rester silencieuse.</p>
-     *
-     * @param key      nom de la couleur
-     * @param fallback couleur ARGB de repli
+     * {@return the ARGB colour of {@code key}, or {@code fallback} if the theme does not define
+     * it}; for mod-specific colours that a {@code theme.json} may provide, silently
      */
     public static int colorOrDefault(String key, int fallback) {
         return ThemeStore.colorOrDefault(key, fallback);
     }
 
-    /**
-     * {@return {@code true} si le thème courant définit {@code key}}
-     *
-     * @param key nom de la couleur
-     */
+    /** {@return {@code true} if the current theme defines the colour {@code key}} */
     public static boolean has(String key) {
         return ThemeStore.has(key);
     }
 
-    /** {@return le fond principal, en ARGB} */
+    /** {@return the {@link #BACKGROUND} colour, ARGB} */
     public static int background() {
         return color(BACKGROUND);
     }
 
-    /** {@return le fond des éléments posés sur le fond principal, en ARGB} */
+    /** {@return the {@link #SURFACE} colour, ARGB} */
     public static int surface() {
         return color(SURFACE);
     }
 
-    /** {@return la couleur du texte courant, en ARGB} */
+    /** {@return the {@link #TEXT} colour, ARGB} */
     public static int text() {
         return color(TEXT);
     }
 
-    /** {@return la couleur du texte secondaire, en ARGB} */
+    /** {@return the {@link #TEXT_MUTED} colour, ARGB} */
     public static int textMuted() {
         return color(TEXT_MUTED);
     }
 
-    /** {@return la couleur d'accentuation au repos, en ARGB} */
+    /** {@return the {@link #ACCENT} colour, ARGB} */
     public static int accent() {
         return color(ACCENT);
     }
 
-    /** {@return la couleur d'accentuation au survol, en ARGB} */
+    /** {@return the {@link #ACCENT_HOVER} colour, ARGB} */
     public static int accentHover() {
         return color(ACCENT_HOVER);
     }
 
-    /** {@return la couleur d'accentuation pendant l'appui, en ARGB} */
+    /** {@return the {@link #ACCENT_PRESSED} colour, ARGB} */
     public static int accentPressed() {
         return color(ACCENT_PRESSED);
     }
 
-    /** {@return la couleur chaude secondaire, en ARGB} */
+    /** {@return the {@link #EMBER} colour, ARGB} */
     public static int ember() {
         return color(EMBER);
     }
 
     /**
-     * {@return l'espacement associé à {@code key}, en pixels d'interface}
+     * {@return the spacing of {@code key}, in GUI pixels}; an unknown key returns {@code 0} with a
+     * warning
      *
-     * <p>Lu dans la section {@code "spacing"} de {@code theme.json}. Comme les couleurs, il est
-     * rechargé avec les ressources : le relire à chaque {@code init()} plutôt que de le
-     * garder dans un {@code static final}. Une clé inconnue renvoie {@code 0}.</p>
-     *
-     * @param key nom de l'espacement ; voir les constantes de cette classe
+     * @param key spacing name; see the constants of this class
      */
     public static int spacing(String key) {
         return ThemeStore.spacing(key);
     }
 
-    /** {@return la marge intérieure d'un panneau, en pixels} */
+    /** {@return the {@link #PANEL_PADDING} spacing, in pixels} */
     public static int panelPadding() {
         return spacing(PANEL_PADDING);
     }
 
-    /** {@return l'écart entre deux éléments voisins d'un layout, en pixels} */
+    /** {@return the {@link #GAP} spacing, in pixels} */
     public static int gap() {
         return spacing(GAP);
     }
 
-    /** {@return la marge horizontale entre le bord d'un bouton et son libellé, en pixels} */
+    /** {@return the {@link #BUTTON_PADDING_X} spacing, in pixels} */
     public static int buttonPaddingX() {
         return spacing(BUTTON_PADDING_X);
     }
 
-    /** {@return la largeur minimale d'un bouton, en pixels} */
+    /** {@return the {@link #BUTTON_MIN_WIDTH} spacing, in pixels} */
     public static int buttonMinWidth() {
         return spacing(BUTTON_MIN_WIDTH);
     }
 
-    /** {@return la hauteur par défaut d'un bouton, en pixels} */
+    /** {@return the {@link #BUTTON_HEIGHT} spacing, in pixels} */
     public static int buttonHeight() {
         return spacing(BUTTON_HEIGHT);
     }
 
-    /** {@return la hauteur d'une ligne de liste défilante, en pixels} */
+    /** {@return the {@link #LIST_ROW_HEIGHT} spacing, in pixels} */
     public static int listRowHeight() {
         return spacing(LIST_ROW_HEIGHT);
     }
 
-    /** {@return la largeur de la barre de défilement d'une liste, en pixels} */
+    /** {@return the {@link #SCROLLBAR_WIDTH} spacing, in pixels} */
     public static int scrollbarWidth() {
         return spacing(SCROLLBAR_WIDTH);
     }
 
-    /** {@return la hauteur d'un champ de saisie, en pixels} */
+    /** {@return the {@link #FIELD_HEIGHT} spacing, in pixels} */
     public static int fieldHeight() {
         return spacing(FIELD_HEIGHT);
     }
 
-    /** {@return la hauteur d'une rangée d'onglets, en pixels} */
+    /** {@return the {@link #TAB_HEIGHT} spacing, in pixels} */
     public static int tabHeight() {
         return spacing(TAB_HEIGHT);
     }
 
-    /** {@return la marge horizontale entre le bord d'un onglet et son titre, en pixels} */
+    /** {@return the {@link #TAB_PADDING_X} spacing, in pixels} */
     public static int tabPaddingX() {
         return spacing(TAB_PADDING_X);
     }
 
-    /** {@return la hauteur d'une barre de progression, en pixels} */
+    /** {@return the {@link #PROGRESS_HEIGHT} spacing, in pixels} */
     public static int progressHeight() {
         return spacing(PROGRESS_HEIGHT);
     }

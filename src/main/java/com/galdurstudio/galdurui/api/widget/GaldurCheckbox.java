@@ -1,59 +1,51 @@
 package com.galdurstudio.galdurui.api.widget;
 
-import com.galdurstudio.galdurui.api.anim.GaldurEasing;
-import com.galdurstudio.galdurui.api.anim.GaldurAnimations;
 import com.galdurstudio.galdurui.api.anim.AnimatedValue;
-import net.minecraft.network.chat.CommonComponents;
-import com.galdurstudio.galdurui.internal.narration.GaldurNarration;
+import com.galdurstudio.galdurui.api.anim.GaldurAnimations;
+import com.galdurstudio.galdurui.api.anim.GaldurEasing;
 import com.galdurstudio.galdurui.api.theme.GaldurTheme;
+import com.galdurstudio.galdurui.internal.narration.GaldurNarration;
 import com.galdurstudio.galdurui.internal.render.GaldurRender;
 import com.galdurstudio.galdurui.internal.render.GaldurSprites;
+import java.util.function.BooleanSupplier;
+import java.util.function.Consumer;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.AbstractWidget;
 import net.minecraft.client.gui.narration.NarratedElementType;
 import net.minecraft.client.gui.narration.NarrationElementOutput;
 import net.minecraft.client.gui.navigation.CommonInputs;
+import net.minecraft.network.chat.CommonComponents;
 import net.minecraft.network.chat.Component;
-import java.util.function.BooleanSupplier;
-import java.util.function.Consumer;
 
 /**
- * Case à cocher aux couleurs de la charte, utilisable dans les layouts vanilla.
+ * Themed checkbox.
  *
- * <p>Le widget ne garde pas l'état en mémoire : il le <strong>relit à chaque image</strong> auprès
- * d'un fournisseur, et demande un changement via une action. L'état vit ailleurs (dans la fenêtre
- * Galdur, par exemple) et survit ainsi à la recréation du widget, comme au redimensionnement.</p>
+ * <p>The widget does not store the state: it <strong>reads it every frame</strong> from a
+ * supplier and asks for changes through a callback. The state lives elsewhere (a
+ * {@code GaldurWindow} handle, for instance), so it survives the widget being rebuilt on
+ * resize.</p>
  *
  * <pre>{@code
- * boolean[] actif = {false};
- * colonne.addChild(GaldurCheckbox.of(Component.literal("Activer le son"),
- *         () -> actif[0], nouvelleValeur -> actif[0] = nouvelleValeur));
+ * boolean[] sound = {false};
+ * column.addChild(GaldurCheckbox.of(Component.literal("Enable sound"),
+ *         () -> sound[0], value -> sound[0] = value));
  * }</pre>
- *
- * <p>Le widget fait la taille du carré, d'un espace et du libellé.</p>
  */
 public class GaldurCheckbox extends AbstractWidget {
-    /** Côté du carré, en pixels. */
     private static final int BOX_SIZE = 9;
-    /** Espace entre le carré et le libellé, en pixels. */
     private static final int GAP = 4;
 
-    /** Donne l'état courant ; relu à chaque image, jamais copié. */
     private final BooleanSupplier checked;
-    /** Reçoit la valeur voulue quand le joueur active la case. */
     private final Consumer<Boolean> onToggle;
-    /** Vrai entre l'appui et le relâchement de la souris sur la case. */
     private boolean held;
-    /** Taille affichée de la coche, de 0 (absente) à 1 (pleine) : elle grandit ou rétrécit. */
+    /** Shown size of the mark, from 0 (none) to 1 (full): it grows and shrinks. */
     private final AnimatedValue mark;
 
     /**
-     * Crée une case. Préférer {@link #of(Component, BooleanSupplier, Consumer)}.
-     *
-     * @param label    texte affiché à droite du carré
-     * @param checked  fournisseur de l'état courant, appelé à chaque image
-     * @param onToggle appelée avec la valeur voulue quand le joueur active la case
+     * @param label    text right of the box
+     * @param checked  supplier of the current state, called every frame
+     * @param onToggle receives the wanted value when the player toggles the box
      */
     protected GaldurCheckbox(Component label, BooleanSupplier checked, Consumer<Boolean> onToggle) {
         super(0, 0, BOX_SIZE + GAP + GaldurRender.textWidth(label), Math.max(BOX_SIZE, GaldurRender.lineHeight()), label);
@@ -62,13 +54,7 @@ public class GaldurCheckbox extends AbstractWidget {
         this.mark = new AnimatedValue(checked.getAsBoolean() ? 1 : 0, GaldurAnimations.TOGGLE_MS, GaldurEasing.OUT_CUBIC);
     }
 
-    /**
-     * {@return une case à cocher, positionnée en {@code (0, 0)} : c'est le layout qui la place}
-     *
-     * @param label    texte affiché à droite du carré
-     * @param checked  fournisseur de l'état courant, appelé à chaque image
-     * @param onToggle appelée avec la valeur voulue quand le joueur active la case
-     */
+    /** {@return a checkbox at {@code (0, 0)}, for a layout to place} */
     public static GaldurCheckbox of(Component label, BooleanSupplier checked, Consumer<Boolean> onToggle) {
         return new GaldurCheckbox(label, checked, onToggle);
     }
@@ -80,7 +66,7 @@ public class GaldurCheckbox extends AbstractWidget {
         boolean highlighted = active
                 && (isHovered() || (isFocused() && Minecraft.getInstance().getLastInputType().isKeyboard()));
         int markColor = active ? GaldurTheme.accent() : GaldurTheme.textMuted();
-        int label = active ? GaldurTheme.text() : GaldurTheme.textMuted();
+        int labelColor = active ? GaldurTheme.text() : GaldurTheme.textMuted();
 
         GaldurRender.drawNineSlice(guiGraphics, GaldurSprites.FIELD, getX(), boxY, BOX_SIZE, BOX_SIZE, GaldurTheme.surface());
         if (highlighted) {
@@ -94,12 +80,11 @@ public class GaldurCheckbox extends AbstractWidget {
             int offset = 2 + (full - size) / 2;
             GaldurRender.drawFill(guiGraphics, getX() + offset, boxY + offset, size, size, markColor);
         }
-        GaldurRender.text(guiGraphics, getMessage(), getX() + GAP + BOX_SIZE, labelY, label, true);
+        GaldurRender.text(guiGraphics, getMessage(), getX() + GAP + BOX_SIZE, labelY, labelColor, true);
     }
 
     @Override
     protected void updateWidgetNarration(NarrationElementOutput narrationElementOutput) {
-        // « Case à cocher : Activer le son, coché », puis la consigne vanilla.
         Component state = GaldurNarration.ours(checked.getAsBoolean() ? "checked" : "unchecked");
         Component title = CommonComponents.joinForNarration(
                 Component.translatable("narration.checkbox", getMessage()), state);
@@ -108,50 +93,31 @@ public class GaldurCheckbox extends AbstractWidget {
                 "narration.checkbox.usage.focused", "narration.checkbox.usage.hovered");
     }
 
-    /**
-     * Appui de la souris sur la case : on retient seulement l'appui. La case ne change pas
-     * encore, pour que le joueur puisse annuler en relâchant ailleurs.
-     */
+    /** Only remembers the press: the box toggles on release, so the player can cancel by releasing elsewhere. */
     @Override
     public void onClick(double mouseX, double mouseY, int button) {
         held = true;
     }
 
-    /**
-     * Relâchement de la souris : la case bascule seulement si l'appui a commencé sur elle
-     * et que le curseur est encore dessus.
-     */
     @Override
     public void onRelease(double mouseX, double mouseY) {
         boolean wasHeld = held;
         held = false;
         if (wasHeld && clicked(mouseX, mouseY)) {
-            this.toggle();
+            toggle();
         }
     }
 
-    /**
-     * Bascule la case avec le clavier (Espace ou Entrée) quand elle a le focus.
-     *
-     * @return {@code true} si la touche a été consommée, {@code false} sinon
-     */
     @Override
     public boolean keyPressed(int keyCode, int scanCode, int modifiers) {
-        if (!active || !visible) {
-            return false;
-        }
-        if (!CommonInputs.selected(keyCode)) {
+        if (!active || !visible || !CommonInputs.selected(keyCode)) {
             return false;
         }
         playDownSound(Minecraft.getInstance().getSoundManager());
-        this.toggle();
+        toggle();
         return true;
     }
 
-    /**
-     * Demande l'inverse de l'état courant. Le widget ne change rien lui-même : le nouvel
-     * état s'affichera à l'image suivante, quand {@code checked} aura été relu.
-     */
     private void toggle() {
         onToggle.accept(!checked.getAsBoolean());
     }

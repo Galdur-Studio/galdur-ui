@@ -8,15 +8,15 @@ import net.minecraft.world.item.ItemStack;
 import org.jetbrains.annotations.Nullable;
 
 /**
- * Recherche de l'objet survolé dans les {@link GaldurItemGrid} d'un écran, partagée par les
- * intégrations JEI et EMI. Ne dépend d'aucun des deux : chargeable même sans eux.
+ * Finds the hovered item in the {@link GaldurItemGrid}s of a screen, shared by the JEI and EMI
+ * integrations. Depends on neither, so it loads without them.
  */
 public final class GridLookup {
     /**
-     * Un objet trouvé sous la souris.
+     * An item found under the mouse.
      *
-     * @param stack l'objet
-     * @param area  le cadre de sa case, en coordonnées d'écran
+     * @param stack the item
+     * @param area  its cell bounds, in screen coordinates
      */
     public record Hit(ItemStack stack, Rect2i area) {
     }
@@ -25,11 +25,11 @@ public final class GridLookup {
     }
 
     /**
-     * {@return l'objet d'une grille visible sous ce point, ou {@code null}}
+     * {@return the item of a visible grid under this point, or {@code null}}
      *
-     * @param screen l'écran affiché
-     * @param mouseX abscisse de la souris
-     * @param mouseY ordonnée de la souris
+     * @param screen the shown screen
+     * @param mouseX mouse x
+     * @param mouseY mouse y
      */
     @Nullable
     public static Hit find(@Nullable Screen screen, double mouseX, double mouseY) {

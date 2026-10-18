@@ -10,22 +10,18 @@ import java.nio.charset.StandardCharsets;
 import java.util.Map;
 
 /**
- * Valeurs par défaut du thème : le {@code theme.json} embarqué dans le jar de Galdur UI.
+ * Default theme values: the {@code theme.json} embedded in the Galdur UI jar.
  *
- * <p>Ces valeurs sont utilisées tant que le gestionnaire de ressources n'a pas chargé le thème,
- * et servent de repli clé par clé lorsque le {@code theme.json} des ressources (éventuellement
- * remplacé par un pack) est absent, illisible ou incomplet. Elles sont lues directement dans le
- * jar, avec {@link ThemeParser} : {@code theme.json} reste la seule source de la charte.</p>
- *
- * <p>Si même ce fichier est illisible, un repli minimal neutre (gris lisibles, espacements
- * courants) est utilisé, avec un avertissement : la bibliothèque doit toujours pouvoir
- * dessiner.</p>
+ * <p>Used until the resource manager has loaded the theme, and as a per-key fallback when the
+ * resource {@code theme.json} (possibly replaced by a pack) is missing, unreadable or incomplete.
+ * Read straight from the jar with {@link ThemeParser}, so {@code theme.json} stays the single
+ * source of the palette. If even that file is unreadable, a neutral grey fallback is used, with a
+ * warning: the library must always be able to draw.</p>
  */
 public final class ThemeDefaults {
-    /** Emplacement du thème dans le jar. */
     private static final String EMBEDDED_THEME = "/assets/galdurui/theme.json";
 
-    /** Repli neutre, utilisé seulement si le thème embarqué est illisible. Pas la charte. */
+    /** Neutral fallback, only used if the embedded theme is unreadable. Not the brand palette. */
     private static final ThemeParser.Theme FALLBACK = new ThemeParser.Theme(
             Map.of(
                     GaldurTheme.BACKGROUND, 0xFF202020,
@@ -51,22 +47,22 @@ public final class ThemeDefaults {
 
     private static final ThemeParser.Theme EMBEDDED = loadEmbedded();
 
-    /** Couleurs par défaut, en ARGB. Ordre du fichier conservé. */
+    /** Default ARGB colours, in file order. */
     public static final Map<String, Integer> COLORS = EMBEDDED.colors();
 
-    /** Espacements et tailles par défaut, en pixels d'interface (section {@code "spacing"}). */
+    /** Default spacings and sizes in GUI pixels (the {@code "spacing"} section). */
     public static final Map<String, Integer> SPACING = EMBEDDED.spacing();
 
     private static ThemeParser.Theme loadEmbedded() {
         InputStream stream = ThemeDefaults.class.getResourceAsStream(EMBEDDED_THEME);
         if (stream == null) {
-            GaldurUI.LOGGER.warn("{} introuvable dans le jar : repli sur un thème neutre minimal.", EMBEDDED_THEME);
+            GaldurUI.LOGGER.warn("{} not found in the jar: using a minimal neutral theme.", EMBEDDED_THEME);
             return FALLBACK;
         }
         try (Reader reader = new InputStreamReader(stream, StandardCharsets.UTF_8)) {
-            return ThemeParser.parse(reader, message -> GaldurUI.LOGGER.warn("Thème embarqué : {}", message));
+            return ThemeParser.parse(reader, message -> GaldurUI.LOGGER.warn("Embedded theme: {}", message));
         } catch (IOException | RuntimeException exception) {
-            GaldurUI.LOGGER.warn("Lecture de {} impossible : repli sur un thème neutre minimal.", EMBEDDED_THEME, exception);
+            GaldurUI.LOGGER.warn("Could not read {}: using a minimal neutral theme.", EMBEDDED_THEME, exception);
             return FALLBACK;
         }
     }

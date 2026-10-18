@@ -1,6 +1,6 @@
 {
-  "_comment": "Charte Galdur Studio. Toutes les valeurs sont relues à chaque rechargement des ressources (F3+T quand aucun écran n'est ouvert, ou le bouton « Recharger le thème » de /galdurui test) : les sprites sont en niveaux de gris et teintés au rendu avec ces couleurs. Les espacements s'appliquent à la prochaine construction de l'écran.",
-  "_format": "Couleurs : \"#RRGGBB\" (opaque) ou \"#AARRGGBB\". Un entier est accepté, mais s'il tient sur 24 bits (<= 0xFFFFFF, sans alpha) il est lu comme RRGGBB opaque, avec un avertissement : préférer \"#RRGGBB\".",
+  "_comment": "Galdur Studio palette. Re-read on every resource reload (F3+T when no screen is open): sprites are grayscale and tinted with these colours at render time. Spacings apply the next time a screen is built.",
+  "_format": "Colours: \"#RRGGBB\" (opaque) or \"#AARRGGBB\". An integer is accepted, but if it fits in 24 bits (<= 0xFFFFFF, no alpha) it is read as opaque RRGGBB with a warning: prefer \"#RRGGBB\".",
 
   "background": "#2A2420",
   "surface": "#352E29",
@@ -15,7 +15,7 @@
   "ember": "#D98A1F",
 
   "spacing": {
-    "_comment": "Espacements et tailles, en pixels d'interface.",
+    "_comment": "Spacings and sizes, in GUI pixels.",
     "panel_padding": 16,
     "gap": 8,
     "button_padding_x": 6,

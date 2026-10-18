@@ -10,35 +10,25 @@ import net.minecraft.world.item.ItemStack;
 import org.jetbrains.annotations.Nullable;
 
 /**
- * Bouton carré sans texte, qui affiche une icône : un sprite de l'interface ou un objet.
+ * Square button without text that shows an icon: a GUI sprite or an item.
  *
- * <p>C'est un {@link GaldurButton} : même fond, mêmes états (repos, survol, appui, désactivé),
- * même comportement à la souris et au clavier. Seul le contenu change. Le libellé n'est pas
- * affiché mais reste indispensable : il sert d'<strong>infobulle</strong> au survol et de texte
- * pour la narration.</p>
+ * <p>Same background, states and behaviour as {@link GaldurButton}; only the contents change. The
+ * label is not drawn but is required: it is the <strong>tooltip</strong> and the narrated
+ * text.</p>
  *
  * <pre>{@code
- * ligne.addChild(GaldurIconButton.ofItem(new ItemStack(Items.HOPPER),
- *         Component.literal("Trier"), bouton -> trier()));
- * ligne.addChild(GaldurIconButton.of(ResourceLocation.fromNamespaceAndPath("monmod", "icon/sort"),
- *         Component.literal("Trier"), bouton -> trier()));
+ * row.addChild(GaldurIconButton.ofItem(new ItemStack(Items.HOPPER),
+ *         Component.literal("Sort"), button -> sort()));
+ * row.addChild(GaldurIconButton.of(ResourceLocation.fromNamespaceAndPath("mymod", "icon/sort"),
+ *         Component.literal("Sort"), button -> sort()));
  * }</pre>
  *
- * <ul>
- *   <li><strong>Sprite</strong> : dessiné en 16 × 16, teinté en {@code text} (ou
- *       {@code text_muted} désactivé). À fournir en niveaux de gris, comme les autres sprites de
- *       Galdur UI : le blanc prend exactement la couleur du thème.</li>
- *   <li><strong>Objet</strong> : dessiné comme dans un inventaire ; voilé quand le bouton est
- *       désactivé.</li>
- * </ul>
- *
- * <p>Côté : {@code spacing.button_height}, pour s'aligner sur les boutons à texte d'une même
- * ligne.</p>
+ * <p>A sprite is drawn 16 × 16, tinted {@code text} ({@code text_muted} when disabled): provide it
+ * in grayscale. An item is drawn as in an inventory and veiled when disabled. The side is
+ * {@code spacing.button_height}, to line up with text buttons in the same row.</p>
  */
 public class GaldurIconButton extends GaldurButton {
-    /** Côté de l'icône, en pixels. */
     private static final int ICON_SIZE = GaldurRender.ITEM_SIZE;
-    /** Opacité du voile posé sur un objet quand le bouton est désactivé (0 à 255). */
     private static final int DISABLED_VEIL_ALPHA = 0xA0;
 
     @Nullable
@@ -46,14 +36,10 @@ public class GaldurIconButton extends GaldurButton {
     private final ItemStack item;
 
     /**
-     * Crée un bouton icône, sans infobulle. Préférer {@link #of(ResourceLocation, Component, OnPress)}
-     * ou {@link #ofItem(ItemStack, Component, OnPress)}, qui ajoutent le libellé en infobulle.
+     * Prefer {@link #of} or {@link #ofItem}, which also set the label as tooltip.
      *
-     * @param size    côté du bouton, en pixels
-     * @param sprite  sprite à afficher, ou {@code null} pour afficher {@code item}
-     * @param item    objet à afficher quand il n'y a pas de sprite ; il est copié
-     * @param label   texte de l'infobulle et de la narration
-     * @param onPress action déclenchée à l'activation
+     * @param sprite sprite to show, or {@code null} to show {@code item}
+     * @param item   item shown when there is no sprite; copied
      */
     protected GaldurIconButton(int size, @Nullable ResourceLocation sprite, ItemStack item, Component label,
                                OnPress onPress) {
@@ -62,36 +48,22 @@ public class GaldurIconButton extends GaldurButton {
         this.item = item.copy();
     }
 
-    /** {@return {@code button}, avec son libellé en infobulle} */
     private static GaldurIconButton withLabelTooltip(GaldurIconButton button) {
         button.setTooltip(Tooltip.create(button.getMessage()));
         return button;
     }
 
-    /**
-     * {@return un bouton qui affiche un sprite de l'interface, positionné en {@code (0, 0)} : c'est
-     * le layout qui le place}
-     *
-     * @param sprite  identifiant du sprite dans l'atlas d'interface, en niveaux de gris
-     * @param label   texte de l'infobulle et de la narration
-     * @param onPress action déclenchée à l'activation
-     */
+    /** {@return a button showing a grayscale GUI sprite, at {@code (0, 0)}} */
     public static GaldurIconButton of(ResourceLocation sprite, Component label, OnPress onPress) {
         return withLabelTooltip(new GaldurIconButton(GaldurTheme.buttonHeight(), sprite, ItemStack.EMPTY, label, onPress));
     }
 
-    /**
-     * {@return un bouton qui affiche un objet, positionné en {@code (0, 0)}}
-     *
-     * @param item    l'objet à afficher ; il est copié, le modifier ensuite ne change pas le bouton
-     * @param label   texte de l'infobulle et de la narration
-     * @param onPress action déclenchée à l'activation
-     */
+    /** {@return a button showing an item (copied), at {@code (0, 0)}} */
     public static GaldurIconButton ofItem(ItemStack item, Component label, OnPress onPress) {
         return withLabelTooltip(new GaldurIconButton(GaldurTheme.buttonHeight(), null, item, label, onPress));
     }
 
-    /** {@return le côté du bouton : un bouton icône ne s'élargit pas d'après son libellé} */
+    /** {@return the button side: an icon button does not widen to its label} */
     @Override
     public int getPreferredWidth() {
         return getWidth();

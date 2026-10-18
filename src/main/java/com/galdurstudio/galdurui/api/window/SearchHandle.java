@@ -4,40 +4,40 @@ import java.util.Objects;
 import java.util.function.Consumer;
 
 /**
- * Poignée vers un champ de recherche d'une {@link GaldurWindow} : son texte, et l'action appelée
- * à chaque frappe.
+ * Handle to a search field of a {@link GaldurWindow}: its text, and the action called on every
+ * keystroke.
  *
- * <p>On l'obtient avec {@code GaldurWindow.addSearch(...)}. Comme pour {@link CheckboxHandle},
- * l'état vit ici et non dans le widget affiché : le texte survit aux redimensionnements, et
- * {@link #setText(String)} le change même fenêtre ouverte, sans reconstruire l'écran.</p>
+ * <p>Returned by {@code GaldurWindow.addSearch(...)}. As with {@link CheckboxHandle}, the state
+ * lives here, not in the shown widget: the text survives resizes, and {@link #setText(String)}
+ * changes it even while the window is open, without rebuilding the screen.</p>
  *
  * <pre>{@code
- * SearchHandle recherche = window.addSearch(Component.literal("Rechercher..."));
- * ListHandle resultats = window.addList(6);
- * recherche.onChange(texte -> resultats.setLines(filtrer(tout, texte)));
+ * SearchHandle search = window.addSearch(Component.literal("Search..."));
+ * ListHandle results = window.addList(6);
+ * search.onChange(text -> results.setLines(filter(all, text)));
  * }</pre>
  *
- * <p>Comme toute {@link ElementHandle}, le champ se désactive, se cache ou reçoit une infobulle.
- * À appeler sur le thread du client.</p>
+ * <p>Like any {@link ElementHandle}, the field can be disabled, hidden or given a tooltip. Call on
+ * the client thread.</p>
  */
 public class SearchHandle extends ElementHandle {
     private String text = "";
     private Consumer<String> action;
 
-    /** Non publique : seule {@link GaldurWindow} crée des champs. */
+    /** Package-private: only {@link GaldurWindow} creates fields. */
     SearchHandle() {
     }
 
-    /** {@return le texte saisi, jamais {@code null} ; vide au départ} */
+    /** {@return the typed text, never {@code null}; empty at first} */
     public String getText() {
         return text;
     }
 
     /**
-     * Change le texte du champ. Si la valeur change réellement, l'action donnée à
-     * {@link #onChange(Consumer)} est appelée, que le changement vienne du joueur ou de ce code.
+     * Changes the field text. When the value really changes, the action given to
+     * {@link #onChange(Consumer)} is called, whether the change comes from the player or from code.
      *
-     * @param text le nouveau texte ; {@code null} vaut un texte vide
+     * @param text the new text; {@code null} counts as empty
      */
     public void setText(String text) {
         String value = Objects.requireNonNullElse(text, "");
@@ -51,10 +51,10 @@ public class SearchHandle extends ElementHandle {
     }
 
     /**
-     * Définit l'action appelée quand le texte change, à chaque frappe du joueur. Une seule action
-     * est conservée : un nouvel appel remplace la précédente.
+     * Sets the action called when the text changes, on every keystroke. Only one action is kept:
+     * a new call replaces the previous one.
      *
-     * @param action reçoit le nouveau texte
+     * @param action receives the new text
      */
     public void onChange(Consumer<String> action) {
         this.action = action;

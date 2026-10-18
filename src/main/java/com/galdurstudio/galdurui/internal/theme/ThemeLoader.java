@@ -12,26 +12,14 @@ import net.neoforged.bus.api.IEventBus;
 import net.neoforged.neoforge.client.event.RegisterClientReloadListenersEvent;
 
 /**
- * Charge {@code assets/galdurui/theme.json} et alimente {@link ThemeStore}.
- *
- * <p>Branché sur le gestionnaire de ressources client : le thème est donc relu à chaque
- * rechargement des ressources, ce qui permet d'ajuster les couleurs sans redémarrer le jeu :
- * F3+T quand aucun écran n'est ouvert (Minecraft l'ignore sinon), ou le bouton « Recharger le
- * thème » de {@code /galdurui test}. Comme le fichier vit dans {@code assets/}, un pack de ressources
- * peut le remplacer pour retoucher la charte.</p>
- *
- * <p>Le format est décrit et lu par {@link ThemeParser}. Les clés absentes ou invalides
- * retombent sur {@link ThemeDefaults}.</p>
+ * Loads {@code assets/galdurui/theme.json} into {@link ThemeStore} on every client resource
+ * reload: F3+T (when no screen is open) applies colour changes without restarting, and a resource
+ * pack can replace the file to restyle the library. Missing or invalid keys fall back to
+ * {@link ThemeDefaults}.
  */
 public final class ThemeLoader implements ResourceManagerReloadListener {
-    /** Emplacement du thème, résolu en {@code assets/galdurui/theme.json}. */
     private static final ResourceLocation THEME = ResourceLocation.fromNamespaceAndPath(GaldurUI.MODID, "theme.json");
 
-    /**
-     * Enregistre le chargeur sur le gestionnaire de ressources client.
-     *
-     * @param modEventBus bus d'événements du mod, fourni au constructeur du point d'entrée client
-     */
     public static void register(IEventBus modEventBus) {
         modEventBus.addListener(RegisterClientReloadListenersEvent.class,
                 event -> event.registerReloadListener(new ThemeLoader()));
@@ -41,7 +29,7 @@ public final class ThemeLoader implements ResourceManagerReloadListener {
     public void onResourceManagerReload(ResourceManager resourceManager) {
         Optional<Resource> resource = resourceManager.getResource(THEME);
         if (resource.isEmpty()) {
-            GaldurUI.LOGGER.warn("theme.json introuvable ({}) : utilisation du thème par défaut.", THEME);
+            GaldurUI.LOGGER.warn("theme.json not found ({}): using the default theme.", THEME);
             ThemeStore.resetToDefaults();
             return;
         }
@@ -49,11 +37,11 @@ public final class ThemeLoader implements ResourceManagerReloadListener {
         try (BufferedReader reader = resource.get().openAsReader()) {
             ThemeParser.Theme theme = ThemeParser.parse(reader, GaldurUI.LOGGER::warn);
             ThemeStore.apply(theme.colors(), theme.spacing());
-            GaldurUI.LOGGER.debug("Thème Galdur UI chargé ({} couleurs, {} espacements).",
+            GaldurUI.LOGGER.debug("Galdur UI theme loaded ({} colours, {} spacings).",
                     ThemeStore.all().size(), ThemeStore.allSpacing().size());
         } catch (IOException | RuntimeException exception) {
-            // Un thème cassé ne doit jamais empêcher le jeu de démarrer : on se rabat sur la charte.
-            GaldurUI.LOGGER.warn("Lecture de theme.json impossible : utilisation du thème par défaut.", exception);
+            // A broken theme must never stop the game from starting.
+            GaldurUI.LOGGER.warn("Could not read theme.json: using the default theme.", exception);
             ThemeStore.resetToDefaults();
         }
     }

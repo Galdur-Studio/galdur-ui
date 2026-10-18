@@ -4,41 +4,41 @@ import com.galdurstudio.galdurui.internal.window.*;
 import net.minecraft.client.Minecraft;
 
 /**
- * Un écran décrit par le code d'un mod : titre, textes, boutons, cases à cocher, listes, onglets...
+ * A screen described by a mod's code: title, texts, buttons, checkboxes, lists, tabs...
  *
- * <p>On la crée avec {@link com.galdurstudio.galdurui.api.GaldurLib#createWindow()}. Elle ne
- * contient que la description de l'écran ; la mise en page, le thème et le rendu sont
- * assurés par Galdur UI, et aucune coordonnée n'est jamais à calculer.</p>
+ * <p>Created with {@link com.galdurstudio.galdurui.api.GaldurLib#createWindow()}. It only holds
+ * the description of the screen; layout, theme and rendering are handled by Galdur UI, and no
+ * coordinate ever needs computing.</p>
  *
- * <p>Les méthodes {@code add...(...)} héritées de {@link ElementContainer} ajoutent les éléments
- * de haut en bas, dans l'ordre des appels. Un élément ajouté alors que la fenêtre est affichée
- * apparaît à l'image suivante (à appeler sur le thread du client).</p>
+ * <p>The {@code add...(...)} methods inherited from {@link ElementContainer} add elements top to
+ * bottom, in call order. An element added while the window is shown appears on the next frame
+ * (call on the client thread).</p>
  */
 public class GaldurWindow extends ElementContainer {
     private final WindowModel model = new WindowModel();
 
-    /** Écran affiché en ce moment, ou {@code null} si la fenêtre n'est pas à l'écran. */
+    /** Screen shown right now, or {@code null} when the window is not on screen. */
     private WindowScreen screen;
 
     /**
-     * Écran créé par {@link #open()} mais pas encore affiché : {@code open()} passe par
-     * {@code Minecraft.tell}, qui ne s'exécute qu'à la prochaine boucle du client.
+     * Screen created by {@link #open()} but not shown yet: {@code open()} goes through
+     * {@code Minecraft.tell}, which only runs on the next client loop.
      */
     private WindowScreen pending;
 
-    /** Vrai quand une reconstruction de l'écran est déjà prévue (voir {@link #requestRebuild()}). */
+    /** True when a screen rebuild is already scheduled (see {@link #requestRebuild()}). */
     private boolean rebuildScheduled;
 
     /**
-     * Crée une fenêtre vide. Préférer {@code GaldurLib.createWindow()}.
+     * Creates an empty window. Prefer {@code GaldurLib.createWindow()}.
      */
     public GaldurWindow() {
     }
 
     /**
-     * Affiche la fenêtre à l'écran. Sans effet si elle est déjà ouverte ou en cours d'ouverture.
+     * Shows the window. No effect if it is already open or opening.
      *
-     * <p>L'écran affiché jusque-là est retenu : {@link #close()} et Échap y reviennent.</p>
+     * <p>The screen shown until then is remembered: {@link #close()} and Escape go back to it.</p>
      */
     public void open() {
         if (screen != null || pending != null) {
@@ -58,8 +58,8 @@ public class GaldurWindow extends ElementContainer {
     }
 
     /**
-     * Ferme la fenêtre et revient à l'écran précédent, exactement comme Échap. Sans effet si elle
-     * est fermée.
+     * Closes the window and goes back to the previous screen, exactly like Escape. No effect when
+     * it is closed.
      */
     public void close() {
         if (pending != null) {
@@ -72,17 +72,17 @@ public class GaldurWindow extends ElementContainer {
         }
     }
 
-    /** {@return {@code true} si la fenêtre est à l'écran ou en cours d'ouverture} */
+    /** {@return {@code true} if the window is on screen or opening} */
     public boolean isOpen() {
         return screen != null || pending != null;
     }
 
-    /** L'écran devient l'écran courant (ouverture, ou retour depuis un écran ouvert par-dessus). */
+    /** The screen becomes the current one (opening, or back from a screen opened on top). */
     private void shown(WindowScreen shownScreen) {
         screen = shownScreen;
     }
 
-    /** L'écran n'est plus l'écran courant, qu'importe la raison (Échap, close(), autre écran...). */
+    /** The screen is no longer the current one, whatever the reason (Escape, close(), other screen...). */
     private void hidden(WindowScreen hiddenScreen) {
         if (screen == hiddenScreen) {
             screen = null;
@@ -90,10 +90,9 @@ public class GaldurWindow extends ElementContainer {
     }
 
     /**
-     * Ajoute un élément au modèle, branche sa poignée et, si la fenêtre est affichée, la
-     * reconstruit.
+     * Adds an element to the model, wires its handle and, if the window is shown, rebuilds it.
      *
-     * @return la poignée de l'élément, renvoyée telle quelle au mod
+     * @return the element's handle, returned as is to the mod
      */
     @Override
     <H extends ElementHandle> H add(WindowElement element, H handle) {
@@ -104,11 +103,11 @@ public class GaldurWindow extends ElementContainer {
     }
 
     /**
-     * Reconstruit l'écran à la prochaine boucle du client, s'il est affiché.
+     * Rebuilds the screen on the next client loop, if it is shown.
      *
-     * <p>Différé avec {@code Minecraft.tell} : un mod change souvent un état depuis l'action d'un
-     * bouton, donc pendant que l'écran parcourt ses widgets ; les remplacer à ce moment-là serait
-     * risqué. Plusieurs changements dans la même image ne donnent qu'une reconstruction.</p>
+     * <p>Deferred with {@code Minecraft.tell}: a mod often changes a state from a button action,
+     * so while the screen iterates over its widgets; replacing them at that moment would be
+     * risky. Several changes in the same frame give a single rebuild.</p>
      */
     private void requestRebuild() {
         if (screen == null || rebuildScheduled) {
@@ -124,33 +123,32 @@ public class GaldurWindow extends ElementContainer {
     }
 
     /**
-     * Ajoute une rangée d'onglets à la fin de la fenêtre, alignée à gauche, et renvoie sa poignée ;
-     * voir {@link #addTabs(boolean)} pour la centrer.
+     * Adds a left-aligned tab row at the end of the window and returns its handle; see
+     * {@link #addTabs(boolean)} to centre it.
      *
-     * <p>Chaque onglet a son propre contenu, qu'on remplit comme une fenêtre. Seul le contenu de
-     * l'onglet actif est affiché, sous la rangée ; la fenêtre garde la taille du plus grand
-     * contenu, pour ne pas changer de taille quand on change d'onglet.</p>
+     * <p>Each tab has its own content, filled like a window. Only the active tab's content is
+     * shown, below the row; the window keeps the size of the largest content, so it does not
+     * resize when switching tabs.</p>
      *
      * <pre>{@code
-     * TabsHandle onglets = window.addTabs();
-     * TabHandle stockage = onglets.addTab(Component.literal("Stockage"));
-     * stockage.addSearch(Component.literal("Rechercher..."));
-     * TabHandle artisanat = onglets.addTab(Component.literal("Artisanat"));
-     * artisanat.addText(Component.literal("Table 3 × 3"));
+     * TabsHandle tabs = window.addTabs();
+     * TabHandle storage = tabs.addTab(Component.literal("Storage"));
+     * storage.addSearch(Component.literal("Search..."));
+     * TabHandle crafting = tabs.addTab(Component.literal("Crafting"));
+     * crafting.addText(Component.literal("3 × 3 grid"));
      * }</pre>
      *
-     * @return la poignée des onglets, qui sert à en ajouter et à choisir l'onglet actif
+     * @return the tabs handle, used to add tabs and pick the active one
      */
     public TabsHandle addTabs() {
         return addTabs(false);
     }
 
     /**
-     * Ajoute une rangée d'onglets à la fin de la fenêtre, centrée ou alignée à gauche, et renvoie
-     * sa poignée.
+     * Adds a tab row at the end of the window, centred or left-aligned, and returns its handle.
      *
-     * @param centered {@code true} pour la centrer dans la fenêtre, {@code false} pour l'aligner à gauche
-     * @return la poignée des onglets
+     * @param centered {@code true} to centre it in the window, {@code false} to align it left
+     * @return the tabs handle
      */
     public TabsHandle addTabs(boolean centered) {
         TabsModel tabs = new TabsModel();

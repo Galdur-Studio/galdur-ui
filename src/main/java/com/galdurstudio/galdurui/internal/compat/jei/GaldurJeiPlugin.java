@@ -17,17 +17,14 @@ import net.minecraft.client.renderer.Rect2i;
 import net.minecraft.resources.ResourceLocation;
 
 /**
- * Intégration JEI de Galdur UI, découverte par JEI grâce à {@link JeiPlugin} et chargée seulement
- * s'il est installé :
+ * JEI integration of Galdur UI, found by JEI through {@link JeiPlugin} and loaded only when JEI
+ * is installed:
  * <ul>
- *   <li>la liste d'objets de JEI évite les zones de
- *       {@link GaldurContainerScreen#getExclusionZones()} ;</li>
- *   <li>survoler un objet d'une {@code GaldurItemGrid} puis appuyer sur R ou U montre ses
- *       recettes.</li>
+ *   <li>JEI's item list avoids the {@link GaldurContainerScreen#getExclusionZones()} areas;</li>
+ *   <li>hovering an item of a {@code GaldurItemGrid} and pressing R or U shows its recipes.</li>
  * </ul>
  *
- * <p>Aucune autre classe de Galdur UI ne référence celle-ci : sans JEI, elle n'est jamais
- * chargée.</p>
+ * <p>No other Galdur UI class references this one: without JEI it is never loaded.</p>
  */
 @JeiPlugin
 public class GaldurJeiPlugin implements IModPlugin {

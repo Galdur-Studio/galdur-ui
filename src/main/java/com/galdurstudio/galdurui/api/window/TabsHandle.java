@@ -9,35 +9,33 @@ import java.util.function.IntConsumer;
 import net.minecraft.network.chat.Component;
 
 /**
- * Poignée vers une rangée d'onglets d'une {@link GaldurWindow} : ses onglets et l'onglet actif.
+ * Handle to a tab row of a {@link GaldurWindow}: its tabs and the active tab.
  *
- * <p>On l'obtient avec {@code GaldurWindow.addTabs()}. Chaque {@link #addTab(Component)} renvoie
- * un {@link TabHandle}, qu'on remplit comme une fenêtre. Le premier onglet ajouté est actif
- * au départ.</p>
+ * <p>Returned by {@code GaldurWindow.addTabs()}. Each {@link #addTab(Component)} returns a
+ * {@link TabHandle}, filled like a window. The first tab added starts active.</p>
  *
  * <pre>{@code
- * TabsHandle onglets = window.addTabs(true);
- * TabHandle stockage = onglets.addTab(Component.literal("Stockage"));
- * TabHandle autocraft = onglets.addTab(Component.literal("Autocraft"));
- * onglets.onSelect(index -> System.out.println("Onglet : " + index));
- * autocraft.select();   // ou onglets.setSelected(1)
+ * TabsHandle tabs = window.addTabs(true);
+ * TabHandle storage = tabs.addTab(Component.literal("Storage"));
+ * TabHandle autocraft = tabs.addTab(Component.literal("Autocraft"));
+ * tabs.onSelect(index -> System.out.println("Tab: " + index));
+ * autocraft.select();   // or tabs.setSelected(1)
  * }</pre>
  *
- * <p>Comme pour {@link ListHandle}, l'état vit ici et non dans le widget affiché : l'onglet actif
- * survit aux redimensionnements, et le contenu de chaque onglet (texte d'une recherche,
- * défilement d'une liste...) est gardé quand on passe d'un onglet à l'autre.</p>
+ * <p>As with {@link ListHandle}, the state lives here, not in the shown widget: the active tab
+ * survives resizes, and each tab's content (search text, list scroll...) is kept when switching
+ * tabs.</p>
  *
- * <p>Comme toute {@link ElementHandle}, la rangée se désactive, se cache ou reçoit une
- * infobulle :</p>
+ * <p>Like any {@link ElementHandle}, the row can be disabled, hidden or given a tooltip:</p>
  * <ul>
- *   <li><strong>désactivée</strong>, on ne change plus d'onglet, et le contenu affiché est
- *       désactivé lui aussi ;</li>
- *   <li><strong>cachée</strong>, elle disparaît avec tout son contenu et libère sa place ;</li>
- *   <li>son <strong>infobulle</strong> s'affiche au survol de la rangée d'onglets seulement, pas
- *       sur le contenu.</li>
+ *   <li><strong>disabled</strong>, tabs can no longer be switched, and the shown content is
+ *       disabled too;</li>
+ *   <li><strong>hidden</strong>, it disappears with all its content and frees its space;</li>
+ *   <li>its <strong>tooltip</strong> shows only when the tab row is hovered, not on the
+ *       content.</li>
  * </ul>
  *
- * <p>À appeler sur le thread du client.</p>
+ * <p>Call on the client thread.</p>
  */
 public class TabsHandle extends ElementHandle {
     private final TabsModel model;
@@ -47,19 +45,19 @@ public class TabsHandle extends ElementHandle {
     private IntConsumer action;
 
     /**
-     * Non publique : seule {@link GaldurWindow} crée des onglets.
+     * Package-private: only {@link GaldurWindow} creates tab rows.
      *
-     * @param model les titres et contenus des onglets, partagés avec l'élément affiché
+     * @param model the tab titles and contents, shared with the shown element
      */
     TabsHandle(TabsModel model) {
         this.model = model;
     }
 
     /**
-     * Ajoute un onglet à droite des autres et renvoie sa poignée, qui sert à remplir son contenu.
+     * Adds a tab to the right of the others and returns its handle, used to fill its content.
      *
-     * @param title le titre affiché sur l'onglet
-     * @return la poignée de l'onglet
+     * @param title the title shown on the tab
+     * @return the tab handle
      */
     public TabHandle addTab(Component title) {
         WindowModel content = new WindowModel();
@@ -70,22 +68,22 @@ public class TabsHandle extends ElementHandle {
         return tab;
     }
 
-    /** {@return les onglets, dans l'ordre, en lecture seule ; la vue suit les ajouts} */
+    /** {@return the tabs, in order, read-only; the view follows additions} */
     public List<TabHandle> getTabs() {
         return tabsView;
     }
 
-    /** {@return l'index de l'onglet actif, ou {@code -1} s'il n'y a encore aucun onglet} */
+    /** {@return the index of the active tab, or {@code -1} if there is no tab yet} */
     public int getSelected() {
         return tabs.isEmpty() ? -1 : selected;
     }
 
     /**
-     * Rend un onglet actif. Si la valeur change réellement, son contenu remplace l'ancien à
-     * l'image suivante et l'action donnée à {@link #onSelect(IntConsumer)} est appelée, que le
-     * changement vienne du joueur ou de ce code.
+     * Makes a tab active. When the value really changes, its content replaces the old one on the
+     * next frame and the action given to {@link #onSelect(IntConsumer)} is called, whether the
+     * change comes from the player or from code.
      *
-     * @param index l'index de l'onglet ; un index hors des onglets est ignoré
+     * @param index the tab index; an index outside the tabs is ignored
      */
     public void setSelected(int index) {
         if (index < 0 || index >= tabs.size() || index == selected) {
@@ -99,10 +97,10 @@ public class TabsHandle extends ElementHandle {
     }
 
     /**
-     * Définit l'action appelée quand l'onglet actif change. Une seule action est conservée : un
-     * nouvel appel remplace la précédente. Elle reçoit l'index du nouvel onglet actif.
+     * Sets the action called when the active tab changes. Only one action is kept: a new call
+     * replaces the previous one. It receives the index of the new active tab.
      *
-     * @param action appelée à chaque changement d'onglet
+     * @param action called on every tab change
      */
     public void onSelect(IntConsumer action) {
         this.action = action;

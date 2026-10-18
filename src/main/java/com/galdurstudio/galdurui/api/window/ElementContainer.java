@@ -17,44 +17,43 @@ import net.minecraft.world.item.ItemStack;
 import org.jetbrains.annotations.Nullable;
 
 /**
- * Ce qui reçoit des éléments empilés de haut en bas : une {@link GaldurWindow}, ou le contenu
- * d'un onglet ({@link TabHandle}).
+ * Receives elements stacked top to bottom: a {@link GaldurWindow}, or the content of a tab
+ * ({@link TabHandle}).
  *
- * <p>Les éléments sont affichés dans l'ordre des appels. Un élément ajouté alors que la fenêtre
- * est affichée apparaît à l'image suivante. À appeler sur le thread du client.</p>
+ * <p>Elements are shown in call order. An element added while the window is shown appears on the
+ * next frame. Call on the client thread.</p>
  *
- * <p>Les mods n'étendent pas cette classe : ils utilisent {@link GaldurWindow} et
- * {@link TabHandle}.</p>
+ * <p>Mods do not extend this class: they use {@link GaldurWindow} and {@link TabHandle}.</p>
  */
 public abstract class ElementContainer {
-    /** Non publique : seules {@link GaldurWindow} et {@link TabHandle} en héritent. */
+    /** Package-private: only {@link GaldurWindow} and {@link TabHandle} extend it. */
     ElementContainer() {
     }
 
     /**
-     * Ajoute un élément à la fin, branche sa poignée et prévient ce qui doit se mettre à jour.
+     * Adds an element at the end, wires its handle and notifies whatever must update.
      *
-     * @return la poignée de l'élément, renvoyée telle quelle au mod
+     * @return the element's handle, returned as is to the mod
      */
     abstract <H extends ElementHandle> H add(WindowElement element, H handle);
 
     /**
-     * Ajoute une ligne de texte à la fin, alignée à gauche ; voir
-     * {@link #addText(Component, boolean)} pour la centrer.
+     * Adds a left-aligned line of text at the end; see {@link #addText(Component, boolean)} to
+     * centre it.
      *
-     * @param text le texte à afficher
-     * @return la poignée de l'élément (désactiver, cacher, infobulle)
+     * @param text the text to show
+     * @return the element's handle (disable, hide, tooltip)
      */
     public ElementHandle addText(Component text) {
         return addText(text, false);
     }
 
     /**
-     * Ajoute une ligne de texte à la fin, centrée ou alignée à gauche.
+     * Adds a line of text at the end, centred or left-aligned.
      *
-     * @param text     le texte à afficher
-     * @param centered {@code true} pour la centrer, {@code false} pour l'aligner à gauche
-     * @return la poignée de l'élément (désactiver, cacher, infobulle)
+     * @param text     the text to show
+     * @param centered {@code true} to centre it, {@code false} to align it left
+     * @return the element's handle (disable, hide, tooltip)
      */
     public ElementHandle addText(Component text, boolean centered) {
         ElementHandle handle = new ElementHandle();
@@ -62,25 +61,25 @@ public abstract class ElementContainer {
     }
 
     /**
-     * Ajoute un titre à la fin, aligné à gauche ; voir {@link #addTitle(Component, boolean)} pour
-     * le centrer.
+     * Adds a left-aligned title at the end; see {@link #addTitle(Component, boolean)} to centre
+     * it.
      *
-     * <p>Un titre se distingue d'un simple texte par son style. Il se place en général en premier,
-     * mais rien ne l'impose : les éléments restent dans l'ordre des appels.</p>
+     * <p>A title differs from plain text by its style. It usually comes first, but nothing
+     * enforces it: elements stay in call order.</p>
      *
-     * @param text le titre à afficher
-     * @return la poignée de l'élément (désactiver, cacher, infobulle)
+     * @param text the title to show
+     * @return the element's handle (disable, hide, tooltip)
      */
     public ElementHandle addTitle(Component text) {
         return addTitle(text, false);
     }
 
     /**
-     * Ajoute un titre à la fin, centré ou aligné à gauche.
+     * Adds a title at the end, centred or left-aligned.
      *
-     * @param text     le titre à afficher
-     * @param centered {@code true} pour le centrer, {@code false} pour l'aligner à gauche
-     * @return la poignée de l'élément (désactiver, cacher, infobulle)
+     * @param text     the title to show
+     * @param centered {@code true} to centre it, {@code false} to align it left
+     * @return the element's handle (disable, hide, tooltip)
      */
     public ElementHandle addTitle(Component text, boolean centered) {
         ElementHandle handle = new ElementHandle();
@@ -88,26 +87,26 @@ public abstract class ElementContainer {
     }
 
     /**
-     * Ajoute un bouton à la fin, aligné à gauche ; voir
-     * {@link #addButton(Component, Runnable, boolean)} pour le centrer.
+     * Adds a left-aligned button at the end; see {@link #addButton(Component, Runnable, boolean)}
+     * to centre it.
      *
-     * <p>L'action est exécutée à chaque activation du bouton, à la souris ou au clavier.</p>
+     * <p>The action runs every time the button is activated, by mouse or keyboard.</p>
      *
-     * @param label  le libellé du bouton
-     * @param action exécutée quand on active le bouton
-     * @return la poignée de l'élément (désactiver, cacher, infobulle)
+     * @param label  the button label
+     * @param action run when the button is activated
+     * @return the element's handle (disable, hide, tooltip)
      */
     public ElementHandle addButton(Component label, Runnable action) {
         return addButton(label, action, false);
     }
 
     /**
-     * Ajoute un bouton à la fin, centré ou aligné à gauche.
+     * Adds a button at the end, centred or left-aligned.
      *
-     * @param label    le libellé du bouton
-     * @param action   exécutée quand on active le bouton
-     * @param centered {@code true} pour le centrer, {@code false} pour l'aligner à gauche
-     * @return la poignée de l'élément (désactiver, cacher, infobulle)
+     * @param label    the button label
+     * @param action   run when the button is activated
+     * @param centered {@code true} to centre it, {@code false} to align it left
+     * @return the element's handle (disable, hide, tooltip)
      */
     public ElementHandle addButton(Component label, Runnable action, boolean centered) {
         ElementHandle handle = new ElementHandle();
@@ -115,34 +114,34 @@ public abstract class ElementContainer {
     }
 
     /**
-     * Ajoute un bouton icône à la fin, aligné à gauche, qui affiche un objet ; voir
-     * {@link #addIconButton(ItemStack, Component, Runnable, boolean)} pour le centrer.
+     * Adds a left-aligned icon button showing an item at the end; see
+     * {@link #addIconButton(ItemStack, Component, Runnable, boolean)} to centre it.
      *
-     * <p>Le libellé n'est pas affiché sur le bouton : il sert d'infobulle et de narration. Une
-     * infobulle donnée à la poignée le remplace. Pour plusieurs icônes côte à côte, utiliser une
-     * ligne ({@link RowHandle#addIconButton(ItemStack, Component, Runnable)}).</p>
+     * <p>The label is not drawn on the button: it is the tooltip and the narrated text. A tooltip
+     * set on the handle replaces it. For several icons side by side, use a row
+     * ({@link RowHandle#addIconButton(ItemStack, Component, Runnable)}).</p>
      *
      * <pre>{@code
-     * window.addIconButton(new ItemStack(Items.HOPPER), Component.literal("Trier"), this::trier);
+     * window.addIconButton(new ItemStack(Items.HOPPER), Component.literal("Sort"), this::sort);
      * }</pre>
      *
-     * @param icon   l'objet affiché ; il est copié
-     * @param label  texte de l'infobulle et de la narration
-     * @param action exécutée quand on active le bouton
-     * @return la poignée de l'élément (désactiver, cacher, infobulle)
+     * @param icon   the shown item; copied
+     * @param label  tooltip and narration text
+     * @param action run when the button is activated
+     * @return the element's handle (disable, hide, tooltip)
      */
     public ElementHandle addIconButton(ItemStack icon, Component label, Runnable action) {
         return addIconButton(icon, label, action, false);
     }
 
     /**
-     * Ajoute un bouton icône qui affiche un objet, centré ou aligné à gauche.
+     * Adds an icon button showing an item, centred or left-aligned.
      *
-     * @param icon     l'objet affiché ; il est copié
-     * @param label    texte de l'infobulle et de la narration
-     * @param action   exécutée quand on active le bouton
-     * @param centered {@code true} pour le centrer, {@code false} pour l'aligner à gauche
-     * @return la poignée de l'élément (désactiver, cacher, infobulle)
+     * @param icon     the shown item; copied
+     * @param label    tooltip and narration text
+     * @param action   run when the button is activated
+     * @param centered {@code true} to centre it, {@code false} to align it left
+     * @return the element's handle (disable, hide, tooltip)
      */
     public ElementHandle addIconButton(ItemStack icon, Component label, Runnable action, boolean centered) {
         ElementHandle handle = new ElementHandle();
@@ -150,29 +149,29 @@ public abstract class ElementContainer {
     }
 
     /**
-     * Ajoute un bouton icône à la fin, aligné à gauche, qui affiche un sprite de l'interface ; voir
-     * {@link #addIconButton(ResourceLocation, Component, Runnable, boolean)} pour le centrer.
+     * Adds a left-aligned icon button showing a GUI sprite at the end; see
+     * {@link #addIconButton(ResourceLocation, Component, Runnable, boolean)} to centre it.
      *
-     * <p>Le sprite est teinté avec la couleur du texte du thème : le fournir en niveaux de gris.
-     * Le libellé sert d'infobulle et de narration.</p>
+     * <p>The sprite is tinted with the theme text colour: provide it in grayscale. The label is
+     * the tooltip and the narrated text.</p>
      *
-     * @param sprite identifiant du sprite dans l'atlas d'interface
-     * @param label  texte de l'infobulle et de la narration
-     * @param action exécutée quand on active le bouton
-     * @return la poignée de l'élément (désactiver, cacher, infobulle)
+     * @param sprite sprite id in the GUI atlas
+     * @param label  tooltip and narration text
+     * @param action run when the button is activated
+     * @return the element's handle (disable, hide, tooltip)
      */
     public ElementHandle addIconButton(ResourceLocation sprite, Component label, Runnable action) {
         return addIconButton(sprite, label, action, false);
     }
 
     /**
-     * Ajoute un bouton icône qui affiche un sprite de l'interface, centré ou aligné à gauche.
+     * Adds an icon button showing a GUI sprite, centred or left-aligned.
      *
-     * @param sprite   identifiant du sprite dans l'atlas d'interface
-     * @param label    texte de l'infobulle et de la narration
-     * @param action   exécutée quand on active le bouton
-     * @param centered {@code true} pour le centrer, {@code false} pour l'aligner à gauche
-     * @return la poignée de l'élément (désactiver, cacher, infobulle)
+     * @param sprite   sprite id in the GUI atlas
+     * @param label    tooltip and narration text
+     * @param action   run when the button is activated
+     * @param centered {@code true} to centre it, {@code false} to align it left
+     * @return the element's handle (disable, hide, tooltip)
      */
     public ElementHandle addIconButton(ResourceLocation sprite, Component label, Runnable action, boolean centered) {
         ElementHandle handle = new ElementHandle();
@@ -180,28 +179,27 @@ public abstract class ElementContainer {
     }
 
     /**
-     * Ajoute une case à cocher à la fin, alignée à gauche, et renvoie sa poignée ; voir
-     * {@link #addCheckbox(Component, boolean, boolean)} pour la centrer.
+     * Adds a left-aligned checkbox at the end and returns its handle; see
+     * {@link #addCheckbox(Component, boolean, boolean)} to centre it.
      *
-     * <p>La poignée permet de lire et de changer l'état de la case, d'être prévenu des
-     * changements et, comme toute {@link ElementHandle}, de la désactiver, la cacher ou lui donner
-     * une infobulle.</p>
+     * <p>The handle reads and changes the state, reports changes and, like any
+     * {@link ElementHandle}, disables, hides or gives a tooltip to the checkbox.</p>
      *
-     * @param label        le texte affiché à côté de la case
-     * @param defaultState {@code true} si la case est cochée à l'ouverture
-     * @return la poignée de la case
+     * @param label        the text next to the box
+     * @param defaultState {@code true} if the checkbox is checked on open
+     * @return the checkbox handle
      */
     public CheckboxHandle addCheckbox(Component label, boolean defaultState) {
         return addCheckbox(label, defaultState, false);
     }
 
     /**
-     * Ajoute une case à cocher à la fin, centrée ou alignée à gauche.
+     * Adds a checkbox at the end, centred or left-aligned.
      *
-     * @param label        le texte affiché à côté de la case
-     * @param defaultState {@code true} si la case est cochée à l'ouverture
-     * @param centered     {@code true} pour la centrer, {@code false} pour l'aligner à gauche
-     * @return la poignée de la case
+     * @param label        the text next to the box
+     * @param defaultState {@code true} if the checkbox is checked on open
+     * @param centered     {@code true} to centre it, {@code false} to align it left
+     * @return the checkbox handle
      */
     public CheckboxHandle addCheckbox(Component label, boolean defaultState, boolean centered) {
         CheckboxHandle handle = new CheckboxHandle(defaultState);
@@ -209,26 +207,26 @@ public abstract class ElementContainer {
     }
 
     /**
-     * Ajoute une ligne à la fin, alignée à gauche, et renvoie sa poignée, pour y placer des
-     * éléments côte à côte ; voir {@link #addRow(boolean)} pour la centrer.
+     * Adds a left-aligned row at the end and returns its handle, to place elements side by side;
+     * see {@link #addRow(boolean)} to centre it.
      *
      * <pre>{@code
      * RowHandle actions = window.addRow();
-     * actions.addButton(Component.literal("Valider"), this::valider);
-     * actions.addButton(Component.literal("Annuler"), window::close);
+     * actions.addButton(Component.literal("Confirm"), this::confirm);
+     * actions.addButton(Component.literal("Cancel"), window::close);
      * }</pre>
      *
-     * @return la poignée de la ligne, qui sert à y ajouter des éléments
+     * @return the row handle, used to add elements to it
      */
     public RowHandle addRow() {
         return addRow(false);
     }
 
     /**
-     * Ajoute une ligne à la fin, centrée ou alignée à gauche, et renvoie sa poignée.
+     * Adds a row at the end, centred or left-aligned, and returns its handle.
      *
-     * @param centered {@code true} pour la centrer, {@code false} pour l'aligner à gauche
-     * @return la poignée de la ligne, qui sert à y ajouter des éléments
+     * @param centered {@code true} to centre it, {@code false} to align it left
+     * @return the row handle, used to add elements to it
      */
     public RowHandle addRow(boolean centered) {
         WindowModel children = new WindowModel();
@@ -237,28 +235,28 @@ public abstract class ElementContainer {
     }
 
     /**
-     * Ajoute une liste défilante à la fin, alignée à gauche, et renvoie sa poignée, qui porte ses
-     * lignes et sa sélection ; voir {@link #addList(int, boolean)} pour la centrer.
+     * Adds a left-aligned scrolling list at the end and returns its handle, which holds its lines
+     * and selection; see {@link #addList(int, boolean)} to centre it.
      *
      * <pre>{@code
-     * ListHandle minerais = window.addList(5);
-     * minerais.addLine(Component.literal("Fer"));
-     * minerais.onSelect(index -> choisir(index));
+     * ListHandle ores = window.addList(5);
+     * ores.addLine(Component.literal("Iron"));
+     * ores.onSelect(index -> choose(index));
      * }</pre>
      *
-     * @param visibleRows nombre de lignes visibles à la fois (au moins 1) ; fixe la hauteur
-     * @return la poignée de la liste
+     * @param visibleRows number of lines visible at once (at least 1); sets the height
+     * @return the list handle
      */
     public ListHandle addList(int visibleRows) {
         return addList(visibleRows, false);
     }
 
     /**
-     * Ajoute une liste défilante à la fin, centrée ou alignée à gauche, et renvoie sa poignée.
+     * Adds a scrolling list at the end, centred or left-aligned, and returns its handle.
      *
-     * @param visibleRows nombre de lignes visibles à la fois (au moins 1) ; fixe la hauteur
-     * @param centered    {@code true} pour la centrer, {@code false} pour l'aligner à gauche
-     * @return la poignée de la liste
+     * @param visibleRows number of lines visible at once (at least 1); sets the height
+     * @param centered    {@code true} to centre it, {@code false} to align it left
+     * @return the list handle
      */
     public ListHandle addList(int visibleRows, boolean centered) {
         ListHandle handle = new ListHandle();
@@ -266,27 +264,27 @@ public abstract class ElementContainer {
     }
 
     /**
-     * Ajoute un champ de recherche à la fin, aligné à gauche, et renvoie sa poignée, qui porte le
-     * texte saisi ; voir {@link #addSearch(Component, boolean)} pour le centrer.
+     * Adds a left-aligned search field at the end and returns its handle, which holds the typed
+     * text; see {@link #addSearch(Component, boolean)} to centre it.
      *
      * <pre>{@code
-     * SearchHandle recherche = window.addSearch(Component.literal("Rechercher..."));
-     * recherche.onChange(texte -> filtrer(texte));
+     * SearchHandle search = window.addSearch(Component.literal("Search..."));
+     * search.onChange(text -> filter(text));
      * }</pre>
      *
-     * @param placeholder texte d'indication, affiché tant que le champ est vide
-     * @return la poignée du champ
+     * @param placeholder hint text, shown while the field is empty
+     * @return the field handle
      */
     public SearchHandle addSearch(Component placeholder) {
         return addSearch(placeholder, false);
     }
 
     /**
-     * Ajoute un champ de recherche à la fin, centré ou aligné à gauche, et renvoie sa poignée.
+     * Adds a search field at the end, centred or left-aligned, and returns its handle.
      *
-     * @param placeholder texte d'indication, affiché tant que le champ est vide
-     * @param centered    {@code true} pour le centrer, {@code false} pour l'aligner à gauche
-     * @return la poignée du champ
+     * @param placeholder hint text, shown while the field is empty
+     * @param centered    {@code true} to centre it, {@code false} to align it left
+     * @return the field handle
      */
     public SearchHandle addSearch(Component placeholder, boolean centered) {
         SearchHandle handle = new SearchHandle();
@@ -294,28 +292,28 @@ public abstract class ElementContainer {
     }
 
     /**
-     * Ajoute une barre de progression à la fin, alignée à gauche, et renvoie sa poignée, qui porte
-     * son avancement et son texte ; voir {@link #addProgress(Component, boolean)} pour la centrer.
+     * Adds a left-aligned progress bar at the end and returns its handle, which holds its
+     * progress and text; see {@link #addProgress(Component, boolean)} to centre it.
      *
      * <pre>{@code
      * ProgressHandle craft = window.addProgress(Component.literal("0 / 64"));
      * craft.setProgress(16, 64);
      * }</pre>
      *
-     * @param label le texte affiché sur la barre, ou {@code null} pour aucun ; il fixe aussi la
-     *              largeur de la barre (au moins 100 pixels)
-     * @return la poignée de la barre, vide au départ
+     * @param label the text shown on the bar, or {@code null} for none; it also sets the bar width
+     *              (at least 100 pixels)
+     * @return the bar handle, empty at first
      */
     public ProgressHandle addProgress(@Nullable Component label) {
         return addProgress(label, false);
     }
 
     /**
-     * Ajoute une barre de progression à la fin, centrée ou alignée à gauche, et renvoie sa poignée.
+     * Adds a progress bar at the end, centred or left-aligned, and returns its handle.
      *
-     * @param label    le texte affiché sur la barre, ou {@code null} pour aucun
-     * @param centered {@code true} pour la centrer, {@code false} pour l'aligner à gauche
-     * @return la poignée de la barre, vide au départ
+     * @param label    the text shown on the bar, or {@code null} for none
+     * @param centered {@code true} to centre it, {@code false} to align it left
+     * @return the bar handle, empty at first
      */
     public ProgressHandle addProgress(@Nullable Component label, boolean centered) {
         ProgressHandle handle = new ProgressHandle(label);

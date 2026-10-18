@@ -11,49 +11,49 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.ItemStack;
 
 /**
- * Poignée vers une ligne d'une {@link GaldurWindow} : des éléments placés côte à côte, de gauche
- * à droite, au lieu d'être empilés.
+ * Handle to a row of a {@link GaldurWindow}: elements placed side by side, left to right, instead
+ * of stacked.
  *
- * <p>On l'obtient avec {@code GaldurWindow.addRow()}. On y ajoute des éléments comme dans la
- * fenêtre, et chacun renvoie sa propre poignée. Les éléments d'une ligne sont centrés
- * verticalement entre eux et séparés par l'écart du thème ({@code spacing.gap}).</p>
+ * <p>Returned by {@code GaldurWindow.addRow()}. Elements are added as in the window, and each
+ * returns its own handle. The elements of a row are centred vertically on each other and
+ * separated by the theme gap ({@code spacing.gap}).</p>
  *
  * <pre>{@code
  * RowHandle actions = window.addRow(true);
- * actions.addButton(Component.literal("Valider"), this::valider);
- * actions.addButton(Component.literal("Annuler"), window::close);
+ * actions.addButton(Component.literal("Confirm"), this::confirm);
+ * actions.addButton(Component.literal("Cancel"), window::close);
  * }</pre>
  *
- * <p>Comme toute {@link ElementHandle}, la ligne se désactive, se cache ou reçoit une infobulle
- * d'un seul coup :</p>
+ * <p>Like any {@link ElementHandle}, the row can be disabled, hidden or given a tooltip all at
+ * once:</p>
  * <ul>
- *   <li><strong>désactivée</strong>, elle désactive tous ses éléments ;</li>
- *   <li><strong>cachée</strong>, elle disparaît avec ses éléments et libère sa place ; une ligne
- *       dont tous les éléments sont cachés libère aussi sa place ;</li>
- *   <li>son <strong>infobulle</strong> s'affiche sur les éléments qui n'en ont pas une à eux (y
- *       compris à la place du libellé d'un bouton icône).</li>
+ *   <li><strong>disabled</strong>, it disables all its elements;</li>
+ *   <li><strong>hidden</strong>, it disappears with its elements and frees its space; a row whose
+ *       elements are all hidden frees its space too;</li>
+ *   <li>its <strong>tooltip</strong> shows on the elements that have none of their own
+ *       (including in place of an icon button's label).</li>
  * </ul>
  *
- * <p>Un élément ajouté alors que la fenêtre est affichée apparaît à l'image suivante. À appeler
- * sur le thread du client. Une ligne ne contient pas d'autre ligne.</p>
+ * <p>An element added while the window is shown appears on the next frame. Call on the client
+ * thread. A row does not contain another row.</p>
  */
 public class RowHandle extends ElementHandle {
     private final WindowModel children;
 
     /**
-     * Non publique : seule {@link GaldurWindow} crée des lignes.
+     * Package-private: only {@link GaldurWindow} creates rows.
      *
-     * @param children la liste des éléments de la ligne, partagée avec l'élément affiché
+     * @param children the row's elements, shared with the shown element
      */
     RowHandle(WindowModel children) {
         this.children = children;
     }
 
     /**
-     * Ajoute un texte à la fin de la ligne.
+     * Adds a text at the end of the row.
      *
-     * @param text le texte à afficher
-     * @return la poignée de l'élément (désactiver, cacher, infobulle)
+     * @param text the text to show
+     * @return the element's handle (disable, hide, tooltip)
      */
     public ElementHandle addText(Component text) {
         ElementHandle handle = new ElementHandle();
@@ -61,11 +61,11 @@ public class RowHandle extends ElementHandle {
     }
 
     /**
-     * Ajoute un bouton à la fin de la ligne.
+     * Adds a button at the end of the row.
      *
-     * @param label  le libellé du bouton
-     * @param action exécutée quand on active le bouton, à la souris ou au clavier
-     * @return la poignée de l'élément (désactiver, cacher, infobulle)
+     * @param label  the button label
+     * @param action run when the button is activated, by mouse or keyboard
+     * @return the element's handle (disable, hide, tooltip)
      */
     public ElementHandle addButton(Component label, Runnable action) {
         ElementHandle handle = new ElementHandle();
@@ -73,12 +73,12 @@ public class RowHandle extends ElementHandle {
     }
 
     /**
-     * Ajoute un bouton icône à la fin de la ligne, qui affiche un objet.
+     * Adds an icon button showing an item at the end of the row.
      *
-     * @param icon   l'objet affiché ; il est copié
-     * @param label  texte de l'infobulle et de la narration (non affiché sur le bouton)
-     * @param action exécutée quand on active le bouton, à la souris ou au clavier
-     * @return la poignée de l'élément (désactiver, cacher, infobulle)
+     * @param icon   the shown item; copied
+     * @param label  tooltip and narration text (not drawn on the button)
+     * @param action run when the button is activated, by mouse or keyboard
+     * @return the element's handle (disable, hide, tooltip)
      */
     public ElementHandle addIconButton(ItemStack icon, Component label, Runnable action) {
         ElementHandle handle = new ElementHandle();
@@ -86,13 +86,13 @@ public class RowHandle extends ElementHandle {
     }
 
     /**
-     * Ajoute un bouton icône à la fin de la ligne, qui affiche un sprite de l'interface, teinté
-     * avec la couleur du texte du thème.
+     * Adds an icon button showing a GUI sprite at the end of the row, tinted with the theme text
+     * colour.
      *
-     * @param sprite identifiant du sprite dans l'atlas d'interface, en niveaux de gris
-     * @param label  texte de l'infobulle et de la narration (non affiché sur le bouton)
-     * @param action exécutée quand on active le bouton, à la souris ou au clavier
-     * @return la poignée de l'élément (désactiver, cacher, infobulle)
+     * @param sprite sprite id in the GUI atlas, in grayscale
+     * @param label  tooltip and narration text (not drawn on the button)
+     * @param action run when the button is activated, by mouse or keyboard
+     * @return the element's handle (disable, hide, tooltip)
      */
     public ElementHandle addIconButton(ResourceLocation sprite, Component label, Runnable action) {
         ElementHandle handle = new ElementHandle();
@@ -100,11 +100,11 @@ public class RowHandle extends ElementHandle {
     }
 
     /**
-     * Ajoute une case à cocher à la fin de la ligne et renvoie sa poignée.
+     * Adds a checkbox at the end of the row and returns its handle.
      *
-     * @param label        le texte affiché à côté de la case
-     * @param defaultState {@code true} si la case est cochée à l'ouverture
-     * @return la poignée de la case
+     * @param label        the text next to the box
+     * @param defaultState {@code true} if the checkbox is checked on open
+     * @return the checkbox handle
      */
     public CheckboxHandle addCheckbox(Component label, boolean defaultState) {
         CheckboxHandle handle = new CheckboxHandle(defaultState);
@@ -112,10 +112,10 @@ public class RowHandle extends ElementHandle {
     }
 
     /**
-     * Ajoute un élément à la ligne et branche sa poignée sur celle de la ligne : un changement
-     * de l'élément remonte ainsi jusqu'à la fenêtre.
+     * Adds an element to the row and wires its handle to the row's: a change to the element thus
+     * reaches the window.
      *
-     * @return la poignée de l'élément, renvoyée telle quelle au mod
+     * @return the element's handle, returned as is to the mod
      */
     private <H extends ElementHandle> H add(WindowElement element, H handle) {
         handle.setChangeListener(this::changed);

@@ -17,37 +17,36 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.util.Mth;
 
 /**
- * Champ de recherche aux couleurs de la charte, utilisable dans les layouts vanilla.
+ * Themed search field, usable in vanilla layouts.
  *
- * <p>La saisie elle-même (curseur, sélection, copier-coller, Ctrl+A, texte qui défile quand il
- * dépasse) est confiée à un {@link EditBox} vanilla placé à l'intérieur : Galdur UI dessine le
- * cadre, le texte d'indication et les couleurs, et transmet souris et clavier à la saisie.</p>
+ * <p>Text editing itself (cursor, selection, copy and paste, Ctrl+A, text that scrolls when it
+ * overflows) is handled by a vanilla {@link EditBox} placed inside: Galdur UI draws the frame,
+ * the placeholder and the colours, and forwards mouse and keyboard to the edit box.</p>
  *
- * <p>Comme {@link GaldurCheckbox}, le widget ne garde pas le texte en propre : il le
- * <strong>relit à chaque image</strong> auprès d'un fournisseur et signale chaque frappe. Le
- * texte survit ainsi à la recréation du widget, et le code peut le changer à tout moment.</p>
+ * <p>Like {@link GaldurCheckbox}, the widget does not own the text: it <strong>reads it every
+ * frame</strong> from a supplier and reports every keystroke. The text survives the widget being
+ * rebuilt, and code can change it at any time.</p>
  *
  * <pre>{@code
- * String[] recherche = {""};
- * colonne.addChild(GaldurSearchField.of(120, Component.literal("Rechercher..."),
- *         () -> recherche[0], texte -> recherche[0] = texte));
+ * String[] search = {""};
+ * column.addChild(GaldurSearchField.of(120, Component.literal("Search..."),
+ *         () -> search[0], text -> search[0] = text));
  * }</pre>
  *
  * <ul>
- *   <li><strong>Texte d'indication</strong> : affiché en couleur atténuée tant que le champ est
- *       vide.</li>
- *   <li><strong>Désactivé</strong> ({@code active = false}) : texte atténué, plus de saisie.</li>
- *   <li><strong>Échap</strong> ferme l'écran, comme partout dans le jeu ; les flèches haut et
- *       bas passent au widget voisin.</li>
+ *   <li><strong>Placeholder</strong>: shown in a muted colour while the field is empty.</li>
+ *   <li><strong>Disabled</strong> ({@code active = false}): muted text, no input.</li>
+ *   <li><strong>Escape</strong> closes the screen, as everywhere in the game; the up and down
+ *       arrows move to the neighbouring widget.</li>
  * </ul>
  *
- * <p>Hauteur lue dans le thème : {@code spacing.field_height}. Le texte saisi est limité à
- * {@value #MAX_LENGTH} caractères.</p>
+ * <p>Height from the theme: {@code spacing.field_height}. The text is limited to
+ * {@value #MAX_LENGTH} characters.</p>
  */
 public class GaldurSearchField extends AbstractWidget {
-    /** Longueur maximale du texte saisi. */
+    /** Maximum length of the typed text. */
     public static final int MAX_LENGTH = 256;
-    /** Marge entre le bord du champ et le texte, en pixels. */
+    /** Gap between the field edge and the text, in pixels. */
     private static final int PADDING_X = 4;
 
     private final EditBox input;
@@ -55,12 +54,12 @@ public class GaldurSearchField extends AbstractWidget {
     private final Supplier<String> text;
 
     /**
-     * Crée un champ. Préférer {@link #of(int, Component, Supplier, Consumer)}.
+     * Prefer {@link #of(int, Component, Supplier, Consumer)}.
      *
-     * @param width       largeur totale, cadre compris, en pixels
-     * @param placeholder texte d'indication, affiché tant que le champ est vide
-     * @param text        fournisseur du texte courant, appelé à chaque image
-     * @param onChange    appelée avec le nouveau texte à chaque modification par le joueur
+     * @param width       total width, frame included, in pixels
+     * @param placeholder hint text, shown while the field is empty
+     * @param text        supplier of the current text, called every frame
+     * @param onChange    called with the new text on every change by the player
      */
     protected GaldurSearchField(int width, Component placeholder, Supplier<String> text, Consumer<String> onChange) {
         super(0, 0, width, GaldurTheme.fieldHeight(), placeholder);
@@ -75,31 +74,30 @@ public class GaldurSearchField extends AbstractWidget {
     }
 
     /**
-     * {@return un champ de recherche, positionné en {@code (0, 0)} : c'est le layout qui le place}
+     * {@return a search field at {@code (0, 0)}, for a layout to place}
      *
-     * @param width       largeur totale, cadre compris, en pixels
-     * @param placeholder texte d'indication, affiché tant que le champ est vide
-     * @param text        fournisseur du texte courant, appelé à chaque image
-     * @param onChange    appelée avec le nouveau texte à chaque modification par le joueur
+     * @param width       total width, frame included, in pixels
+     * @param placeholder hint text, shown while the field is empty
+     * @param text        supplier of the current text, called every frame
+     * @param onChange    called with the new text on every change by the player
      */
     public static GaldurSearchField of(int width, Component placeholder, Supplier<String> text, Consumer<String> onChange) {
         return new GaldurSearchField(width, placeholder, text, onChange);
     }
 
     /**
-     * {@return la largeur qui affiche entièrement le texte d'indication, ou {@code minWidth} si elle
-     * est plus grande}
+     * {@return the width that shows the placeholder in full, or {@code minWidth} if larger}
      *
-     * @param placeholder le texte d'indication
-     * @param minWidth    largeur minimale, en pixels
+     * @param placeholder the hint text
+     * @param minWidth    minimum width, in pixels
      */
     public static int preferredWidth(Component placeholder, int minWidth) {
         return Math.max(minWidth, GaldurRender.textWidth(placeholder) + 2 * PADDING_X + 2);
     }
 
     /**
-     * Recopie le texte du fournisseur dans la saisie s'il a été changé ailleurs (par le code du
-     * mod). Sans effet pendant que le joueur tape : les deux sont alors égaux.
+     * Copies the supplier's text into the edit box when it was changed elsewhere (by the mod's
+     * code). No effect while the player types: both are then equal.
      */
     private void syncFromSource() {
         String wanted = text.get();
@@ -108,7 +106,7 @@ public class GaldurSearchField extends AbstractWidget {
         }
     }
 
-    /** Place la saisie dans le cadre : marges horizontales, texte centré verticalement. */
+    /** Places the edit box in the frame: horizontal padding, text centred vertically. */
     private void placeInput() {
         input.setX(getX() + PADDING_X);
         input.setY(getY() + (getHeight() - GaldurRender.lineHeight()) / 2 + 1);
@@ -144,7 +142,7 @@ public class GaldurSearchField extends AbstractWidget {
     }
 
     @Override
-    public void onClick(double mouseX, double mouseY) {
+    public void onClick(double mouseX, double mouseY, int button) {
         placeInput();
         double insideX = Mth.clamp(mouseX, input.getX(), input.getX() + input.getWidth() - 1);
         input.onClick(insideX, input.getY());
@@ -160,14 +158,14 @@ public class GaldurSearchField extends AbstractWidget {
         return active && visible && input.charTyped(codePoint, modifiers);
     }
 
-    /** Un champ de saisie ne fait pas le son d'un bouton quand on clique dedans. */
+    /** A text field does not play the button sound when clicked. */
     @Override
     public void playDownSound(SoundManager handler) {
     }
 
     @Override
     protected void updateWidgetNarration(NarrationElementOutput narrationElementOutput) {
-        // « Champ de recherche : fer », ou « Champ de recherche vide : Rechercher... ».
+        // "Search field: iron", or "Empty search field: Search...".
         String value = input.getValue();
         Component title = value.isEmpty()
                 ? GaldurNarration.ours("search.empty", placeholder)

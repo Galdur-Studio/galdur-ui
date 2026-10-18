@@ -7,9 +7,8 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import org.junit.jupiter.api.Test;
 
 /**
- * Les tests unitaires tournent sans les classes de Minecraft : on n'y touche donc jamais à
- * l'infobulle, dont le type ({@code Component}) vient du jeu. Elle se vérifie en jeu, avec
- * {@code /galdurui window}.
+ * Unit tests run without the Minecraft classes, so tooltips ({@code Component}) are never touched
+ * here; they are checked in game with {@code /galdurui window}.
  */
 class ElementHandleTest {
     private int changes;
@@ -21,14 +20,14 @@ class ElementHandleTest {
     }
 
     @Test
-    void un_element_est_actif_et_visible_par_defaut() {
+    void enabledAndVisibleByDefault() {
         ElementHandle handle = new ElementHandle();
         assertTrue(handle.isEnabled());
         assertTrue(handle.isVisible());
     }
 
     @Test
-    void desactiver_et_cacher_previent_la_fenetre() {
+    void disablingAndHidingNotifyTheWindow() {
         ElementHandle handle = handle();
         handle.setEnabled(false);
         handle.setVisible(false);
@@ -38,7 +37,7 @@ class ElementHandleTest {
     }
 
     @Test
-    void ne_previent_pas_si_l_etat_ne_change_pas() {
+    void noNotificationWhenStateDoesNotChange() {
         ElementHandle handle = handle();
         handle.setEnabled(true);
         handle.setVisible(true);
@@ -46,11 +45,11 @@ class ElementHandleTest {
     }
 
     @Test
-    void une_case_a_cocher_porte_aussi_les_etats_communs() {
+    void checkboxHasCommonStatesToo() {
         CheckboxHandle box = new CheckboxHandle(true);
         box.setChangeListener(() -> changes++);
         box.setEnabled(false);
-        // Cocher ne reconstruit pas l'écran : la case relit son état à chaque image.
+        // Checking does not rebuild the screen: the checkbox reads its state every frame.
         box.setChecked(false);
         assertFalse(box.isEnabled());
         assertFalse(box.isChecked());

@@ -4,28 +4,28 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * Contenu d'une fenêtre : la liste ordonnée des {@link WindowElement} ajoutés par le mod.
+ * Content of a window: the ordered list of {@link WindowElement}s added by the mod.
  *
- * <p>{@link com.galdurstudio.galdurui.api.window.GaldurWindow} le garde en champ privé et le
- * transmet à {@link WindowScreen} à l'ouverture. Cela permet à l'écran de lire le contenu sans que
- * {@code GaldurWindow} n'ait à exposer de getter public.</p>
+ * <p>{@link com.galdurstudio.galdurui.api.window.GaldurWindow} keeps it in a private field and
+ * hands it to {@link WindowScreen} on open, so the screen can read the content without
+ * {@code GaldurWindow} exposing a public getter.</p>
  */
 public class WindowModel {
     private final List<WindowElement> elements = new ArrayList<>();
 
     /**
-     * Ajoute un élément à la fin de la fenêtre.
+     * Adds an element at the end of the window.
      *
-     * @param element l'élément à ajouter
+     * @param element the element to add
      */
     public void add(WindowElement element) {
         elements.add(element);
     }
 
     /**
-     * Donne les éléments dans l'ordre d'ajout, de haut en bas à l'affichage.
+     * Returns the elements in insertion order, top to bottom on screen.
      *
-     * @return une copie non modifiable de la liste ; la modifier ne change pas la fenêtre
+     * @return an unmodifiable copy of the list; changing it does not change the window
      */
     public List<WindowElement> elements() {
         return List.copyOf(elements);

@@ -1,14 +1,9 @@
 /**
- * Briques de layout de Galdur UI, à combiner avec les layouts vanilla
- * ({@code LinearLayout}, {@code FrameLayout}, {@code GridLayout}).
+ * Layout building blocks, to combine with the vanilla layouts ({@code LinearLayout},
+ * {@code FrameLayout}, {@code GridLayout}).
  *
- * <p>API publique, stable dans une même version majeure. Ces classes héritent de classes
- * vanilla ({@code AbstractLayout}, {@code Renderable}) : un changement de ces classes chez Mojang
- * peut imposer une version majeure de Galdur UI (voir la section « Compatibilité et versions »
- * du README).</p>
- *
- * <p><strong>Règle pour nos mods</strong> : construire et dessiner les écrans uniquement avec
- * l'API Galdur ({@code com.galdurstudio.galdurui.api}), jamais en appelant {@code GuiGraphics}
- * directement, et ne jamais dépendre de {@code com.galdurstudio.galdurui.internal}.</p>
+ * <p>Public API, stable within a major version. These classes extend vanilla classes, so a
+ * Mojang change there may force a new major version (see "Compatibility and versions" in the
+ * README).</p>
  */
 package com.galdurstudio.galdurui.api.layout;

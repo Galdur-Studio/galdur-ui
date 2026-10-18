@@ -3,34 +3,32 @@ package com.galdurstudio.galdurui.api.anim;
 import java.util.function.DoubleUnaryOperator;
 
 /**
- * Courbes d'accélération (« easing ») : elles transforment un avancement linéaire {@code t}, de
- * {@code 0} (début) à {@code 1} (fin), en un avancement qui accélère ou ralentit.
- *
- * <p>Toutes valent {@code 0} en {@code 0} et {@code 1} en {@code 1}. À utiliser avec
- * {@link AnimatedValue}, ou directement :</p>
+ * Easing curves: they map a linear progress {@code t} from {@code 0} to {@code 1} to a progress
+ * that speeds up or slows down. Every curve gives {@code 0} at {@code 0} and {@code 1} at
+ * {@code 1}. Use them with {@link AnimatedValue}, or directly:
  *
  * <pre>{@code
- * double t = Math.min(1, ecoule / (double) dureeMs);
- * int y = (int) Math.round(depart + (arrivee - depart) * GaldurEasing.OUT_CUBIC.applyAsDouble(t));
+ * double t = Math.min(1, elapsed / (double) durationMs);
+ * int y = (int) Math.round(from + (to - from) * GaldurEasing.OUT_CUBIC.applyAsDouble(t));
  * }</pre>
  *
- * <p>Pour une interface, {@link #OUT_CUBIC} est le bon choix par défaut : le mouvement part vite
- * et se pose en douceur, il répond donc tout de suite au joueur.</p>
+ * <p>{@link #OUT_CUBIC} is the default choice for UI: it starts fast, so it reacts at once, and
+ * lands softly.</p>
  */
 public final class GaldurEasing {
-    /** Vitesse constante. */
+    /** Constant speed. */
     public static final DoubleUnaryOperator LINEAR = t -> t;
-    /** Démarre doucement, finit vite. */
+    /** Starts slow, ends fast. */
     public static final DoubleUnaryOperator IN_QUAD = t -> t * t;
-    /** Démarre vite, finit doucement ; plus discret que {@link #OUT_CUBIC}. */
+    /** Starts fast, ends slow; subtler than {@link #OUT_CUBIC}. */
     public static final DoubleUnaryOperator OUT_QUAD = t -> 1 - (1 - t) * (1 - t);
-    /** Doux au départ et à l'arrivée. */
+    /** Slow at both ends. */
     public static final DoubleUnaryOperator IN_OUT_QUAD = t -> t < 0.5 ? 2 * t * t : 1 - Math.pow(-2 * t + 2, 2) / 2;
-    /** Démarre vite, se pose en douceur : le choix par défaut. */
+    /** Starts fast, lands softly: the default choice. */
     public static final DoubleUnaryOperator OUT_CUBIC = t -> 1 - Math.pow(1 - t, 3);
-    /** Doux au départ et à l'arrivée, plus marqué que {@link #IN_OUT_QUAD}. */
+    /** Slow at both ends, stronger than {@link #IN_OUT_QUAD}. */
     public static final DoubleUnaryOperator IN_OUT_CUBIC = t -> t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
-    /** Dépasse légèrement l'arrivée avant d'y revenir : un petit rebond. */
+    /** Slightly overshoots the target before settling: a small bounce. */
     public static final DoubleUnaryOperator OUT_BACK = t -> {
         double c1 = 1.70158;
         double c3 = c1 + 1;

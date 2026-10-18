@@ -28,16 +28,24 @@ jobs:
         uses: gradle/actions/setup-gradle@v6
 
       - name: Build with Gradle
-        run: ./gradlew build --no-daemon
+        run: ./gradlew build javadoc --no-daemon
 
-      # Les PNG commités doivent être exactement ceux que produit tools/GenerateSprites.java.
-      # git status (et non git diff) voit aussi les fichiers nouveaux, non suivis.
+      # The test mod (src/testmod) and the dev tools must never end up in the library jar.
+      - name: Check the jar holds no test mod
+        run: |
+          if for jar in build/libs/*.jar; do unzip -l "$jar"; done | grep -E "testmod|galduruitest|resourcepacks/"; then
+            echo "Test mod files found in the jar."
+            exit 1
+          fi
+
+      # The committed PNGs must be exactly what tools/GenerateSprites.java produces.
+      # git status (not git diff) also sees new, untracked files.
       - name: Check sprites are up to date
         run: |
           ./gradlew generateSprites --no-daemon
           changes=$(git status --porcelain -- src/main/resources/assets/galdurui/textures)
           if [ -n "$changes" ]; then
-            echo "Sprites non à jour (relancer ./gradlew generateSprites et commiter) :"
+            echo "Sprites out of date (run ./gradlew generateSprites and commit):"
             echo "$changes"
             git diff --stat -- src/main/resources/assets/galdurui/textures
             exit 1

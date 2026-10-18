@@ -4,25 +4,23 @@ import org.jetbrains.annotations.Nullable;
 import net.minecraft.network.chat.Component;
 
 /**
- * Poignée vers une barre de progression d'une {@link GaldurWindow} : son avancement et le texte
- * affiché dessus.
+ * Handle to a progress bar of a {@link GaldurWindow}: its progress and the text shown on it.
  *
- * <p>On l'obtient avec {@code addProgress(...)}. Le widget affiché relit l'avancement et le texte
- * à chaque image : on peut les changer aussi souvent qu'on veut (à chaque tick, par exemple),
- * même fenêtre ouverte, sans reconstruire l'écran.</p>
+ * <p>Returned by {@code addProgress(...)}. The shown widget reads the progress and the text every
+ * frame: change them as often as you like (every tick, for instance), even while the window is
+ * open, without rebuilding the screen.</p>
  *
  * <pre>{@code
- * ProgressHandle craft = window.addProgress(Component.literal("Lingots de fer : 0 / 64"));
+ * ProgressHandle craft = window.addProgress(Component.literal("Iron ingots: 0 / 64"));
  * craft.setProgress(16, 64);
- * craft.setLabel(Component.literal("Lingots de fer : 16 / 64"));
+ * craft.setLabel(Component.literal("Iron ingots: 16 / 64"));
  * }</pre>
  *
- * <p>La largeur de la barre est calculée à la construction de l'écran d'après le texte. Un texte
- * plus long donné ensuite est coupé avec « … », jusqu'à la prochaine reconstruction
- * (redimensionnement, ou ajout d'un élément à la fenêtre). Comme toute {@link ElementHandle}, la
- * barre se désactive (couleurs atténuées), se cache ou reçoit une infobulle.</p>
+ * <p>The bar width is computed when the screen is built, from the text. A longer text given later
+ * is cut with "…" until the next rebuild (resize, or an element added to the window). Like any
+ * {@link ElementHandle}, the bar can be disabled (muted colours), hidden or given a tooltip.</p>
  *
- * <p>À appeler sur le thread du client.</p>
+ * <p>Call on the client thread.</p>
  */
 public class ProgressHandle extends ElementHandle {
     private double progress;
@@ -30,50 +28,49 @@ public class ProgressHandle extends ElementHandle {
     private Component label;
 
     /**
-     * Non publique : seules {@link GaldurWindow} et les onglets créent des barres.
+     * Package-private: only {@link GaldurWindow} and tabs create bars.
      *
-     * @param label le texte de départ, ou {@code null} pour aucun
+     * @param label the initial text, or {@code null} for none
      */
     ProgressHandle(@Nullable Component label) {
         this.label = label;
     }
 
-    /** {@return l'avancement, de {@code 0} (vide) à {@code 1} (pleine)} */
+    /** {@return the progress, from {@code 0} (empty) to {@code 1} (full)} */
     public double getProgress() {
         return progress;
     }
 
     /**
-     * Change l'avancement.
+     * Changes the progress.
      *
-     * @param progress de {@code 0} (vide) à {@code 1} (pleine) ; une valeur hors de cet intervalle
-     *                 y est ramenée, et {@code NaN} vaut {@code 0}
+     * @param progress from {@code 0} (empty) to {@code 1} (full); values outside are clamped, and
+     *                 {@code NaN} counts as {@code 0}
      */
     public void setProgress(double progress) {
         this.progress = Double.isNaN(progress) ? 0 : Math.max(0, Math.min(1, progress));
     }
 
     /**
-     * Change l'avancement à partir d'un nombre fait et d'un total, par exemple 16 objets
-     * fabriqués sur 64.
+     * Changes the progress from a done count and a total, for instance 16 items crafted out of 64.
      *
-     * @param done  ce qui est fait
-     * @param total le total ; s'il vaut {@code 0} ou moins, la barre est vide
+     * @param done  what is done
+     * @param total the total; when {@code 0} or less, the bar is empty
      */
     public void setProgress(long done, long total) {
         setProgress(total <= 0 ? 0 : (double) done / total);
     }
 
-    /** {@return le texte affiché sur la barre, ou {@code null} s'il n'y en a pas} */
+    /** {@return the text shown on the bar, or {@code null} if none} */
     @Nullable
     public Component getLabel() {
         return label;
     }
 
     /**
-     * Change le texte affiché sur la barre.
+     * Changes the text shown on the bar.
      *
-     * @param label le nouveau texte, ou {@code null} pour n'en afficher aucun
+     * @param label the new text, or {@code null} for none
      */
     public void setLabel(@Nullable Component label) {
         this.label = label;

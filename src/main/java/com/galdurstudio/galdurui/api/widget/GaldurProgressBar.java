@@ -18,68 +18,66 @@ import net.minecraft.network.chat.Component;
 import org.jetbrains.annotations.Nullable;
 
 /**
- * Barre de progression aux couleurs de la charte, avec un texte facultatif centré dessus,
- * utilisable dans les layouts vanilla.
+ * Themed progress bar, with an optional text centred on it, usable in vanilla layouts.
  *
- * <p>Comme {@link GaldurScrollList}, le widget ne garde ni l'avancement ni le texte : il les
- * <strong>relit à chaque image</strong> auprès de fournisseurs. On peut donc faire avancer la
- * barre à chaque tick sans recréer le widget.</p>
+ * <p>Like {@link GaldurScrollList}, the widget keeps neither the progress nor the text: it
+ * <strong>reads them every frame</strong> from suppliers, so the bar can move every tick without
+ * being rebuilt.</p>
  *
  * <pre>{@code
- * double[] avancement = {0.25};
- * colonne.addChild(GaldurProgressBar.of(120, () -> avancement[0],
+ * double[] progress = {0.25};
+ * column.addChild(GaldurProgressBar.of(120, () -> progress[0],
  *         () -> Component.literal("16 / 64")));
  * }</pre>
  *
  * <ul>
- *   <li><strong>Remplissage</strong> : de gauche à droite, en dégradé de {@code accent}
- *       (redstone) à {@code ember} (braise) sur toute la largeur : la tête de la barre se
- *       réchauffe à mesure qu'elle avance. Rail en creux (sprite {@code field} teinté
- *       {@code background}), et
- *       la colonne de tête est éclaircie pour marquer le front.</li>
- *   <li><strong>Animation</strong> : la barre glisse vers sa nouvelle valeur au lieu de sauter
- *       (elle revient en arrière d'un coup, pour qu'une remise à zéro soit nette), et un éclat
- *       lumineux parcourt la partie remplie tant qu'elle n'est pas pleine.</li>
- *   <li><strong>Texte</strong> : centré, en {@code text} avec ombre ; s'il est trop long, il est
- *       coupé avec « … ». Sans texte ({@code null}), la barre est seule.</li>
- *   <li><strong>Désactivée</strong> ({@code active = false}) : remplissage uni et texte en
- *       {@code text_muted}, sans animation.</li>
+ *   <li><strong>Fill</strong>: left to right, a gradient from {@code accent} (redstone) to
+ *       {@code ember} over the full width, so the head warms up as it moves. Sunken track
+ *       ({@code field} sprite tinted {@code background}); the head column is lightened to mark
+ *       the front.</li>
+ *   <li><strong>Animation</strong>: the bar slides to its new value instead of jumping (it goes
+ *       back at once, so a reset is clean), and a shine runs along the filled part while it is
+ *       not full.</li>
+ *   <li><strong>Text</strong>: centred, in {@code text} with shadow; cut with "…" when too long.
+ *       Without text ({@code null}) the bar is alone.</li>
+ *   <li><strong>Disabled</strong> ({@code active = false}): flat fill and {@code text_muted}
+ *       text, no animation.</li>
  * </ul>
  *
- * <p>La barre n'est pas interactive : elle ne prend ni le focus ni les clics. Hauteur lue dans
- * le thème : {@code spacing.progress_height}.</p>
+ * <p>The bar is not interactive: it takes neither focus nor clicks. Height from the theme:
+ * {@code spacing.progress_height}.</p>
  */
 public class GaldurProgressBar extends AbstractWidget {
-    /** Épaisseur du cadre, en pixels. */
+    /** Frame thickness, in pixels. */
     private static final int BORDER = 1;
-    /** Marge entre le bord et un texte coupé, en pixels. */
+    /** Gap between the edge and a cut text, in pixels. */
     private static final int TEXT_PADDING = 2;
-    /** Temps caractéristique du glissement vers la nouvelle valeur, en millisecondes. */
+    /** Time constant of the slide to the new value, in milliseconds. */
     private static final double SMOOTHING_MS = 90;
-    /** Largeur de l'éclat qui parcourt la barre, en pixels. */
+    /** Width of the shine, in pixels. */
     private static final int SHINE_WIDTH = 18;
-    /** Durée d'un passage de l'éclat, de gauche à droite, en millisecondes. */
+    /** Duration of one shine pass, left to right, in milliseconds. */
     private static final long SHINE_PERIOD_MS = 1600;
-    /** Intensité maximale de l'éclat, de 0 (invisible) à 1 (blanc). */
+    /** Maximum shine strength, from 0 (invisible) to 1 (white). */
     private static final double SHINE_STRENGTH = 0.45;
-    /** Éclaircissement de la colonne de tête, de 0 à 1. */
+    /** Lightening of the head column, from 0 to 1. */
     private static final double HEAD_STRENGTH = 0.35;
 
     private final DoubleSupplier progress;
     private final Supplier<Component> label;
 
-    /** Avancement affiché, qui rattrape l'avancement réel ; {@code NaN} avant la première image. */
+    /** Shown progress, which catches up with the real one; {@code NaN} before the first frame. */
     private double shown = Double.NaN;
-    /** Heure de l'image précédente, en millisecondes ({@code Util.getMillis()}). */
+    /** Time of the previous frame, in milliseconds ({@code Util.getMillis()}). */
     private long lastFrame;
 
     /**
-     * Crée une barre de progression. Préférer {@link #of(int, DoubleSupplier, Supplier)}.
+     * Prefer {@link #of(int, DoubleSupplier, Supplier)}.
      *
-     * @param width    largeur totale, cadre compris, en pixels
-     * @param progress fournisseur de l'avancement, de {@code 0} (vide) à {@code 1} (pleine), appelé
-     *                 à chaque image ; les valeurs hors de cet intervalle sont ramenées dedans
-     * @param label    fournisseur du texte affiché sur la barre, ou de {@code null} pour aucun
+     * @param width    total width, frame included, in pixels
+     * @param progress supplier of the progress, from {@code 0} (empty) to {@code 1} (full), called
+     *                 every frame; values outside are clamped
+     * @param label    supplier of the text shown on the bar, or of {@code null} for none
      */
     protected GaldurProgressBar(int width, DoubleSupplier progress, Supplier<Component> label) {
         super(0, 0, width, GaldurTheme.progressHeight(), Component.empty());
@@ -88,40 +86,38 @@ public class GaldurProgressBar extends AbstractWidget {
     }
 
     /**
-     * {@return une barre de progression sans texte, positionnée en {@code (0, 0)} : c'est le layout
-     * qui la place}
+     * {@return a progress bar without text, at {@code (0, 0)} for a layout to place}
      *
-     * @param width    largeur totale, cadre compris, en pixels
-     * @param progress fournisseur de l'avancement, de {@code 0} à {@code 1}, appelé à chaque image
+     * @param width    total width, frame included, in pixels
+     * @param progress supplier of the progress, from {@code 0} to {@code 1}, called every frame
      */
     public static GaldurProgressBar of(int width, DoubleSupplier progress) {
         return new GaldurProgressBar(width, progress, () -> null);
     }
 
     /**
-     * {@return une barre de progression avec un texte centré, positionnée en {@code (0, 0)}}
+     * {@return a progress bar with a centred text, at {@code (0, 0)}}
      *
-     * @param width    largeur totale, cadre compris, en pixels
-     * @param progress fournisseur de l'avancement, de {@code 0} à {@code 1}, appelé à chaque image
-     * @param label    fournisseur du texte, appelé à chaque image ; {@code null} pour aucun
+     * @param width    total width, frame included, in pixels
+     * @param progress supplier of the progress, from {@code 0} to {@code 1}, called every frame
+     * @param label    supplier of the text, called every frame; {@code null} for none
      */
     public static GaldurProgressBar of(int width, DoubleSupplier progress, Supplier<Component> label) {
         return new GaldurProgressBar(width, progress, label);
     }
 
     /**
-     * {@return la largeur qui affiche entièrement {@code label} sur la barre, ou {@code minWidth}
-     * si elle est plus grande}
+     * {@return the width that shows {@code label} in full on the bar, or {@code minWidth} if larger}
      *
-     * @param label    le texte prévu, ou {@code null} pour aucun
-     * @param minWidth largeur minimale, en pixels
+     * @param label    the expected text, or {@code null} for none
+     * @param minWidth minimum width, in pixels
      */
     public static int preferredWidth(@Nullable Component label, int minWidth) {
         int text = label == null ? 0 : GaldurRender.textWidth(label) + 2 * (TEXT_PADDING + BORDER);
         return Math.max(minWidth, text);
     }
 
-    /** {@return l'avancement lu, ramené entre {@code 0} et {@code 1} ; {@code NaN} vaut {@code 0}} */
+    /** {@return the progress read, clamped to {@code 0}..{@code 1}; {@code NaN} counts as {@code 0}} */
     private double clampedProgress() {
         double value = progress.getAsDouble();
         if (Double.isNaN(value)) {
@@ -131,10 +127,10 @@ public class GaldurProgressBar extends AbstractWidget {
     }
 
     /**
-     * Fait avancer l'avancement affiché vers l'avancement réel et le renvoie.
+     * Moves the shown progress towards the real one and returns it.
      *
-     * <p>Lissage exponentiel indépendant du nombre d'images par seconde. Une baisse est appliquée
-     * tout de suite ; une barre désactivée n'est pas animée.</p>
+     * <p>Exponential smoothing, independent of the frame rate. A decrease applies at once; a
+     * disabled bar is not animated.</p>
      */
     private double updateShown() {
         double target = clampedProgress();
@@ -152,7 +148,7 @@ public class GaldurProgressBar extends AbstractWidget {
         return shown;
     }
 
-    /** {@return la couleur à mi-chemin {@code t} (0 à 1) entre {@code from} et {@code to}, canal par canal} */
+    /** {@return the colour at {@code t} (0 to 1) between {@code from} and {@code to}, per channel} */
     private static int lerpColor(int from, int to, double t) {
         int result = 0;
         for (int shift = 0; shift <= 24; shift += 8) {
@@ -164,10 +160,10 @@ public class GaldurProgressBar extends AbstractWidget {
     }
 
     /**
-     * {@return l'intensité de l'éclat dans la colonne {@code column} de la partie remplie, de 0 à 1}
+     * {@return the shine strength in column {@code column} of the filled part, from 0 to 1}
      *
-     * <p>L'éclat part juste avant le bord gauche et sort après la tête, puis recommence ; son
-     * intensité décroît linéairement depuis son centre.</p>
+     * <p>The shine starts just before the left edge, leaves after the head, then starts over; its
+     * strength falls off linearly from its centre.</p>
      */
     private static double shineAt(int column, int filled, long now) {
         double travel = filled + SHINE_WIDTH;
@@ -224,13 +220,13 @@ public class GaldurProgressBar extends AbstractWidget {
         }
     }
 
-    /** Une barre de progression ne se clique pas : pas de son, pas de focus à la souris. */
+    /** A progress bar is not clickable: no sound, no mouse focus. */
     @Override
     protected boolean clicked(double mouseX, double mouseY) {
         return false;
     }
 
-    /** Une barre de progression est sautée par la navigation au clavier (Tab, flèches). */
+    /** A progress bar is skipped by keyboard navigation (Tab, arrows). */
     @Override
     @Nullable
     public ComponentPath nextFocusPath(FocusNavigationEvent event) {
@@ -239,7 +235,7 @@ public class GaldurProgressBar extends AbstractWidget {
 
     @Override
     protected void updateWidgetNarration(NarrationElementOutput narrationElementOutput) {
-        // « Barre de progression : Lingots de fer : 16 / 64 », puis « 25 pour cent ».
+        // "Progress bar: Iron ingots: 16 / 64", then "25 percent".
         Component text = label.get();
         Component percent = GaldurNarration.ours("progress.percent", Math.round(clampedProgress() * 100));
         narrationElementOutput.add(NarratedElementType.TITLE,

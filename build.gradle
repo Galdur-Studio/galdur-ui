@@ -13,15 +13,14 @@ version = mod_version
 group = mod_group_id
 
 repositories {
-    mavenCentral() // JUnit et Gson pour les tests unitaires
+    mavenCentral() // JUnit and Gson for the unit tests
     maven {
-        // Mods publiés sur Modrinth (ex. Spark pour profiler en dev)
+        // Mods published on Modrinth (Spark, EMI)
         url = "https://api.modrinth.com/maven"
         content { includeGroup "maven.modrinth" }
     }
     maven {
-        // JEI (Just Enough Items), pour l'intégration optionnelle (internal.compat.jei), et sa
-        // bibliothèque de configuration, dont JEI a besoin au lancement.
+        // JEI, for the optional integration (internal.compat.jei), and its config library
         url = "https://maven.blamejared.com/"
         content {
             includeGroup "mezz.jei"
@@ -34,8 +33,27 @@ base {
     archivesName = mod_id
 }
 
-// Minecraft 1.21.1 est livré aux joueurs avec Java 21 : le mod cible donc Java 21.
+// Minecraft 1.21.1 ships with Java 21.
 java.toolchain.languageVersion = JavaLanguageVersion.of(21)
+
+sourceSets {
+    // Test mod (demo screens, test blocks, dev commands): loaded by the dev runs only, never in the jar.
+    testmod {
+        compileClasspath += sourceSets.main.output
+        runtimeClasspath += sourceSets.main.output
+    }
+    // Dev tools (sprite generator): compiled on demand only, never in the jar.
+    tools {
+        java.srcDirs = ['tools']
+        resources.srcDirs = []
+    }
+}
+
+// localRuntime: present when running in dev, but not passed on to mods that depend on Galdur UI.
+configurations {
+    runtimeClasspath.extendsFrom localRuntime
+    testmodRuntimeClasspath.extendsFrom localRuntime
+}
 
 neoForge {
     version = project.neo_version
@@ -43,6 +61,15 @@ neoForge {
     parchment {
         mappingsVersion = project.parchment_mappings_version
         minecraftVersion = project.parchment_minecraft_version
+    }
+
+    mods {
+        "${mod_id}" {
+            sourceSet(sourceSets.main)
+        }
+        galduruitest {
+            sourceSet(sourceSets.testmod)
+        }
     }
 
     runs {
@@ -56,43 +83,30 @@ neoForge {
         }
 
         configureEach {
-            // Marqueurs de journal, séparés par des virgules : REGISTRIES trace les événements
-            // d'enregistrement ; SCAN (analyse des mods) et REGISTRYDUMP (contenu des registres)
-            // existent aussi.
-            systemProperty 'forge.logging.markers', 'REGISTRIES'
+            // Every dev run loads the library and the test mod.
+            sourceSet = sourceSets.testmod
+            loadedMods = [mods."${mod_id}", mods.galduruitest]
 
-            // DEBUG en console : affiche entre autres « Thème Galdur UI chargé (...) ».
+            systemProperty 'forge.logging.markers', 'REGISTRIES'
             logLevel = org.slf4j.event.Level.DEBUG
         }
     }
-
-    mods {
-        // Indique au jeu quelles sources appartiennent au mod galdurui.
-        "${mod_id}" {
-            sourceSet(sourceSets.main)
-        }
-    }
 }
 
-// localRuntime : dépendance présente au lancement en développement, mais pas transmise aux mods
-// qui dépendent de Galdur UI (contrairement à runtimeOnly).
-configurations {
-    runtimeClasspath.extendsFrom localRuntime
-}
+neoForge.addModdingDependenciesTo(sourceSets.testmod)
 
 dependencies {
-    // Tests unitaires sans Minecraft (src/test/java). Gson : même version que celle livrée avec le jeu.
+    // Unit tests without Minecraft (src/test/java). Gson: same version as the one shipped with the game.
     testImplementation platform('org.junit:junit-bom:5.11.4')
     testImplementation 'org.junit.jupiter:junit-jupiter'
     testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
     testImplementation 'com.google.code.gson:gson:2.10.1'
 
-    // Profileur Spark (/sparkc) : uniquement en dev, ni dans notre jar ni transmis à nos mods.
+    // Spark profiler (/sparkc): dev only.
     localRuntime "maven.modrinth:spark:1.10.124-neoforge-1.21.1"
 
-    // Intégrations optionnelles JEI et EMI (internal.compat) : compilées contre leur API, mais
-    // absentes du jar et non transmises à nos mods. Sans elles chez le joueur, leurs plugins ne
-    // sont simplement jamais chargés. En dev, les deux sont lancés (EMI reprend aussi les plugins JEI).
+    // Optional JEI and EMI integrations (internal.compat): compiled against their API but neither
+    // in the jar nor passed on. Without them installed, their plugins are simply never loaded.
     compileOnly "mezz.jei:jei-${minecraft_version}-common-api:${jei_version}"
     compileOnly "mezz.jei:jei-${minecraft_version}-neoforge-api:${jei_version}"
     localRuntime "mezz.jei:jei-${minecraft_version}-neoforge:${jei_version}"
@@ -100,8 +114,8 @@ dependencies {
     localRuntime "maven.modrinth:emi:${emi_version}+neoforge"
 }
 
-// Remplace les ${...} des gabarits de src/main/templates (neoforge.mods.toml) par les valeurs de
-// gradle.properties. Une propriété manquante fait échouer le build.
+// Fills the ${...} placeholders of src/main/templates (neoforge.mods.toml) from gradle.properties.
+// A missing property fails the build.
 var generateModMetadata = tasks.register("generateModMetadata", ProcessResources) {
     var replaceProperties = [
             minecraft_version      : minecraft_version,
@@ -120,16 +134,14 @@ var generateModMetadata = tasks.register("generateModMetadata", ProcessResources
     from "src/main/templates"
     into "build/generated/sources/modMetadata"
 }
-// Le résultat est ajouté aux ressources, pour Gradle comme pour l'IDE, et régénéré à chaque
-// synchronisation du projet dans l'IDE.
 sourceSets.main.resources.srcDir generateModMetadata
 neoForge.ideSyncTask generateModMetadata
 
-// Publication Maven TEMPORAIRE vers le dossier local repo/ : à remplacer par le vrai dépôt
-// Maven de Galdur Studio quand nos mods dépendront de Galdur UI.
+// TEMPORARY Maven publication to the local repo/ folder, until Galdur Studio has a Maven repository.
 publishing {
     publications {
         register('mavenJava', MavenPublication) {
+            artifactId = mod_id
             from components.java
         }
     }
@@ -140,29 +152,15 @@ publishing {
     }
 }
 
-// Packs de ressources de développement (internal.dev.DevPacks) : jamais livrés aux joueurs.
-tasks.named('jar') {
-    exclude 'resourcepacks/**'
-}
-
 tasks.named('test', Test) {
     useJUnitPlatform()
 }
 
-// Outils de développement (générateur de sprites) : source set séparé, compilé uniquement
-// à la demande et jamais inclus dans le jar du mod.
-sourceSets {
-    tools {
-        java.srcDirs = ['tools']
-        resources.srcDirs = []
-    }
-}
-
-// Régénère les sprites 9-slice en niveaux de gris (la couleur vient du thème, au rendu).
-// À lancer à la main, pas lié au build ; la CI vérifie que les PNG commités sont à jour.
+// Regenerates the grayscale 9-slice sprites (colour comes from the theme at render time).
+// Run by hand; CI checks that the committed PNGs are up to date.
 tasks.register('generateSprites', JavaExec) {
     group = 'galdur'
-    description = 'Génère les sprites 9-slice en niveaux de gris (PNG + .mcmeta), teintés au rendu par le thème.'
+    description = 'Generates the grayscale 9-slice sprites (PNG + .mcmeta), tinted by the theme at render time.'
     classpath = sourceSets.tools.runtimeClasspath
     mainClass = 'GenerateSprites'
     workingDir = projectDir
@@ -170,10 +168,9 @@ tasks.register('generateSprites', JavaExec) {
 }
 
 tasks.withType(JavaCompile).configureEach {
-    options.encoding = 'UTF-8' // sources et Javadoc en français, avec accents
+    options.encoding = 'UTF-8'
 }
 
-// IntelliJ ne télécharge plus de lui-même les sources et la Javadoc des dépendances.
 idea {
     module {
         downloadSources = true

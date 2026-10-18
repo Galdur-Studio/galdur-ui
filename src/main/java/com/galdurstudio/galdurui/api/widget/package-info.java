@@ -1,15 +1,9 @@
 /**
- * Widgets de Galdur UI : boutons (à texte ou à icône), libellés, cases à cocher, listes
- * défilantes, champs de recherche, onglets, barres de progression, cases d'objet et grilles
- * d'objets défilantes aux couleurs de la charte.
+ * Themed widgets: text and icon buttons, labels, checkboxes, scrolling lists, search fields, tabs,
+ * progress bars, item slots and scrolling item grids. They extend {@code AbstractWidget}, so they
+ * work in any vanilla screen and layout.
  *
- * <p>API publique, stable dans une même version majeure. Ces classes héritent de classes
- * vanilla ({@code AbstractWidget}) pour s'intégrer aux écrans et aux layouts
- * du jeu : un changement de ces classes chez Mojang peut imposer une version majeure de
- * Galdur UI (voir la section « Compatibilité et versions » du README).</p>
- *
- * <p><strong>Règle pour nos mods</strong> : construire et dessiner les écrans uniquement avec
- * l'API Galdur ({@code com.galdurstudio.galdurui.api}), jamais en appelant {@code GuiGraphics}
- * directement, et ne jamais dépendre de {@code com.galdurstudio.galdurui.internal}.</p>
+ * <p>Public API, stable within a major version. A Mojang change to {@code AbstractWidget} may force
+ * a new major version (see "Compatibility and versions" in the README).</p>
  */
 package com.galdurstudio.galdurui.api.widget;

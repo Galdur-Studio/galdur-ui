@@ -11,22 +11,20 @@ import dev.emi.emi.api.widget.Bounds;
 import net.minecraft.client.renderer.Rect2i;
 
 /**
- * Intégration EMI de Galdur UI, découverte par EMI grâce à {@link EmiEntrypoint} et chargée
- * seulement s'il est installé :
+ * EMI integration of Galdur UI, found by EMI through {@link EmiEntrypoint} and loaded only when
+ * EMI is installed:
  * <ul>
- *   <li>la liste d'objets d'EMI évite les zones de
- *       {@link GaldurContainerScreen#getExclusionZones()} ;</li>
- *   <li>survoler un objet d'une {@code GaldurItemGrid} puis appuyer sur R ou U montre ses
- *       recettes, et EMI peut l'afficher dans ses favoris.</li>
+ *   <li>EMI's item list avoids the {@link GaldurContainerScreen#getExclusionZones()} areas;</li>
+ *   <li>hovering an item of a {@code GaldurItemGrid} and pressing R or U shows its recipes, and
+ *       EMI can add it to its favourites.</li>
  * </ul>
  *
- * <p>Aucune autre classe de Galdur UI ne référence celle-ci : sans EMI, elle n'est jamais
- * chargée.</p>
+ * <p>No other Galdur UI class references this one: without EMI it is never loaded.</p>
  */
 @EmiEntrypoint
 public class GaldurEmiPlugin implements EmiPlugin {
     @Override
-    @SuppressWarnings({"unchecked", "rawtypes"}) // GaldurContainerScreen est générique : Class<GaldurContainerScreen<?>> n'existe pas
+    @SuppressWarnings({"unchecked", "rawtypes"}) // GaldurContainerScreen is generic: Class<GaldurContainerScreen<?>> does not exist
     public void register(EmiRegistry registry) {
         registry.addExclusionArea((Class) GaldurContainerScreen.class, (screen, consumer) -> {
             for (Rect2i zone : ((GaldurContainerScreen<?>) screen).getExclusionZones()) {

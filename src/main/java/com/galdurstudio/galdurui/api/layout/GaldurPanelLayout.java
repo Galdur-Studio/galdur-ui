@@ -11,62 +11,56 @@ import net.minecraft.client.gui.layouts.LayoutElement;
 import net.minecraft.resources.ResourceLocation;
 
 /**
- * Layout qui entoure un enfant d'un panneau de fond aux couleurs de la charte.
- *
- * <p>Sa taille est celle de l'enfant augmentée du padding sur les quatre côtés ; l'enfant est
- * placé à l'intérieur, et le fond 9-slice suit la position et la taille finales du layout.
- * Combiné aux layouts vanilla, il évite tout calcul de coordonnées dans les écrans :</p>
+ * Layout that wraps a child in a themed background panel. Its size is the child's plus the
+ * padding on every side, and the 9-slice background follows its final position and size. Combined
+ * with the vanilla layouts, screens need no coordinate maths:
  *
  * <pre>{@code
- * LinearLayout colonne = LinearLayout.vertical().spacing(GaldurTheme.gap());
- * // ... colonne.addChild(...)
- * GaldurPanelLayout panneau = new GaldurPanelLayout(colonne);
- * addRenderableOnly(panneau);                     // en premier : le fond passe derrière
- * panneau.visitWidgets(this::addRenderableWidget);
- * panneau.arrangeElements();
- * FrameLayout.centerInRectangle(panneau, getRectangle());
+ * LinearLayout column = LinearLayout.vertical().spacing(GaldurTheme.gap());
+ * // ... column.addChild(...)
+ * GaldurPanelLayout panel = new GaldurPanelLayout(column);
+ * addRenderableOnly(panel);                     // first, so the background is drawn behind
+ * panel.visitWidgets(this::addRenderableWidget);
+ * panel.arrangeElements();
+ * FrameLayout.centerInRectangle(panel, getRectangle());
  * }</pre>
  *
- * <p>Sans {@link #padding(int)} explicite (ou après {@link #useThemePadding()}), le padding est
- * relu dans le thème ({@code spacing.panel_padding}) à chaque {@link #arrangeElements()}.</p>
+ * <p>Unless {@link #padding(int)} is set, the padding is read from the theme
+ * ({@code spacing.panel_padding}) on every {@link #arrangeElements()}.</p>
  */
 public class GaldurPanelLayout extends AbstractLayout implements Renderable {
     private final LayoutElement child;
     private final GaldurPanel background = new GaldurPanel(0, 0, 0, 0);
 
-    /** Padding imposé ; vide = suivre le thème. */
+    /** Fixed padding; empty = follow the theme. */
     private OptionalInt padding = OptionalInt.empty();
 
-    /**
-     * Crée un panneau autour de {@code child}.
-     *
-     * @param child contenu du panneau, en général un {@code LinearLayout}
-     */
+    /** @param child panel contents, usually a {@code LinearLayout} */
     public GaldurPanelLayout(LayoutElement child) {
         super(0, 0, 0, 0);
         this.child = child;
     }
 
     /**
-     * Fixe le padding au lieu de suivre le thème.
+     * Fixes the padding instead of following the theme.
      *
-     * @param padding marge entre le bord du panneau et l'enfant, en pixels d'interface
-     * @return ce layout, pour chaîner les appels
-     * @throws IllegalArgumentException si {@code padding} est négatif
+     * @param padding space between the panel edge and the child, in GUI pixels
+     * @return this layout
+     * @throws IllegalArgumentException if {@code padding} is negative
      */
     public GaldurPanelLayout padding(int padding) {
         if (padding < 0) {
-            throw new IllegalArgumentException("Le padding d'un GaldurPanelLayout doit être positif ou nul, reçu : "
-                    + padding + ". Pour suivre le thème, utiliser useThemePadding().");
+            throw new IllegalArgumentException("GaldurPanelLayout padding must be zero or positive, got "
+                    + padding + ". To follow the theme, use useThemePadding().");
         }
         this.padding = OptionalInt.of(padding);
         return this;
     }
 
     /**
-     * Revient au padding du thème ({@code spacing.panel_padding}), relu à chaque arrangement.
+     * Goes back to the theme padding ({@code spacing.panel_padding}).
      *
-     * @return ce layout, pour chaîner les appels
+     * @return this layout
      */
     public GaldurPanelLayout useThemePadding() {
         this.padding = OptionalInt.empty();
@@ -74,22 +68,22 @@ public class GaldurPanelLayout extends AbstractLayout implements Renderable {
     }
 
     /**
-     * Remplace le sprite de fond, par exemple pour qu'un mod utilise le sien.
+     * Replaces the background sprite.
      *
-     * @param sprite identifiant d'un sprite d'interface, idéalement découpé en 9-slice
-     * @return ce layout, pour chaîner les appels
+     * @param sprite GUI sprite id, ideally a grayscale 9-slice (tinted by the theme)
+     * @return this layout
      */
     public GaldurPanelLayout withSprite(ResourceLocation sprite) {
         background.withSprite(sprite);
         return this;
     }
 
-    /** {@return le padding effectif, en pixels d'interface} */
+    /** {@return the effective padding, in GUI pixels} */
     public int getPadding() {
         return padding.orElseGet(GaldurTheme::panelPadding);
     }
 
-    /** {@return l'élément entouré par le panneau} */
+    /** {@return the element inside the panel} */
     public LayoutElement getChild() {
         return child;
     }
@@ -101,7 +95,7 @@ public class GaldurPanelLayout extends AbstractLayout implements Renderable {
 
     @Override
     public void arrangeElements() {
-        // Arrange d'abord l'enfant (s'il est lui-même un layout) pour connaître sa taille.
+        // Arrange the child first (if it is a layout) to know its size.
         super.arrangeElements();
         int pad = getPadding();
         child.setPosition(getX() + pad, getY() + pad);

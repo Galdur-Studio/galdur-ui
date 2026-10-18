@@ -4,20 +4,20 @@ import com.galdurstudio.galdurui.internal.window.WindowElement;
 import com.galdurstudio.galdurui.internal.window.WindowModel;
 
 /**
- * Poignée vers un onglet d'une rangée d'onglets ({@link TabsHandle}) : son contenu, rempli comme
- * une fenêtre avec les méthodes {@code add...(...)} héritées de {@link ElementContainer}.
+ * Handle to one tab of a tab row ({@link TabsHandle}): its content, filled like a window with the
+ * {@code add...(...)} methods inherited from {@link ElementContainer}.
  *
  * <pre>{@code
- * TabHandle stockage = onglets.addTab(Component.literal("Stockage"));
- * SearchHandle recherche = stockage.addSearch(Component.literal("Rechercher..."));
- * ListHandle objets = stockage.addList(6);
+ * TabHandle storage = tabs.addTab(Component.literal("Storage"));
+ * SearchHandle search = storage.addSearch(Component.literal("Search..."));
+ * ListHandle items = storage.addList(6);
  * }</pre>
  *
- * <p>Le contenu n'est affiché que lorsque l'onglet est actif, mais ses poignées restent
- * utilisables à tout moment : un changement dans un onglet caché est visible quand on y revient.
- * Un onglet ne contient pas d'autre rangée d'onglets.</p>
+ * <p>The content is only shown while the tab is active, but its handles stay usable at any time:
+ * a change in a hidden tab shows when the player comes back. A tab does not contain another tab
+ * row.</p>
  *
- * <p>À appeler sur le thread du client.</p>
+ * <p>Call on the client thread.</p>
  */
 public class TabHandle extends ElementContainer {
     private final TabsHandle owner;
@@ -25,11 +25,11 @@ public class TabHandle extends ElementContainer {
     private final int index;
 
     /**
-     * Non publique : seule {@link TabsHandle} crée des onglets.
+     * Package-private: only {@link TabsHandle} creates tabs.
      *
-     * @param owner   la rangée d'onglets, prévenue de chaque changement du contenu
-     * @param content les éléments de l'onglet, partagés avec l'élément affiché
-     * @param index   la position de l'onglet dans la rangée
+     * @param owner   the tab row, notified of every content change
+     * @param content the tab's elements, shared with the shown element
+     * @param index   the tab position in the row
      */
     TabHandle(TabsHandle owner, WindowModel content, int index) {
         this.owner = owner;
@@ -38,10 +38,10 @@ public class TabHandle extends ElementContainer {
     }
 
     /**
-     * Ajoute un élément au contenu et branche sa poignée sur la rangée d'onglets : un changement
-     * de l'élément remonte ainsi jusqu'à la fenêtre.
+     * Adds an element to the content and wires its handle to the tab row: a change to the element
+     * thus reaches the window.
      *
-     * @return la poignée de l'élément, renvoyée telle quelle au mod
+     * @return the element's handle, returned as is to the mod
      */
     @Override
     <H extends ElementHandle> H add(WindowElement element, H handle) {
@@ -51,17 +51,17 @@ public class TabHandle extends ElementContainer {
         return handle;
     }
 
-    /** {@return la position de l'onglet dans sa rangée, à partir de 0} */
+    /** {@return the tab position in its row, starting at 0} */
     public int getIndex() {
         return index;
     }
 
-    /** {@return {@code true} si cet onglet est l'onglet actif} */
+    /** {@return {@code true} if this tab is the active one} */
     public boolean isSelected() {
         return owner.getSelected() == index;
     }
 
-    /** Rend cet onglet actif ; équivaut à {@code setSelected(getIndex())} sur la rangée. */
+    /** Makes this tab active; same as {@code setSelected(getIndex())} on the row. */
     public void select() {
         owner.setSelected(index);
     }

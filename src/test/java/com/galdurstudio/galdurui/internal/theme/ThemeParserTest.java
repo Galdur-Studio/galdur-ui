@@ -18,63 +18,63 @@ class ThemeParserTest {
     }
 
     @Test
-    void lit_une_couleur_RRGGBB_avec_alpha_opaque() {
+    void readsRrggbbAsOpaque() {
         assertEquals(0xFFB8341F, parse("{\"accent\": \"#B8341F\"}").colors().get("accent"));
         assertTrue(warnings.isEmpty());
     }
 
     @Test
-    void lit_une_couleur_RRGGBB_sans_diese() {
+    void readsRrggbbWithoutHash() {
         assertEquals(0xFFB8341F, parse("{\"accent\": \"B8341F\"}").colors().get("accent"));
     }
 
     @Test
-    void lit_une_couleur_AARRGGBB_avec_son_alpha() {
+    void keepsAlphaOfAarrggbb() {
         assertEquals(0x80B8341F, parse("{\"accent\": \"#80B8341F\"}").colors().get("accent"));
     }
 
     @Test
-    void lit_une_couleur_donnee_en_entier() {
+    void readsIntegerColor() {
         assertEquals(0xFF00FF00, parse("{\"accent\": " + 0xFF00FF00 + "}").colors().get("accent"));
     }
 
     @Test
-    void force_l_alpha_d_un_entier_sur_24_bits_avec_un_avertissement() {
+    void forcesAlphaOf24BitIntegerWithWarning() {
         assertEquals(0xFFFF0000, parse("{\"accent\": 16711680}").colors().get("accent"));
         assertEquals(1, warnings.size());
-        assertTrue(warnings.get(0).contains("#FF0000"), () -> "conseil #RRGGBB absent : " + warnings);
+        assertTrue(warnings.get(0).contains("#FF0000"), () -> "missing #RRGGBB hint: " + warnings);
     }
 
     @Test
-    void garde_tel_quel_un_entier_avec_alpha() {
-        // 0x80B8341F écrit en décimal non signé, comme dans un fichier JSON.
+    void keepsIntegerWithAlphaAsIs() {
+        // 0x80B8341F written as an unsigned decimal, as in a JSON file.
         assertEquals(0x80B8341F, parse("{\"accent\": " + Integer.toUnsignedString(0x80B8341F) + "}").colors().get("accent"));
-        assertTrue(warnings.isEmpty(), () -> "avertissements inattendus : " + warnings);
+        assertTrue(warnings.isEmpty(), () -> "unexpected warnings: " + warnings);
     }
 
     @Test
-    void ignore_les_cles_commencant_par_un_tiret_bas() {
+    void ignoresUnderscoreKeys() {
         ThemeParser.Theme theme = parse("""
                 {
-                  "_comment": "texte",
+                  "_comment": "text",
                   "text": "#FFFFFF",
-                  "spacing": { "_comment": "texte", "gap": 8 }
+                  "spacing": { "_comment": "text", "gap": 8 }
                 }
                 """);
         assertEquals(List.of("text"), List.copyOf(theme.colors().keySet()));
         assertEquals(List.of("gap"), List.copyOf(theme.spacing().keySet()));
-        assertTrue(warnings.isEmpty(), () -> "avertissements inattendus : " + warnings);
+        assertTrue(warnings.isEmpty(), () -> "unexpected warnings: " + warnings);
     }
 
     @Test
-    void la_section_spacing_n_est_pas_une_couleur() {
+    void spacingSectionIsNotAColor() {
         ThemeParser.Theme theme = parse("{\"spacing\": {\"gap\": 8}}");
         assertFalse(theme.colors().containsKey("spacing"));
         assertEquals(8, theme.spacing().get("gap"));
     }
 
     @Test
-    void ignore_une_couleur_invalide_avec_un_avertissement() {
+    void skipsInvalidColorWithWarning() {
         ThemeParser.Theme theme = parse("{\"text\": \"#FFF\", \"accent\": \"#B8341F\"}");
         assertFalse(theme.colors().containsKey("text"));
         assertEquals(0xFFB8341F, theme.colors().get("accent"));
@@ -82,7 +82,7 @@ class ThemeParserTest {
     }
 
     @Test
-    void rejette_un_espacement_negatif() {
+    void rejectsNegativeSpacing() {
         ThemeParser.Theme theme = parse("{\"spacing\": {\"gap\": -4, \"panel_padding\": 16}}");
         assertFalse(theme.spacing().containsKey("gap"));
         assertEquals(16, theme.spacing().get("panel_padding"));
@@ -91,21 +91,27 @@ class ThemeParserTest {
     }
 
     @Test
-    void avertit_sur_un_espacement_decimal_et_l_arrondit_a_l_entier_inferieur() {
+    void roundsDecimalSpacingDownWithWarning() {
         ThemeParser.Theme theme = parse("{\"spacing\": {\"gap\": 4.7}}");
         assertEquals(4, theme.spacing().get("gap"));
         assertEquals(1, warnings.size());
-        assertTrue(warnings.get(0).contains("décimal"));
+        assertTrue(warnings.get(0).contains("Decimal"));
     }
 
     @Test
-    void ignore_un_espacement_qui_n_est_pas_un_nombre() {
+    void skipsNonNumericSpacing() {
         assertFalse(parse("{\"spacing\": {\"gap\": \"8\"}}").spacing().containsKey("gap"));
         assertEquals(1, warnings.size());
     }
 
     @Test
-    void refuse_un_document_qui_n_est_pas_un_objet() {
+    void warnsWhenSpacingIsNotAnObject() {
+        assertTrue(parse("{\"spacing\": 8}").spacing().isEmpty());
+        assertEquals(1, warnings.size());
+    }
+
+    @Test
+    void rejectsNonObjectDocument() {
         assertThrows(IllegalArgumentException.class, () -> parse("[1, 2, 3]"));
     }
 }

@@ -6,35 +6,30 @@ import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.resources.ResourceLocation;
 
 /**
- * Polices de la charte Galdur, à appliquer à un texte par son style.
+ * Brand fonts, applied to a text through its style.
  *
- * <p>{@link #TITLE} est la police des titres : Fredoka SemiBold, ronde et épaisse comme le logo,
- * sous licence SIL Open Font License 1.1 ({@code assets/galdurui/font/fredoka_OFL.txt}). Elle
- * est décrite par {@code assets/galdurui/font/title.json} : un pack de ressources peut donc la
- * remplacer. Les caractères absents de la police (emoji, alphabets non latins...) sont pris dans
- * la police de Minecraft.</p>
+ * <p>{@link #TITLE} is the title font: Fredoka SemiBold, round and bold like the Galdur logo,
+ * under the SIL Open Font License 1.1 ({@code assets/galdurui/font/fredoka_OFL.txt}). It is
+ * described by {@code assets/galdurui/font/title.json}, so a resource pack can replace it.
+ * Characters missing from it (emoji, non-Latin scripts...) come from the Minecraft font.</p>
  *
  * <pre>{@code
- * GaldurRender.text(graphics, GaldurFonts.title(Component.literal("Stockage")), x, y, couleur, false);
+ * Component title = GaldurFonts.title(Component.literal("Storage"));
  * }</pre>
  *
- * <p>Les titres de {@code GaldurWindow} ({@code addTitle}) et des écrans de menu
- * ({@code GaldurContainerScreen}) l'utilisent déjà.</p>
+ * <p>{@code GaldurWindow} titles ({@code addTitle}) and {@code GaldurContainerScreen} titles
+ * already use it.</p>
  */
 public final class GaldurFonts {
-    /** Police des titres, {@code galdurui:title}. */
+    /** Title font, {@code galdurui:title}. */
     public static final ResourceLocation TITLE = ResourceLocation.fromNamespaceAndPath(GaldurUI.MODID, "title");
 
     private GaldurFonts() {
     }
 
     /**
-     * {@return une copie de {@code text} dans la police des titres}
-     *
-     * <p>Le texte reçu n'est pas modifié. Un morceau du texte qui impose sa propre police la
-     * garde.</p>
-     *
-     * @param text le texte à afficher en titre
+     * {@return a copy of {@code text} in the title font}; the given text is not modified, and a
+     * part of it that sets its own font keeps it
      */
     public static MutableComponent title(Component text) {
         return text.copy().withStyle(style -> style.withFont(TITLE));

@@ -1,9 +1,7 @@
-# Métadonnées du mod Galdur UI. Les variables sont remplacées par les valeurs de
-# gradle.properties (tâche generateModMetadata).
+# Galdur UI metadata. Placeholders are filled from gradle.properties (generateModMetadata task).
 
 modLoader="javafml"
 
-# Plage de versions de FML acceptées.
 loaderVersion="${loader_version_range}"
 
 license="${mod_license}"

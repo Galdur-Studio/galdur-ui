@@ -8,31 +8,30 @@ import net.minecraft.client.gui.components.Renderable;
 import net.minecraft.resources.ResourceLocation;
 
 /**
- * Panneau de fond aux couleurs de la charte, dessiné avec un sprite 9-slice.
+ * Themed background panel, drawn with a 9-slice sprite.
  *
- * <p>Le sprite est en niveaux de gris et teinté au rendu avec la couleur {@code background}
- * du thème, relue à chaque image.</p>
+ * <p>The sprite is grayscale and tinted at render time with the theme {@code background} colour,
+ * read every frame.</p>
  *
- * <p><strong>Interne</strong> : seul {@link com.galdurstudio.galdurui.api.layout.GaldurPanelLayout}
- * l'utilise. Il expose des coordonnées, ce que l'API publique évite : ne pas en dépendre depuis
- * un autre mod.</p>
+ * <p><strong>Internal</strong>: only {@link com.galdurstudio.galdurui.api.layout.GaldurPanelLayout}
+ * uses it. It exposes coordinates, which the public API avoids: do not depend on it from another
+ * mod.</p>
  *
- * <p>Élément purement décoratif : il ne reçoit ni clic ni focus, et sert de support aux
- * widgets posés dessus. Comme il implémente {@link Renderable}, on l'ajoute à un écran avec
- * {@code addRenderableOnly(...)} — en premier, pour qu'il passe derrière le reste.</p>
+ * <p>Purely decorative: it takes neither clicks nor focus and sits behind the widgets placed on
+ * it. Since it implements {@link Renderable}, add it to a screen with
+ * {@code addRenderableOnly(...)}, first, so it is drawn behind the rest.</p>
  *
  * <pre>{@code
- * GaldurPanel fond = new GaldurPanel(x, y, 220, 140);
- * addRenderableOnly(fond);
+ * GaldurPanel background = new GaldurPanel(x, y, 220, 140);
+ * addRenderableOnly(background);
  * }</pre>
  *
- * <p>Pour entourer un layout, passer par
- * {@link com.galdurstudio.galdurui.api.layout.GaldurPanelLayout}, qui dimensionne et place ce
- * fond tout seul.</p>
+ * <p>To wrap a layout, use {@link com.galdurstudio.galdurui.api.layout.GaldurPanelLayout}, which
+ * sizes and places this background by itself.</p>
  *
- * <p>Les coins du sprite ne sont pas étirés. Sous deux fois la bordure de côté (8 px pour le
- * sprite livré), Minecraft réduit la bordure à la moitié de la taille : les coins ne se
- * chevauchent pas, mais ils sont rognés.</p>
+ * <p>Sprite corners are not stretched. Below twice the border per side (8 px for the shipped
+ * sprite), Minecraft shrinks the border to half the size: corners do not overlap, but they are
+ * cropped.</p>
  */
 public class GaldurPanel implements Renderable {
     private int x;
@@ -41,16 +40,16 @@ public class GaldurPanel implements Renderable {
     private int height;
     private ResourceLocation sprite = GaldurSprites.PANEL;
 
-    /** Indique si le panneau doit être dessiné. */
+    /** Whether the panel is drawn. */
     public boolean visible = true;
 
     /**
-     * Crée un panneau.
+     * Creates a panel.
      *
-     * @param x      abscisse du coin supérieur gauche
-     * @param y      ordonnée du coin supérieur gauche
-     * @param width  largeur, en pixels d'interface
-     * @param height hauteur, en pixels d'interface
+     * @param x      x of the top-left corner
+     * @param y      y of the top-left corner
+     * @param width  width, in GUI pixels
+     * @param height height, in GUI pixels
      */
     public GaldurPanel(int x, int y, int width, int height) {
         this.x = x;
@@ -60,13 +59,13 @@ public class GaldurPanel implements Renderable {
     }
 
     /**
-     * Remplace le sprite de fond, par exemple pour qu'un mod utilise le sien.
+     * Replaces the background sprite, for instance so a mod can use its own.
      *
-     * <p>Le sprite est lui aussi teinté avec {@code background} : le fournir en niveaux de
-     * gris (le blanc prend exactement la couleur du thème).</p>
+     * <p>The sprite is tinted with {@code background} too: provide it in grayscale (white takes
+     * exactly the theme colour).</p>
      *
-     * @param sprite identifiant d'un sprite d'interface, idéalement découpé en 9-slice
-     * @return ce panneau, pour chaîner les appels
+     * @param sprite id of a GUI sprite, ideally 9-slice
+     * @return this panel, for chaining
      */
     public GaldurPanel withSprite(ResourceLocation sprite) {
         this.sprite = sprite;
@@ -74,15 +73,15 @@ public class GaldurPanel implements Renderable {
     }
 
     /**
-     * Déplace et redimensionne le panneau.
+     * Moves and resizes the panel.
      *
-     * <p>Utile depuis {@code Screen#init()}, qui est rappelé à chaque changement de taille de
-     * fenêtre ou d'échelle d'interface.</p>
+     * <p>Useful from {@code Screen#init()}, which is called again on every window size or GUI
+     * scale change.</p>
      *
-     * @param x      abscisse du coin supérieur gauche
-     * @param y      ordonnée du coin supérieur gauche
-     * @param width  largeur, en pixels d'interface
-     * @param height hauteur, en pixels d'interface
+     * @param x      x of the top-left corner
+     * @param y      y of the top-left corner
+     * @param width  width, in GUI pixels
+     * @param height height, in GUI pixels
      */
     public void setBounds(int x, int y, int width, int height) {
         this.x = x;
@@ -91,37 +90,37 @@ public class GaldurPanel implements Renderable {
         this.height = height;
     }
 
-    /** {@return l'abscisse du coin supérieur gauche} */
+    /** {@return the x of the top-left corner} */
     public int getX() {
         return x;
     }
 
-    /** {@return l'ordonnée du coin supérieur gauche} */
+    /** {@return the y of the top-left corner} */
     public int getY() {
         return y;
     }
 
-    /** {@return la largeur du panneau, en pixels d'interface} */
+    /** {@return the panel width, in GUI pixels} */
     public int getWidth() {
         return width;
     }
 
-    /** {@return la hauteur du panneau, en pixels d'interface} */
+    /** {@return the panel height, in GUI pixels} */
     public int getHeight() {
         return height;
     }
 
-    /** {@return l'abscisse du centre du panneau} */
+    /** {@return the x of the panel centre} */
     public int getCenterX() {
         return x + width / 2;
     }
 
-    /** {@return l'abscisse du bord droit, exclue} */
+    /** {@return the x of the right edge, exclusive} */
     public int getRight() {
         return x + width;
     }
 
-    /** {@return l'ordonnée du bord inférieur, exclue} */
+    /** {@return the y of the bottom edge, exclusive} */
     public int getBottom() {
         return y + height;
     }

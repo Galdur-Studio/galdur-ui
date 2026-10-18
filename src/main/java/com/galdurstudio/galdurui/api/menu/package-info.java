@@ -1,11 +1,9 @@
 /**
- * Menus à slots de Galdur UI, côté logique (client et serveur).
+ * Slot menus, logic side (client and server): {@link com.galdurstudio.galdurui.api.menu.GaldurMenu}
+ * places slot grids and the player inventory and handles Shift-click. No client class is used, so
+ * this package is safe on a dedicated server. Rendering is in
+ * {@link com.galdurstudio.galdurui.api.screen}.
  *
- * <p>{@link com.galdurstudio.galdurui.api.menu.GaldurMenu} place les grilles de slots et
- * l'inventaire du joueur, et gère le Maj+clic. Ce package ne dépend d'aucune classe client : il
- * peut être chargé sur un serveur dédié. L'affichage est dans
- * {@link com.galdurstudio.galdurui.api.screen}.</p>
- *
- * <p>API publique, stable dans une même version majeure.</p>
+ * <p>Public API, stable within a major version.</p>
  */
 package com.galdurstudio.galdurui.api.menu;

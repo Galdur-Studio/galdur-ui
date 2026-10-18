@@ -3,25 +3,25 @@ package com.galdurstudio.galdurui.api.anim;
 import java.util.function.DoubleUnaryOperator;
 
 /**
- * Nombre qui passe d'une valeur à une autre en un temps donné, en suivant une courbe
+ * A number that moves from one value to another over a given time, along an easing curve
  * ({@link GaldurEasing}).
  *
- * <p>On donne la cible quand on veut, par exemple à chaque image ; l'animation ne repart que si
- * la cible change, et elle part de la valeur affichée à ce moment : changer d'avis en plein
- * milieu ne fait pas sauter l'affichage.</p>
+ * <p>Set the target whenever you like, every frame for instance: a transition only starts when
+ * the target changes, and it starts from the value shown at that moment, so changing course midway
+ * never jumps.</p>
  *
  * <pre>{@code
- * private final AnimatedValue survol = new AnimatedValue(0, GaldurAnimations.HOVER_MS, GaldurEasing.OUT_QUAD);
+ * private final AnimatedValue hover = new AnimatedValue(0, GaldurAnimations.HOVER_MS, GaldurEasing.OUT_QUAD);
  *
- * protected void renderWidget(GuiGraphics g, int mouseX, int mouseY, float partialTick) {
- *     survol.setTarget(isHovered() ? 1 : 0);
- *     int couleur = melanger(repos, survole, survol.get());
+ * protected void renderWidget(GuiGraphics graphics, int mouseX, int mouseY, float partialTick) {
+ *     hover.setTarget(isHovered() ? 1 : 0);
+ *     int color = mix(idle, hovered, hover.get());
  *     ...
  * }
  * }</pre>
  *
- * <p>Si le joueur a coupé les animations ({@link GaldurAnimations#enabled()}), {@link #get()}
- * renvoie directement la cible. À utiliser sur le thread du client.</p>
+ * <p>When the player turned animations off, {@link #get()} returns the target directly. Client
+ * thread only.</p>
  */
 public final class AnimatedValue {
     private final long durationMs;
@@ -31,9 +31,9 @@ public final class AnimatedValue {
     private long start;
 
     /**
-     * @param initial    valeur de départ, affichée sans animation
-     * @param durationMs durée d'une transition, en millisecondes
-     * @param easing     courbe de la transition, par exemple {@link GaldurEasing#OUT_CUBIC}
+     * @param initial    starting value, shown without animation
+     * @param durationMs duration of a transition, in milliseconds
+     * @param easing     transition curve, for example {@link GaldurEasing#OUT_CUBIC}
      */
     public AnimatedValue(double initial, long durationMs, DoubleUnaryOperator easing) {
         this.durationMs = durationMs;
@@ -42,12 +42,7 @@ public final class AnimatedValue {
         this.to = initial;
     }
 
-    /**
-     * Change la cible. Sans effet si c'est déjà la cible ; sinon une transition part de la
-     * valeur affichée en ce moment.
-     *
-     * @param target la nouvelle valeur à atteindre
-     */
+    /** Changes the target; a transition starts from the current value unless it already is the target. */
     public void setTarget(double target) {
         if (target == to) {
             return;
@@ -57,17 +52,13 @@ public final class AnimatedValue {
         start = GaldurAnimations.now();
     }
 
-    /**
-     * Place la valeur directement sur {@code value}, sans transition.
-     *
-     * @param value la nouvelle valeur
-     */
+    /** Jumps to {@code value} without a transition. */
     public void snap(double value) {
         from = value;
         to = value;
     }
 
-    /** {@return la valeur à afficher maintenant} */
+    /** {@return the value to show now} */
     public double get() {
         double t = GaldurAnimations.progress(start, durationMs);
         if (t >= 1) {
@@ -76,12 +67,12 @@ public final class AnimatedValue {
         return from + (to - from) * easing.applyAsDouble(t);
     }
 
-    /** {@return la cible actuelle} */
+    /** {@return the value being moved towards} */
     public double getTarget() {
         return to;
     }
 
-    /** {@return {@code true} tant que la valeur affichée n'a pas atteint la cible} */
+    /** {@return {@code true} while the shown value has not reached the target} */
     public boolean isRunning() {
         return get() != to;
     }

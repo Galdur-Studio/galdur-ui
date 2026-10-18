@@ -5,33 +5,33 @@ import java.util.List;
 import net.minecraft.network.chat.Component;
 
 /**
- * Contenu d'une rangée d'onglets : le titre et les éléments de chaque onglet, dans l'ordre.
+ * Content of a tab row: the title and elements of each tab, in order.
  *
- * <p>Partagé entre la poignée publique
- * ({@link com.galdurstudio.galdurui.api.window.TabsHandle}), qui y ajoute les onglets, et
- * {@link TabsElement}, que {@link WindowScreen} lit pour construire l'affichage.</p>
+ * <p>Shared between the public handle ({@link com.galdurstudio.galdurui.api.window.TabsHandle}),
+ * which adds tabs to it, and {@link TabsElement}, which {@link WindowScreen} reads to build the
+ * display.</p>
  */
 public class TabsModel {
     private final List<Component> titles = new ArrayList<>();
     private final List<WindowModel> contents = new ArrayList<>();
 
     /**
-     * Ajoute un onglet à la fin.
+     * Adds a tab at the end.
      *
-     * @param title   le titre de l'onglet
-     * @param content les éléments de l'onglet
+     * @param title   the tab title
+     * @param content the tab's elements
      */
     public void add(Component title, WindowModel content) {
         titles.add(title);
         contents.add(content);
     }
 
-    /** {@return les titres des onglets, dans l'ordre ; copie non modifiable} */
+    /** {@return the tab titles, in order; unmodifiable copy} */
     public List<Component> titles() {
         return List.copyOf(titles);
     }
 
-    /** {@return le contenu de chaque onglet, dans l'ordre ; copie non modifiable} */
+    /** {@return each tab's content, in order; unmodifiable copy} */
     public List<WindowModel> contents() {
         return List.copyOf(contents);
     }

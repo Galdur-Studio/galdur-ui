@@ -1,6 +1,8 @@
 # Galdur UI
 
-Bibliothèque d'interface de Galdur Studio : thème, composants et écrans pour nos mods Minecraft.
+*[Version française](README.fr.md)*
+
+Galdur Studio's GUI library: theme, components and screens for our Minecraft mods.
 
 ## Versions
 
@@ -8,161 +10,293 @@ Bibliothèque d'interface de Galdur Studio : thème, composants et écrans pour 
 - NeoForge 21.1.x
 - Java 21
 
-## Développement
+## Getting started
+
+### 1. Add the dependency
+
+Until Galdur Studio has a Maven repository, Galdur UI is published to a `repo/` folder next to
+its sources. In `galdur-ui`, run:
 
 ```powershell
-.\gradlew.bat runClient   # lance le client de développement
-.\gradlew.bat build       # compile, lance les tests et produit le jar dans build/libs
-.\gradlew.bat test        # tests unitaires seuls (sans démarrer Minecraft)
+.\gradlew.bat publish     # writes repo/com/galdurstudio/galdurui/galdurui/<version>/
 ```
 
-En jeu (environnement de développement uniquement) : `/galdurui test` ouvre l'écran de démo,
-`/galdurui window` la démo de l'API déclarative, et `/galduruidev chest` donne un coffre Galdur
-de test (bloc posable, aussi dans l'onglet créatif « Blocs fonctionnels ») qui s'ouvre dans un
-`GaldurContainerScreen`.
-`/galduruidev terminal` ouvre un terminal de test : une grille de tous les objets du jeu
-au-dessus de l'inventaire, comme le futur Terminal Nexus.
+Then, in your mod's `build.gradle` (the path is relative to your mod's folder):
 
-## Thème
+```groovy
+repositories {
+    maven { url = uri("../galdur-ui/repo") }
+}
 
-`assets/galdurui/theme.json` est la seule source de la charte : couleurs et espacements
-(section `spacing`). Il est relu à chaque rechargement des ressources. Minecraft ignore F3+T
-tant qu'un écran est ouvert : dans `/galdurui test`, utiliser le bouton « Recharger le thème ».
-Le même fichier, lu dans le jar, sert de valeurs par défaut quand un pack de ressources fournit
-un `theme.json` incomplet.
+dependencies {
+    implementation "com.galdurstudio.galdurui:galdurui:0.1.0"
+}
+```
 
-Couleurs : écrire `"#RRGGBB"` (opaque) ou `"#AARRGGBB"`. Un entier JSON est accepté ; s'il tient
-sur 24 bits (≤ `0xFFFFFF`, donc sans octet alpha), il est lu comme `RRGGBB` opaque, avec un
-avertissement dans le journal, plutôt que de donner une couleur invisible.
+And in `src/main/resources/META-INF/neoforge.mods.toml` (replace `mymod` with your mod id):
+
+```toml
+[[dependencies.mymod]]
+modId = "galdurui"
+type = "required"
+versionRange = "[0.1,0.2)"
+ordering = "NONE"
+side = "BOTH"
+```
+
+Galdur UI is a separate mod: players install it next to yours (it is not bundled in your jar).
+
+### 2. A window, built in code (client)
+
+```java
+GaldurWindow window = GaldurLib.createWindow();
+window.addTitle(Component.literal("Storage"), true);
+
+List<String> ores = List.of("Coal", "Iron", "Copper", "Gold");
+SearchHandle search = window.addSearch(Component.literal("Search..."));
+ListHandle list = window.addList(4);
+list.setLines(ores.stream().<Component>map(Component::literal).toList());
+search.onChange(text -> list.setLines(ores.stream()
+        .filter(ore -> ore.toLowerCase().contains(text.toLowerCase()))
+        .<Component>map(Component::literal).toList()));
+
+RowHandle buttons = window.addRow(true);
+buttons.addButton(Component.literal("Take"), () -> take(list.getSelected()));
+buttons.addButton(Component.literal("Close"), window::close);
+window.open();
+```
+
+Also available: `addText`, `addButton`, `addIconButton`, `addCheckbox`, `addProgress` and
+`addTabs` (each tab is a container with the same methods). Every `add...` returns a handle to
+read or change the element later (`setVisible`, `setEnabled`, `setProgress`...). Javadoc of
+`api.window` for the details.
+
+### 3. A menu with slots (client and server)
+
+```java
+public class CrateMenu extends GaldurMenu {
+    private final Container crate;
+
+    public CrateMenu(int id, Inventory player) {               // client side
+        this(id, player, new SimpleContainer(27));
+    }
+
+    public CrateMenu(int id, Inventory player, Container crate) { // server side
+        super(MY_MENUS.CRATE.get(), id);
+        this.crate = crate;
+        addSlotGrid(crate, 0, 9, 3, 8, 18);   // container slots first
+        addPlayerInventory(player, 8, 84);    // player inventory last
+    }
+
+    @Override
+    public boolean stillValid(Player player) {
+        return crate.stillValid(player);
+    }
+}
+```
+
+Register the menu type as usual (`new MenuType<>(CrateMenu::new, FeatureFlags.DEFAULT_FLAGS)`),
+then its screen, client side on the mod bus:
+
+```java
+modEventBus.addListener(RegisterMenuScreensEvent.class,
+        event -> event.register(MY_MENUS.CRATE.get(), GaldurContainerScreen.factory()));
+```
+
+Shift-click, drag and drop, the theme panel and the slot frames work without more code.
+`GaldurItemGrid` adds a scrolling grid of thousands of items without real slots (storage
+terminals); see `TestTerminalScreen` in the test mod.
+
+### Rules
+
+- Only use `com.galdurstudio.galdurui.api.*`; `internal.*` can change in any version.
+- Everything except `api.menu` is client-only: keep it out of code that runs on a dedicated
+  server.
+- Read theme colours and spacings every frame or every `init()`, never in a `static final`
+  field: a resource pack can change them.
+
+## Development
+
+```powershell
+.\gradlew.bat runClient   # starts the development client (library + test mod)
+.\gradlew.bat build       # compiles, runs the tests and builds the jar in build/libs
+.\gradlew.bat test        # unit tests only (without starting Minecraft)
+```
+
+### Test mod
+
+Demo screens, test blocks and debug tools live in a separate source set, `src/testmod`, as a
+second mod (`galduruitest`). Development runs load it next to Galdur UI; it is **never** in the
+library jar.
+
+| Command | What it does |
+|---|---|
+| `/galdurui test` | demo screen of every widget |
+| `/galdurui window` | demo of the declarative `GaldurWindow` API |
+| `/galdurui debug` | toggles the layout debug outlines |
+| `/galdurui fps` | toggles an FPS counter that stays visible on screens (F3 is hidden there) |
+| `/galduruidev chest` | gives a test chest (placeable block, also in the "Functional Blocks" creative tab) that opens in a `GaldurContainerScreen` |
+| `/galduruidev terminal` | opens a test terminal: a grid of every item in the game above the inventory |
+
+The test mod also adds a **blue theme** resource pack (Options → Resource Packs). It overrides
+only part of `theme.json`, to check that a pack can change the theme and that missing keys fall
+back to the defaults.
+
+## Theme
+
+`assets/galdurui/theme.json` is the single source of the style guide: colours and spacing
+(`spacing` section). It is read again on every resource reload. Minecraft ignores F3+T while a
+screen is open: in `/galdurui test`, use the "Reload theme" button. The same file, read from the
+jar, provides the defaults when a resource pack ships an incomplete `theme.json`.
+
+Colours: write `"#RRGGBB"` (opaque) or `"#AARRGGBB"`. A JSON integer is accepted; if it fits in
+24 bits (≤ `0xFFFFFF`, so no alpha byte), it is read as opaque `RRGGBB`, with a warning in the
+log, rather than giving an invisible colour.
 
 ## Sprites
 
-Les sprites 9-slice de `assets/galdurui/textures/gui/sprites/` sont en niveaux de gris : leur
-couleur vient du thème et est appliquée au rendu (un pixel blanc prend exactement la couleur
-du thème). Modifier les couleurs de `theme.json` ne demande donc pas de régénérer les images.
-Seule la forme (coins, relief) est décrite par le générateur. Les sprites sont volontairement
-grands : Minecraft 1.21.1 n'étire pas les bords et le centre d'un 9-slice, il les répète (une
-tuile = sprite − 2×bordure) à raison d'un quad par tuile, donc un petit sprite coûte des
-centaines d'appels de dessin sur un grand panneau. Bords et centre doivent rester uniformes,
-sinon la répétition se voit.
+The 9-slice sprites in `assets/galdurui/textures/gui/sprites/` are grayscale: their colour comes
+from the theme and is applied at render time (a white pixel takes exactly the theme colour).
+Changing the colours in `theme.json` therefore needs no new images; only the shape (corners,
+relief) is described by the generator. Minecraft 1.21.1 does not stretch the edges and centre of
+a 9-slice, it repeats them in tiles (sprite − 2 × border). `GaldurRender` sends all tiles of a
+sprite in a single draw call, but large sprites still keep the tile count low. Edges and centre
+must stay uniform, or the repetition shows.
 
-| Sprite | Taille, bordure | Relief | Utilisé par (teinte) |
+| Sprite | Size, border | Relief | Used by (tint) |
 |---|---|---|---|
-| `panel` | 256, 4 | bombé | `GaldurPanelLayout` (`background`) |
-| `button`, `button_hover`, `button_pressed`, `button_disabled` | 64, 4 | bombé (`pressed` en creux) | `GaldurButton`, `GaldurIconButton` (accent selon l'état, `surface` désactivé) |
-| `field` | 64, 4 | creux | champ de recherche, cadre de liste, case à cocher (`surface`), rail de barre de progression (`background`) |
-| `slot` | 64, 4 | creux | `GaldurItemSlot` (`background`) |
-| `tab`, `tab_selected` | 64, 4 | bombé, ouvert en bas | `GaldurTabs` (`surface`, `accent` pour l'onglet actif) |
-| `scrollbar_track`, `scrollbar_thumb` | 32, 2 | creux / bombé | barre de défilement de `GaldurScrollList` (`background`, `text_muted`) |
+| `panel` | 256, 4 | raised | `GaldurPanelLayout` (`background`) |
+| `button`, `button_hover`, `button_pressed`, `button_disabled` | 64, 4 | raised (`pressed` sunken) | `GaldurButton`, `GaldurIconButton` (accent by state, `surface` when disabled) |
+| `field` | 64, 4 | sunken | search field, list frame, checkbox (`surface`), progress bar track (`background`) |
+| `slot` | 64, 4 | sunken | `GaldurItemSlot`, `GaldurItemGrid` (`background`) |
+| `tab`, `tab_selected` | 64, 4 | raised, open at the bottom | `GaldurTabs` (`surface`, `accent` for the active tab) |
+| `scrollbar_track`, `scrollbar_thumb` | 32, 2 | sunken / raised | `GaldurScrollList` and `GaldurItemGrid` scrollbars (`background`, `text_muted`) |
 
-Les sprites aux mêmes pixels (`button`/`button_hover`/`button_disabled`, `field`/`slot`,
-`tab`/`tab_selected`) restent séparés pour qu'un pack de ressources puisse redessiner chacun.
-Pour les régénérer :
+Sprites with the same pixels (`button`/`button_hover`/`button_disabled`, `field`/`slot`,
+`tab`/`tab_selected`) stay separate so a resource pack can redraw each one. To regenerate them:
 
 ```powershell
 .\gradlew.bat generateSprites
 ```
 
-Le générateur (`tools/GenerateSprites.java`) est compilé dans un source set séparé : il ne
-tourne pas au build et n'est pas inclus dans le jar du mod. La CI le relance et échoue si les
-PNG commités ne correspondent plus à ce qu'il produit.
+The generator (`tools/GenerateSprites.java`) is compiled in its own source set: it does not run
+during the build and is not in the mod jar. CI runs it again and fails if the committed PNGs no
+longer match its output.
 
 ## Animations
 
-Survol des boutons et des onglets en fondu, case qui se coche en grandissant, fenêtres et écrans
-de menu qui montent légèrement à l'ouverture, contenu d'onglet qui glisse depuis son côté,
-défilement fluide des listes. Durées courtes (90 à 180 ms) et courbes de `api.anim.GaldurEasing`.
-Le joueur peut tout couper : Mods → Galdur UI → Configurer → Animations
-(`config/galdurui-client.toml`). Un mod qui anime ses propres widgets utilise
-`api.anim.AnimatedValue`, qui respecte ce réglage.
+Hover fades on buttons and tabs, a checkbox mark that grows, windows and menu screens that rise
+slightly on open, tab content sliding in from its side, smooth list scrolling. Short durations
+(90 to 180 ms) and the curves of `api.anim.GaldurEasing`. Players can turn everything off:
+Mods → Galdur UI → Config → Animations (`config/galdurui-client.toml`). A mod animating its own
+widgets uses `api.anim.AnimatedValue`, which respects this setting.
 
-## Police des titres
+## Title font
 
-Les titres (`addTitle`, titre des écrans de menu) utilisent Fredoka SemiBold, police `galdurui:title`
-(`assets/galdurui/font/title.json`). `api.text.GaldurFonts.title(texte)` l'applique à n'importe quel
-texte. Les caractères absents viennent de la police de Minecraft ; un pack de ressources peut
-remplacer la police.
+Titles (`addTitle`, menu screen titles) use Fredoka SemiBold, font `galdurui:title`
+(`assets/galdurui/font/title.json`). `api.text.GaldurFonts.title(text)` applies it to any text.
+Missing characters come from Minecraft's font; a resource pack can replace the font.
 
 ## Narration
 
-Chaque widget se lit au narrateur de Minecraft (Ctrl+B), dans la langue du joueur : textes vanilla
-quand ils existent (« Bouton », « Case à cocher », « Onglet 1 sur 3 sélectionné »...), sinon clés
-`narration.galdurui.*` de `assets/galdurui/lang`. Un widget désactivé ajoute « désactivé » ; une
-case ou une grille lit l'objet et sa quantité complète ; un écran de menu lit l'objet du slot
-survolé ; une fenêtre lit son premier titre à l'ouverture. Le code est dans
+Every widget is read by Minecraft's narrator (Ctrl+B), in the player's language: vanilla texts
+when they exist ("Button", "Checkbox", "Tab 1 of 3 selected"...), otherwise the
+`narration.galdurui.*` keys of `assets/galdurui/lang` (English and French). A disabled widget
+adds "disabled"; a slot or a grid reads the item and its full amount; a menu screen reads the
+item of the hovered slot; a window reads its first title on open. The code is in
 `internal.narration.GaldurNarration`.
+
+## Performance
+
+Measured with Spark on the test terminal (a grid of every item above the inventory): about
+120 FPS, against 94 for the vanilla creative inventory on the same machine. The main gains
+come from `GaldurRender`: one draw call per 9-slice sprite, cell backgrounds of a grid in one
+call, items drawn in two lighting passes instead of one flush per item, and amounts batched
+into a single submission.
 
 ## Structure
 
-- `com.galdurstudio.galdurui.api` : API publique et stable, utilisée par nos mods.
-  `api.menu` est le seul package chargeable sur un serveur dédié ; tous les autres sont client.
-- `com.galdurstudio.galdurui.internal` : implémentation interne, peut changer à tout moment.
-  `internal.render.GaldurRender` est la seule classe qui appelle `GuiGraphics`.
+- `com.galdurstudio.galdurui.api`: public, stable API used by our mods. `api.menu` is the only
+  package that can load on a dedicated server; all others are client-only.
+- `com.galdurstudio.galdurui.internal`: internal implementation, may change at any time.
+  `internal.render.GaldurRender` is the only class that calls `GuiGraphics`. No public `api`
+  signature exposes an `internal` type.
 
-## Compatibilité et versions
+## Compatibility and versions
 
-L'API de Galdur UI n'est pas indépendante de Minecraft : ses composants héritent de classes
-vanilla pour s'intégrer aux écrans et aux layouts du jeu.
+The Galdur UI API is not independent from Minecraft: its components extend vanilla classes to
+fit into the game's screens and layouts.
 
-| Classe Galdur UI | Hérite de / implémente (vanilla) |
+| Galdur UI class | Extends / implements (vanilla) |
 |---|---|
 | `api.widget.GaldurButton` | `AbstractWidget` |
 | `api.widget.GaldurLabel` | `AbstractWidget` |
 | `api.widget.GaldurCheckbox` | `AbstractWidget` |
 | `api.widget.GaldurScrollList` | `AbstractWidget` |
-| `api.widget.GaldurSearchField` | `AbstractWidget` (contient un `EditBox`) |
+| `api.widget.GaldurSearchField` | `AbstractWidget` (holds an `EditBox`) |
 | `api.widget.GaldurItemSlot` | `AbstractWidget` |
 | `api.widget.GaldurTabs` | `AbstractWidget` |
 | `api.widget.GaldurProgressBar` | `AbstractWidget` |
-| `api.widget.GaldurIconButton` | `GaldurButton` (donc `AbstractWidget`) |
+| `api.widget.GaldurIconButton` | `GaldurButton` (so `AbstractWidget`) |
 | `api.widget.GaldurItemGrid` | `AbstractWidget` |
 | `api.screen.GaldurContainerScreen` | `AbstractContainerScreen` |
-| `api.menu.GaldurMenu` | `AbstractContainerMenu` (côté logique, chargeable sur serveur) |
-| `api.layout.GaldurPanelLayout` | `AbstractLayout` (donc `Layout`), `Renderable` |
+| `api.menu.GaldurMenu` | `AbstractContainerMenu` (logic side, loads on a server) |
+| `api.layout.GaldurPanelLayout` | `AbstractLayout` (so `Layout`), `Renderable` |
 
-Leurs méthodes de rendu reçoivent un `GuiGraphics` et celles de souris et de clavier suivent
-les signatures d'`AbstractWidget`. Quand Mojang change ces classes (par exemple le rendu en
-1.21.6 ou les entrées en 1.21.9), l'API de Galdur UI change avec elles : une telle montée de
-version peut imposer une **version majeure** de Galdur UI, même si `GaldurRender` absorbe la
-plus grande partie du travail.
+Their render methods take a `GuiGraphics` and their mouse and keyboard methods follow the
+`AbstractWidget` signatures. When Mojang changes these classes (rendering in 1.21.6 or input in
+1.21.9, for instance), the Galdur UI API changes with them: such an update may require a
+**major version** of Galdur UI, even though `GaldurRender` absorbs most of the work.
 
-**Règle pour nos mods** : n'appeler que l'API Galdur (`api.*`) pour dessiner et construire les
-écrans, jamais `GuiGraphics` directement, et ne jamais dépendre de `internal.*`. Plus un mod
-passe par l'API, moins il a de code à reprendre à chaque version de Minecraft.
+**Rule for our mods**: only call the Galdur API (`api.*`) to draw and build screens, never
+`GuiGraphics` directly, and never depend on `internal.*`. The more a mod goes through the API,
+the less code it has to rework for each Minecraft version.
 
-## Intégrations JEI et EMI
+## Versioning
 
-Optionnelles, dans `internal.compat` : compilées contre l'API de JEI et d'EMI (`compileOnly`),
-absentes du jar et jamais chargées si le mod correspondant n'est pas installé. En développement,
-les deux sont lancés (versions dans `gradle.properties`).
+Galdur UI follows [Semantic Versioning](https://semver.org/): `MAJOR.MINOR.PATCH`.
 
-- La liste d'objets évite le panneau d'un `GaldurContainerScreen` et ses
-  `getExclusionZones()`.
-- Survoler un objet d'une `GaldurItemGrid` puis appuyer sur R ou U montre ses recettes,
-  **dans un écran de menu** (`GaldurContainerScreen`) : JEI et EMI ne sont pas actifs sur les
-  écrans simples comme `/galdurui test`. Pour tester : `/galduruidev terminal`.
+- **PATCH**: bug fixes, no API change.
+- **MINOR**: new features; code written against an earlier minor of the same major still
+  compiles and works.
+- **MAJOR**: incompatible change to `api.*`, including one forced by a Minecraft update (see
+  above).
 
-## Décisions
+Before 1.0.0, a MINOR may still break the API: depend on `[0.1,0.2)` rather than `[0.1,)`.
+`internal.*` is not covered. Changes are listed in [CHANGELOG.md](CHANGELOG.md).
 
-- **Narration des `GaldurLabel`** : un libellé est inactif (`active = false`), comme
-  `StringWidget` en vanilla ; la narration automatique de l'écran ne le lit donc pas, même si
-  `updateWidgetNarration` renvoie son texte. Comportement identique à vanilla, assumé.
-- **Outils de développement dans le jar** : `TestScreen` et `GaldurDevCommands` sont livrés
-  dans le jar, mais la commande `/galdurui test` n'est enregistrée qu'en développement
-  (`!FMLEnvironment.production`) : inactifs en production. Assumé pour l'instant.
-- **Méthodes d'API non utilisées en interne** : `GaldurButton.withSprites`, `getPreferredWidth`, `isHeld`, `clearHeld`,
-  `GaldurLabel.getText`, `GaldurPanelLayout.withSprite`, `getChild`, etc. ne sont pas appelés
-  dans ce dépôt mais sont gardés volontairement : ils font partie de l'API offerte à nos mods.
-- **Sprites distincts, même aux pixels identiques** : `panel`, `button`, `button_hover` et
-  `button_disabled` ont aujourd'hui les mêmes pixels, comme `field` et `slot`, ou `tab` et
-  `tab_selected` (seule la teinte du thème les distingue). Ils restent séparés pour qu'un pack de
-  ressources puisse redessiner chaque état indépendamment.
+## JEI and EMI integrations
 
-## Licence
+Optional, in `internal.compat`: compiled against the JEI and EMI APIs (`compileOnly`), not
+bundled in the jar and never loaded when the matching mod is not installed. Both run in
+development (versions in `gradle.properties`).
 
-Galdur UI est distribué sous licence GNU LGPL v3 uniquement (`LGPL-3.0-only`).
-Voir [LICENSE](LICENSE) (LGPL v3) et [COPYING](COPYING) (GPL v3, à laquelle la LGPL se réfère).
+- The item list avoids the panel of a `GaldurContainerScreen` and its `getExclusionZones()`.
+- Hovering an item of a `GaldurItemGrid` and pressing R or U shows its recipes, **in a menu
+  screen** (`GaldurContainerScreen`): JEI and EMI are not active on plain screens such as
+  `/galdurui test`. To try it: `/galduruidev terminal`.
 
-La police des titres, Fredoka (Milena Brandão, Hafontia), est sous licence SIL Open Font
-License 1.1 : voir `src/main/resources/assets/galdurui/font/fredoka_OFL.txt`. Le fichier inclus
-est une instance SemiBold de la police variable, réduite aux alphabets latins.
+## Decisions
+
+- **`GaldurLabel` narration**: a label is inactive (`active = false`), like vanilla's
+  `StringWidget`, so the screen's automatic narration does not read it, even though
+  `updateWidgetNarration` returns its text. Same behaviour as vanilla, on purpose.
+- **Development tools outside the jar**: demo screens, test blocks and commands are in the
+  `galduruitest` test mod (`src/testmod`), loaded only by the development runs.
+- **API methods unused internally**: `GaldurButton.withSprites`, `getPreferredWidth`, `isHeld`,
+  `clearHeld`, `GaldurLabel.getText`, `GaldurPanelLayout.withSprite`, `getChild`, etc. are not
+  called in this repository but are kept on purpose: they are part of the API offered to our
+  mods.
+- **Separate sprites, even with identical pixels**: `panel`, `button`, `button_hover` and
+  `button_disabled` currently have the same pixels, as do `field` and `slot`, or `tab` and
+  `tab_selected` (only the theme tint tells them apart). They stay separate so a resource pack
+  can redraw each state independently.
+
+## License
+
+Galdur UI is distributed under the GNU LGPL v3 only (`LGPL-3.0-only`). See [LICENSE](LICENSE)
+(LGPL v3) and [COPYING](COPYING) (GPL v3, which the LGPL refers to).
+
+The title font, Fredoka (Milena Brandão, Hafontia), is under the SIL Open Font License 1.1: see
+`src/main/resources/assets/galdurui/font/fredoka_OFL.txt`. The bundled file is a SemiBold
+instance of the variable font, reduced to Latin alphabets.

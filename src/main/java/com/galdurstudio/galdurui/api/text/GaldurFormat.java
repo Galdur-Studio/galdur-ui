@@ -1,28 +1,24 @@
 package com.galdurstudio.galdurui.api.text;
 
 /**
- * Mise en forme des nombres affichés par Galdur UI.
- *
- * <p>Java pur, sans classe de Minecraft : utilisable partout, y compris côté serveur et dans les
- * tests unitaires.</p>
+ * Formats the amounts shown by Galdur UI. Plain Java: usable anywhere, including on the server and
+ * in unit tests.
  */
 public final class GaldurFormat {
-    /** Suffixes des milliers, millions, milliards... jusqu'à la limite d'un {@code long}. */
     private static final String[] UNITS = {"k", "M", "G", "T", "P", "E"};
-    /** Espace fine insécable, séparateur des milliers en français. */
-    private static final char THOUSANDS_SEPARATOR = ' ';
+    /** Narrow no-break space. */
+    private static final char THOUSANDS_SEPARATOR = '\u202F';
 
     private GaldurFormat() {
     }
 
     /**
-     * {@return une quantité abrégée pour tenir dans une case d'objet}
+     * {@return an amount abbreviated to fit in an item slot}
      *
-     * <p>Jusqu'à 999, le nombre est écrit en entier. Au-delà, il est abrégé avec un suffixe
-     * ({@code k}, {@code M}, {@code G}, {@code T}, {@code P}, {@code E}) et au plus trois
-     * chiffres : une décimale sous 10, aucune au-dessus. L'arrondi se fait toujours vers le bas,
-     * pour ne jamais annoncer plus que ce qui existe : 1 999 donne {@code 1,9k}, 999 999 donne
-     * {@code 999k}. La décimale est séparée par une virgule.</p>
+     * <p>Up to 999 the number is written in full. Above, it gets a suffix ({@code k}, {@code M},
+     * {@code G}, {@code T}, {@code P}, {@code E}) and at most three digits: one decimal below 10,
+     * none above. It always rounds down, so it never shows more than what exists: 1 999 gives
+     * {@code 1,9k}, 999 999 gives {@code 999k}. The decimal separator is a comma.</p>
      *
      * <pre>{@code
      * GaldurFormat.amount(64)        // "64"
@@ -31,7 +27,7 @@ public final class GaldurFormat {
      * GaldurFormat.amount(1_250_000) // "1,2M"
      * }</pre>
      *
-     * @param amount la quantité ; une valeur négative est affichée comme {@code 0}
+     * @param amount the amount; a negative value shows as {@code 0}
      */
     public static String amount(long amount) {
         long value = Math.max(0, amount);
@@ -53,12 +49,10 @@ public final class GaldurFormat {
     }
 
     /**
-     * {@return une quantité écrite en entier, les milliers séparés par une espace fine}
+     * {@return the exact amount, thousands separated by a narrow no-break space}, for places with
+     * room such as tooltips: {@code 1234567} gives {@code 1 234 567}
      *
-     * <p>Pour afficher la valeur exacte là où il y a la place, par exemple dans une infobulle :
-     * {@code 1234567} donne {@code 1 234 567}.</p>
-     *
-     * @param amount la quantité ; une valeur négative est affichée comme {@code 0}
+     * @param amount the amount; a negative value shows as {@code 0}
      */
     public static String fullAmount(long amount) {
         String digits = Long.toString(Math.max(0, amount));

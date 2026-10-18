@@ -21,44 +21,43 @@ import net.minecraft.util.Mth;
 import org.lwjgl.glfw.GLFW;
 
 /**
- * Liste de lignes de texte qui défile, aux couleurs de la charte, utilisable dans les layouts
- * vanilla. Le joueur sélectionne une ligne d'un clic, ou avec les flèches haut et bas.
+ * Themed scrolling list of text lines, usable in vanilla layouts. The player selects a line with
+ * a click, or with the up and down arrows.
  *
- * <p>Comme {@link GaldurCheckbox}, le widget ne garde ni les lignes ni la sélection : il les
- * <strong>relit à chaque image</strong> auprès de fournisseurs, et signale les changements
- * demandés par le joueur. Les lignes peuvent donc changer à tout moment sans recréer le widget.
- * Seule la position de défilement vit dans le widget ; {@link #onScroll(DoubleConsumer)} permet de
- * la conserver ailleurs quand le widget est recréé (redimensionnement).</p>
+ * <p>Like {@link GaldurCheckbox}, the widget keeps neither the lines nor the selection: it
+ * <strong>reads them every frame</strong> from suppliers and reports the changes the player asks
+ * for. The lines can change at any time without rebuilding the widget. Only the scroll position
+ * lives in the widget; {@link #onScroll(DoubleConsumer)} lets you keep it elsewhere when the
+ * widget is rebuilt (resize).</p>
  *
  * <pre>{@code
- * List<Component> minerais = List.of(Component.literal("Fer"), Component.literal("Or"));
- * int[] choix = {-1};
- * colonne.addChild(GaldurScrollList.of(120, 5, () -> minerais,
- *         () -> choix[0], index -> choix[0] = index));
+ * List<Component> ores = List.of(Component.literal("Iron"), Component.literal("Gold"));
+ * int[] choice = {-1};
+ * column.addChild(GaldurScrollList.of(120, 5, () -> ores,
+ *         () -> choice[0], index -> choice[0] = index));
  * }</pre>
  *
  * <ul>
- *   <li><strong>Molette</strong> : défile d'une ligne par cran.</li>
- *   <li><strong>Barre de défilement</strong> : affichée seulement si les lignes ne tiennent pas ;
- *       on peut la saisir et la glisser.</li>
- *   <li><strong>Clavier</strong> : flèches haut et bas pour changer de sélection, la liste
- *       défile pour garder la ligne sélectionnée visible.</li>
- *   <li><strong>Désactivée</strong> ({@code active = false}) : texte atténué, ni clic ni
- *       sélection, ni défilement.</li>
+ *   <li><strong>Mouse wheel</strong>: scrolls one line per notch.</li>
+ *   <li><strong>Scrollbar</strong>: shown only when the lines do not fit; it can be grabbed and
+ *       dragged.</li>
+ *   <li><strong>Keyboard</strong>: up and down arrows change the selection; the list scrolls to
+ *       keep the selected line visible.</li>
+ *   <li><strong>Disabled</strong> ({@code active = false}): muted text, no click, selection or
+ *       scrolling.</li>
  * </ul>
  *
- * <p>Le texte d'une ligne trop longue est coupé au bord de la liste (voir
- * {@code GaldurRender.drawClipped}). Tailles lues dans le thème : {@code spacing.list_row_height}
- * et {@code spacing.scrollbar_width}.</p>
+ * <p>A line that is too long is clipped at the list edge (see {@code GaldurRender.drawClipped}).
+ * Sizes from the theme: {@code spacing.list_row_height} and {@code spacing.scrollbar_width}.</p>
  */
 public class GaldurScrollList extends AbstractWidget {
-    /** Épaisseur du cadre, en pixels. */
+    /** Frame thickness, in pixels. */
     private static final int BORDER = 1;
-    /** Marge entre le bord gauche d'une ligne et son texte, en pixels. */
+    /** Gap between the left edge of a line and its text, in pixels. */
     private static final int TEXT_PADDING = 3;
-    /** Hauteur minimale du curseur de la barre de défilement, en pixels. */
+    /** Minimum height of the scrollbar thumb, in pixels. */
     private static final int MIN_THUMB_HEIGHT = 8;
-    /** Opacité du surlignage de la ligne survolée (0 à 255). */
+    /** Opacity of the hovered line highlight (0 to 255). */
     private static final int HOVER_ALPHA = 0x40;
 
     private final int visibleRows;
@@ -67,26 +66,26 @@ public class GaldurScrollList extends AbstractWidget {
     private final IntConsumer onSelect;
     private DoubleConsumer onScroll = amount -> {};
 
-    /** Défilement, en pixels depuis le haut du contenu. */
+    /** Scroll offset, in pixels from the top of the content. */
     private double scroll;
     /**
-     * Défilement affiché, qui rattrape {@link #scroll} en douceur (molette, flèches) ;
-     * {@code NaN} avant la première image. Les clics se basent dessus : on clique ce qu'on voit.
+     * Shown scroll offset, which smoothly catches up with {@link #scroll} (wheel, arrows);
+     * {@code NaN} before the first frame. Clicks use it: you click what you see.
      */
     private double shownScroll = Double.NaN;
-    /** Heure de l'image précédente, pour le défilement fluide. */
+    /** Time of the previous frame, for smooth scrolling. */
     private long lastFrame;
-    /** Vrai pendant que le joueur glisse le curseur de la barre de défilement. */
+    /** True while the player drags the scrollbar thumb. */
     private boolean draggingThumb;
 
     /**
-     * Crée une liste. Préférer {@link #of(int, int, Supplier, IntSupplier, IntConsumer)}.
+     * Prefer {@link #of(int, int, Supplier, IntSupplier, IntConsumer)}.
      *
-     * @param width       largeur totale, cadre et barre de défilement compris, en pixels
-     * @param visibleRows nombre de lignes visibles à la fois (au moins 1)
-     * @param lines       fournisseur des lignes, appelé à chaque image
-     * @param selected    fournisseur de l'index de la ligne sélectionnée, ou {@code -1} pour aucune
-     * @param onSelect    appelée avec l'index de la ligne que le joueur sélectionne
+     * @param width       total width, frame and scrollbar included, in pixels
+     * @param visibleRows number of lines visible at once (at least 1)
+     * @param lines       supplier of the lines, called every frame
+     * @param selected    supplier of the selected line index, or {@code -1} for none
+     * @param onSelect    called with the index of the line the player selects
      */
     protected GaldurScrollList(int width, int visibleRows, Supplier<List<Component>> lines,
                                IntSupplier selected, IntConsumer onSelect) {
@@ -99,13 +98,13 @@ public class GaldurScrollList extends AbstractWidget {
     }
 
     /**
-     * {@return une liste défilante, positionnée en {@code (0, 0)} : c'est le layout qui la place}
+     * {@return a scrolling list at {@code (0, 0)}, for a layout to place}
      *
-     * @param width       largeur totale, cadre et barre de défilement compris, en pixels
-     * @param visibleRows nombre de lignes visibles à la fois (au moins 1) ; fixe la hauteur
-     * @param lines       fournisseur des lignes, appelé à chaque image
-     * @param selected    fournisseur de l'index de la ligne sélectionnée, ou {@code -1} pour aucune
-     * @param onSelect    appelée avec l'index de la ligne que le joueur sélectionne
+     * @param width       total width, frame and scrollbar included, in pixels
+     * @param visibleRows number of lines visible at once (at least 1); sets the height
+     * @param lines       supplier of the lines, called every frame
+     * @param selected    supplier of the selected line index, or {@code -1} for none
+     * @param onSelect    called with the index of the line the player selects
      */
     public static GaldurScrollList of(int width, int visibleRows, Supplier<List<Component>> lines,
                                       IntSupplier selected, IntConsumer onSelect) {
@@ -113,11 +112,11 @@ public class GaldurScrollList extends AbstractWidget {
     }
 
     /**
-     * {@return la largeur qui affiche entièrement la plus longue des lignes données, barre de
-     * défilement comprise, ou {@code minWidth} si elle est plus grande}
+     * {@return the width that shows the longest given line in full, scrollbar included, or
+     * {@code minWidth} if larger}
      *
-     * @param lines    les lignes à afficher
-     * @param minWidth largeur minimale, en pixels
+     * @param lines    the lines to show
+     * @param minWidth minimum width, in pixels
      */
     public static int preferredWidth(List<Component> lines, int minWidth) {
         int widest = 0;
@@ -128,26 +127,26 @@ public class GaldurScrollList extends AbstractWidget {
     }
 
     /**
-     * Définit l'action appelée quand le défilement change, par le joueur ou par le code. Une
-     * seule action est conservée.
+     * Sets the action called when the scroll offset changes, by the player or by code. Only one
+     * action is kept.
      *
-     * @param onScroll reçoit le nouveau défilement, en pixels depuis le haut du contenu
-     * @return cette liste, pour chaîner les appels
+     * @param onScroll receives the new offset, in pixels from the top of the content
+     * @return this list, for chaining
      */
     public GaldurScrollList onScroll(DoubleConsumer onScroll) {
         this.onScroll = onScroll;
         return this;
     }
 
-    /** {@return le défilement, en pixels depuis le haut du contenu} */
+    /** {@return the scroll offset, in pixels from the top of the content} */
     public double getScroll() {
         return scroll;
     }
 
     /**
-     * Fait défiler la liste, ramenée entre le haut et le bas du contenu.
+     * Scrolls the list, clamped between the top and the bottom of the content.
      *
-     * @param scroll défilement voulu, en pixels depuis le haut du contenu
+     * @param scroll wanted offset, in pixels from the top of the content
      */
     public void setScroll(double scroll) {
         double clamped = Mth.clamp(scroll, 0, maxScroll());
@@ -158,9 +157,9 @@ public class GaldurScrollList extends AbstractWidget {
     }
 
     /**
-     * Fait défiler juste assez pour que la ligne {@code index} soit entièrement visible.
+     * Scrolls just enough for line {@code index} to be fully visible.
      *
-     * @param index l'index de la ligne ; sans effet s'il est hors de la liste
+     * @param index the line index; no effect when outside the list
      */
     public void scrollToLine(int index) {
         if (index < 0 || index >= lines.get().size()) {
@@ -200,7 +199,7 @@ public class GaldurScrollList extends AbstractWidget {
         return contentHeight() > innerHeight();
     }
 
-    /** {@return la largeur des lignes : tout l'intérieur, moins la barre si elle est affichée} */
+    /** {@return the width of the lines: the whole inside, minus the scrollbar when shown} */
     private int rowsWidth() {
         int inner = getWidth() - 2 * BORDER;
         return hasScrollbar() ? inner - GaldurTheme.scrollbarWidth() : inner;
@@ -221,7 +220,7 @@ public class GaldurScrollList extends AbstractWidget {
         return innerY() + (max == 0 ? 0 : (int) (view() * travel / max));
     }
 
-    /** {@return l'index de la ligne sous ce point, ou {@code -1} s'il n'y en a pas} */
+    /** {@return the index of the line under this point, or {@code -1} if none} */
     private int rowAt(double mouseX, double mouseY) {
         if (mouseX < innerX() || mouseX >= innerX() + rowsWidth()
                 || mouseY < innerY() || mouseY >= innerY() + innerHeight()) {
@@ -236,12 +235,12 @@ public class GaldurScrollList extends AbstractWidget {
                 && mouseY >= innerY() && mouseY < innerY() + innerHeight();
     }
 
-    /** {@return le défilement affiché, ou le défilement réel avant la première image} */
+    /** {@return the shown scroll offset, or the real one before the first frame} */
     private double view() {
         return Double.isNaN(shownScroll) ? scroll : shownScroll;
     }
 
-    /** Rapproche le défilement affiché du défilement réel ; d'un coup quand on tire le curseur. */
+    /** Moves the shown offset towards the real one; at once while the thumb is dragged. */
     private void updateShownScroll() {
         long now = GaldurAnimations.now();
         shownScroll = draggingThumb
@@ -309,7 +308,7 @@ public class GaldurScrollList extends AbstractWidget {
     }
 
     @Override
-    public void onClick(double mouseX, double mouseY) {
+    public void onClick(double mouseX, double mouseY, int button) {
         if (isOverScrollbar(mouseX, mouseY)) {
             draggingThumb = true;
             int thumbTop = thumbY();
@@ -339,7 +338,7 @@ public class GaldurScrollList extends AbstractWidget {
         draggingThumb = false;
     }
 
-    /** Place le haut du curseur à l'ordonnée {@code thumbTop} et fait défiler en conséquence. */
+    /** Puts the top of the thumb at {@code thumbTop} and scrolls to match. */
     private void scrollThumbTo(double thumbTop) {
         int travel = innerHeight() - thumbHeight();
         if (travel > 0) {
@@ -370,15 +369,15 @@ public class GaldurScrollList extends AbstractWidget {
         return true;
     }
 
-    /** Une liste ne fait pas le son d'un bouton quand on clique une ligne. */
+    /** A list does not play the button sound when a line is clicked. */
     @Override
     public void playDownSound(SoundManager handler) {
     }
 
     @Override
     protected void updateWidgetNarration(NarrationElementOutput narrationElementOutput) {
-        // Ligne choisie : « Fer », puis « Ligne 2 sur 5 sélectionnée » (texte vanilla).
-        // Sinon : « Liste : 5 lignes ».
+        // Selected line: "Iron", then "Row 2 of 5 selected" (vanilla text).
+        // Otherwise: "List: 5 rows".
         List<Component> rows = lines.get();
         int index = selected.getAsInt();
         Component title;

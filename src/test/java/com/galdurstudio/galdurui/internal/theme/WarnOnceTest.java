@@ -11,15 +11,15 @@ class WarnOnceTest {
     private final WarnOnce warnOnce = new WarnOnce(messages::add);
 
     @Test
-    void n_avertit_qu_une_fois_pour_une_meme_cle() {
+    void warnsOncePerKey() {
         for (int frame = 0; frame < 100; frame++) {
-            warnOnce.warn("inconnue", "message");
+            warnOnce.warn("unknown", "message");
         }
         assertEquals(List.of("message"), messages);
     }
 
     @Test
-    void avertit_une_fois_pour_chaque_cle_differente() {
+    void warnsOnceForEachDistinctKey() {
         warnOnce.warn("a", "message a");
         warnOnce.warn("b", "message b");
         warnOnce.warn("a", "message a");
@@ -27,10 +27,10 @@ class WarnOnceTest {
     }
 
     @Test
-    void avertit_de_nouveau_apres_reset() {
-        warnOnce.warn("inconnue", "avant");
+    void warnsAgainAfterReset() {
+        warnOnce.warn("unknown", "before");
         warnOnce.reset();
-        warnOnce.warn("inconnue", "après");
-        assertEquals(List.of("avant", "après"), messages);
+        warnOnce.warn("unknown", "after");
+        assertEquals(List.of("before", "after"), messages);
     }
 }

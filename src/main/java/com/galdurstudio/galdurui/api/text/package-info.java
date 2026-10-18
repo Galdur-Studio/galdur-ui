@@ -1,6 +1,7 @@
 /**
- * Mise en forme de texte de Galdur UI : nombres abrégés, séparateurs de milliers.
+ * Text helpers: abbreviated amounts, thousands separators ({@link com.galdurstudio.galdurui.api.text.GaldurFormat},
+ * plain Java) and the brand fonts ({@link com.galdurstudio.galdurui.api.text.GaldurFonts}).
  *
- * <p>API publique, stable dans une même version majeure. Java pur, sans classe de Minecraft.</p>
+ * <p>Public API, stable within a major version.</p>
  */
 package com.galdurstudio.galdurui.api.text;

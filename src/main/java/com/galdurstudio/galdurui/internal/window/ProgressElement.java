@@ -6,16 +6,15 @@ import net.minecraft.client.gui.layouts.LayoutElement;
 import net.minecraft.client.gui.layouts.LayoutSettings;
 
 /**
- * Élément de fenêtre qui affiche une barre de progression.
+ * Window element showing a progress bar.
  *
- * <p>L'avancement et le texte vivent dans le {@link ProgressHandle} : le widget les relit à
- * chaque image.</p>
+ * <p>Progress and text live in the {@link ProgressHandle}: the widget reads them every frame.</p>
  *
- * @param handle   l'état de la barre, partagé avec le mod
- * @param centered {@code true} pour centrer la barre, {@code false} pour l'aligner à gauche
+ * @param handle   the bar state, shared with the mod
+ * @param centered {@code true} to centre the bar, {@code false} to align it left
  */
 public record ProgressElement(ProgressHandle handle, boolean centered) implements WindowElement {
-    /** Largeur minimale d'une barre, en pixels, même sans texte ou avec un texte court. */
+    /** Minimum bar width, in pixels, even without text or with a short one. */
     private static final int MIN_WIDTH = 100;
 
     @Override

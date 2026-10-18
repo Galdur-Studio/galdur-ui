@@ -20,58 +20,57 @@ import net.minecraft.util.Mth;
 import org.lwjgl.glfw.GLFW;
 
 /**
- * Rangée d'onglets aux couleurs de la charte, utilisable dans les layouts vanilla. Le joueur
- * change d'onglet d'un clic, ou avec les flèches gauche et droite.
+ * Themed row of tabs, usable in vanilla layouts. The player switches tab with a click, or with
+ * the left and right arrows.
  *
- * <p>Comme {@link GaldurScrollList}, le widget ne garde pas l'onglet actif : il le
- * <strong>relit à chaque image</strong> auprès d'un fournisseur, et signale l'onglet que le joueur
- * choisit. C'est au code appelant d'afficher le contenu qui correspond ; dans une
- * {@code GaldurWindow}, {@code addTabs()} s'en charge.</p>
+ * <p>Like {@link GaldurScrollList}, the widget does not keep the active tab: it <strong>reads it
+ * every frame</strong> from a supplier and reports the tab the player picks. Showing the matching
+ * content is up to the caller; in a {@code GaldurWindow}, {@code addTabs()} does it.</p>
  *
  * <pre>{@code
- * List<Component> titres = List.of(Component.literal("Stockage"), Component.literal("Artisanat"));
- * int[] actif = {0};
- * colonne.addChild(GaldurTabs.of(titres, () -> actif[0], index -> actif[0] = index));
+ * List<Component> titles = List.of(Component.literal("Storage"), Component.literal("Crafting"));
+ * int[] active = {0};
+ * column.addChild(GaldurTabs.of(titles, () -> active[0], index -> active[0] = index));
  * }</pre>
  *
  * <ul>
- *   <li><strong>Onglet actif</strong> : sprite {@code tab_selected} teinté {@code accent},
- *       relié au trait du bas de la même couleur.</li>
- *   <li><strong>Autres onglets</strong> : plus bas, sprite {@code tab} teinté {@code surface},
- *       texte en {@code text_muted} ; teinte tirée vers l'accent au survol.</li>
- *   <li><strong>Clavier</strong> : flèches gauche et droite quand la rangée a le focus ; l'onglet
- *       actif est alors entouré en {@code accent_hover}.</li>
- *   <li><strong>Désactivée</strong> ({@code active = false}) : couleurs atténuées, ni clic ni
- *       flèches.</li>
+ *   <li><strong>Active tab</strong>: {@code tab_selected} sprite tinted {@code accent}, joined to
+ *       the bottom line of the same colour.</li>
+ *   <li><strong>Other tabs</strong>: lower, {@code tab} sprite tinted {@code surface},
+ *       {@code text_muted} text; the tint moves towards the accent on hover.</li>
+ *   <li><strong>Keyboard</strong>: left and right arrows while the row has focus; the active tab
+ *       is then outlined in {@code accent_hover}.</li>
+ *   <li><strong>Disabled</strong> ({@code active = false}): muted colours, no click or
+ *       arrows.</li>
  * </ul>
  *
- * <p>Tailles lues dans le thème : {@code spacing.tab_height} et {@code spacing.tab_padding_x}.
- * La largeur peut dépasser celle des onglets (voir {@link #of(int, List, IntSupplier, IntConsumer)}) :
- * le trait du bas court alors sur toute la largeur, les onglets restent à gauche.</p>
+ * <p>Sizes from the theme: {@code spacing.tab_height} and {@code spacing.tab_padding_x}. The
+ * width can exceed the tabs' (see {@link #of(int, List, IntSupplier, IntConsumer)}): the bottom
+ * line then runs the full width and the tabs stay on the left.</p>
  */
 public class GaldurTabs extends AbstractWidget {
-    /** Écart entre deux onglets, en pixels. */
+    /** Gap between two tabs, in pixels. */
     private static final int TAB_GAP = 2;
-    /** Épaisseur du trait sous les onglets, en pixels. */
+    /** Thickness of the line under the tabs, in pixels. */
     private static final int UNDERLINE = 2;
-    /** Décalage vers le bas des onglets inactifs, pour que l'onglet actif ressorte. */
+    /** Downward offset of inactive tabs, so the active tab stands out. */
     private static final int INACTIVE_INSET = 2;
-    /** Part de l'accent mêlée au fond d'un onglet survolé (0 à 1). */
+    /** Share of accent mixed into a hovered tab's background (0 to 1). */
     private static final double HOVER_MIX = 0.3;
 
     private final List<Component> titles;
     private final IntSupplier selected;
     private final IntConsumer onSelect;
-    /** Part du survol affichée pour chaque onglet, de 0 à 1 : fondu de la teinte et du texte. */
+    /** Shown hover amount per tab, from 0 to 1: fades the tint and the text. */
     private final AnimatedValue[] hover;
 
     /**
-     * Crée une rangée d'onglets. Préférer {@link #of(List, IntSupplier, IntConsumer)}.
+     * Prefer {@link #of(List, IntSupplier, IntConsumer)}.
      *
-     * @param width    largeur voulue, en pixels ; jamais moins que celle des onglets
-     * @param titles   les titres des onglets, dans l'ordre ; la liste est copiée
-     * @param selected fournisseur de l'index de l'onglet actif, appelé à chaque image
-     * @param onSelect appelée avec l'index de l'onglet que le joueur choisit
+     * @param width    wanted width, in pixels; never less than the tabs'
+     * @param titles   tab titles, in order; the list is copied
+     * @param selected supplier of the active tab index, called every frame
+     * @param onSelect called with the index of the tab the player picks
      */
     protected GaldurTabs(int width, List<Component> titles, IntSupplier selected, IntConsumer onSelect) {
         super(0, 0, Math.max(width, preferredWidth(titles)), GaldurTheme.tabHeight(), Component.empty());
@@ -85,36 +84,34 @@ public class GaldurTabs extends AbstractWidget {
     }
 
     /**
-     * {@return une rangée d'onglets juste assez large pour ses titres, positionnée en {@code (0, 0)} :
-     * c'est le layout qui la place}
+     * {@return a tab row just wide enough for its titles, at {@code (0, 0)} for a layout to place}
      *
-     * @param titles   les titres des onglets, dans l'ordre ; la liste est copiée
-     * @param selected fournisseur de l'index de l'onglet actif, appelé à chaque image
-     * @param onSelect appelée avec l'index de l'onglet que le joueur choisit
+     * @param titles   tab titles, in order; the list is copied
+     * @param selected supplier of the active tab index, called every frame
+     * @param onSelect called with the index of the tab the player picks
      */
     public static GaldurTabs of(List<Component> titles, IntSupplier selected, IntConsumer onSelect) {
         return new GaldurTabs(0, titles, selected, onSelect);
     }
 
     /**
-     * {@return une rangée d'onglets d'au moins {@code width} pixels de large, positionnée en
-     * {@code (0, 0)}}
+     * {@return a tab row at least {@code width} pixels wide, at {@code (0, 0)}}
      *
-     * <p>Utile pour aligner le trait du bas sur la largeur du contenu affiché dessous.</p>
+     * <p>Useful to line the bottom line up with the width of the content shown below.</p>
      *
-     * @param width    largeur minimale, en pixels
-     * @param titles   les titres des onglets, dans l'ordre ; la liste est copiée
-     * @param selected fournisseur de l'index de l'onglet actif, appelé à chaque image
-     * @param onSelect appelée avec l'index de l'onglet que le joueur choisit
+     * @param width    minimum width, in pixels
+     * @param titles   tab titles, in order; the list is copied
+     * @param selected supplier of the active tab index, called every frame
+     * @param onSelect called with the index of the tab the player picks
      */
     public static GaldurTabs of(int width, List<Component> titles, IntSupplier selected, IntConsumer onSelect) {
         return new GaldurTabs(width, titles, selected, onSelect);
     }
 
     /**
-     * {@return la largeur qui affiche tous les onglets côte à côte, écarts compris}
+     * {@return the width that shows all tabs side by side, gaps included}
      *
-     * @param titles les titres des onglets
+     * @param titles the tab titles
      */
     public static int preferredWidth(List<Component> titles) {
         int total = 0;
@@ -124,17 +121,17 @@ public class GaldurTabs extends AbstractWidget {
         return total + TAB_GAP * Math.max(0, titles.size() - 1);
     }
 
-    /** {@return les titres des onglets, en lecture seule} */
+    /** {@return the tab titles, read-only} */
     public List<Component> getTitles() {
         return titles;
     }
 
-    /** {@return la largeur d'un onglet : son titre et les marges du thème} */
+    /** {@return the width of one tab: its title plus the theme padding} */
     private static int tabWidth(Component title) {
         return GaldurRender.textWidth(title) + 2 * GaldurTheme.tabPaddingX();
     }
 
-    /** {@return l'index de l'onglet sous ce point, ou {@code -1} s'il n'y en a pas} */
+    /** {@return the index of the tab under this point, or {@code -1} if none} */
     private int tabAt(double mouseX, double mouseY) {
         if (mouseY < getY() || mouseY >= getY() + getHeight()) {
             return -1;
@@ -150,7 +147,7 @@ public class GaldurTabs extends AbstractWidget {
         return -1;
     }
 
-    /** {@return la couleur à {@code t} (0 à 1) entre {@code from} et {@code to}, canal par canal} */
+    /** {@return the colour at {@code t} (0 to 1) between {@code from} and {@code to}, per channel} */
     private static int mix(int from, int to, double t) {
         int result = 0;
         for (int shift = 0; shift <= 24; shift += 8) {
@@ -199,14 +196,14 @@ public class GaldurTabs extends AbstractWidget {
         }
     }
 
-    /** Seul un clic sur un onglet compte : pas de son ni de focus sur le trait ou l'espace vide. */
+    /** Only a click on a tab counts: no sound or focus on the line or the empty space. */
     @Override
     protected boolean clicked(double mouseX, double mouseY) {
         return super.clicked(mouseX, mouseY) && tabAt(mouseX, mouseY) >= 0;
     }
 
     @Override
-    public void onClick(double mouseX, double mouseY) {
+    public void onClick(double mouseX, double mouseY, int button) {
         int index = tabAt(mouseX, mouseY);
         if (index >= 0 && index != selected.getAsInt()) {
             onSelect.accept(index);
@@ -231,7 +228,7 @@ public class GaldurTabs extends AbstractWidget {
 
     @Override
     protected void updateWidgetNarration(NarrationElementOutput narrationElementOutput) {
-        // « Onglet Stockage », puis « Onglet 1 sur 3 sélectionné » (textes vanilla).
+        // "Storage tab", then "Tab 1 of 3 selected" (vanilla texts).
         int index = selected.getAsInt();
         Component title;
         if (index >= 0 && index < titles.size()) {

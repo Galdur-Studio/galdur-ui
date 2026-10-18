@@ -5,26 +5,25 @@ import net.minecraft.client.gui.layouts.LayoutElement;
 import net.minecraft.client.gui.layouts.LayoutSettings;
 
 /**
- * Élément de fenêtre qui affiche une rangée d'onglets et, dessous, le contenu de l'onglet actif.
+ * Window element showing a tab row and, below it, the content of the active tab.
  *
- * <p>Comme une ligne ({@link RowElement}), il n'est pas construit ici mais par
- * {@link WindowScreen}, qui construit le contenu des onglets avec l'état de la rangée
- * (désactivée) et réserve la place du plus grand.</p>
+ * <p>Like a row ({@link RowElement}), it is not built here but by {@link WindowScreen}, which
+ * builds the tab contents with the row state (disabled) and reserves the space of the largest.</p>
  *
- * @param tabs     les titres et contenus des onglets
- * @param handle   l'état de la rangée (onglet actif, désactivée, cachée, infobulle), partagé avec le mod
- * @param centered {@code true} pour centrer la rangée dans la fenêtre, {@code false} pour l'aligner à gauche
+ * @param tabs     the tab titles and contents
+ * @param handle   the row state (active tab, disabled, hidden, tooltip), shared with the mod
+ * @param centered {@code true} to centre the row in the window, {@code false} to align it left
  */
 public record TabsElement(TabsModel tabs, TabsHandle handle, boolean centered) implements WindowElement {
     /**
-     * Non utilisée : des onglets sont construits par {@link WindowScreen}, qui a besoin de
-     * construire leur contenu avec l'état de la rangée.
+     * Unused: tabs are built by {@link WindowScreen}, which needs to build their content with the
+     * row state.
      *
-     * @throws UnsupportedOperationException toujours
+     * @throws UnsupportedOperationException always
      */
     @Override
     public LayoutElement createWidget(boolean enabled) {
-        throw new UnsupportedOperationException("Des onglets sont construits par WindowScreen.");
+        throw new UnsupportedOperationException("Tabs are built by WindowScreen.");
     }
 
     @Override

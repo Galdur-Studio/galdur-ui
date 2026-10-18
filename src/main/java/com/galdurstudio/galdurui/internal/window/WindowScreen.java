@@ -27,49 +27,49 @@ import net.minecraft.network.chat.Component;
 import org.jetbrains.annotations.Nullable;
 
 /**
- * Écran Minecraft qui affiche le contenu d'un {@link WindowModel} dans un panneau centré.
+ * Minecraft screen showing the content of a {@link WindowModel} in a centred panel.
  *
- * <p>Minecraft rappelle {@link #init()} à chaque redimensionnement : la mise en page et les widgets
- * sont donc recréés à chaque fois à partir des descriptions du modèle.</p>
+ * <p>Minecraft calls {@link #init()} again on every resize, so the layout and widgets are rebuilt
+ * each time from the model's descriptions.</p>
  *
- * <p>L'écran retient celui qui était affiché avant lui : Échap comme le bouton de fermeture y
- * reviennent, au lieu de fermer toute l'interface.</p>
+ * <p>The screen remembers the one shown before it: Escape and the close button go back to it,
+ * instead of closing the whole interface.</p>
  */
 public class WindowScreen extends Screen {
     private final WindowModel model;
     private final Consumer<WindowScreen> onShown;
     private final Consumer<WindowScreen> onHidden;
 
-    /** Écran affiché avant celui-ci, rétabli à la fermeture ; {@code null} = retour au jeu. */
+    /** Screen shown before this one, restored on close; {@code null} = back to the game. */
     @Nullable
     private Screen previous;
 
-    /** Distance parcourue par la fenêtre en s'ouvrant (elle monte), en pixels. */
+    /** Distance the window travels while opening (it rises), in pixels. */
     private static final int OPEN_RISE = 8;
-    /** Distance parcourue par le contenu d'un onglet en arrivant, en pixels. */
+    /** Distance the content of a tab travels while arriving, in pixels. */
     private static final int PAGE_SLIDE = 12;
 
-    /** Début de l'animation d'ouverture ; {@code -1} tant que la fenêtre n'a jamais été montrée. */
+    /** Start of the opening animation; {@code -1} while the window has never been shown. */
     private long openStart = -1;
-    /** Onglet affiché par chaque rangée d'onglets à la dernière construction. */
+    /** Tab shown by each tab row on the last build. */
     private final Map<TabsHandle, Integer> builtTabs = new IdentityHashMap<>();
-    /** Contenu de l'onglet qui vient d'être choisi, trouvé pendant la construction ; sinon {@code null}. */
+    /** Content of the tab just picked, found during the build; {@code null} otherwise. */
     @Nullable
     private LinearLayout arrivingPage;
-    /** Widgets de l'onglet qui arrive, dessinés décalés pendant {@link GaldurAnimations#PAGE_MS}. */
+    /** Widgets of the arriving tab, drawn offset during {@link GaldurAnimations#PAGE_MS}. */
     private final Set<AbstractWidget> slidingWidgets = Collections.newSetFromMap(new IdentityHashMap<>());
-    /** Sens d'arrivée : {@code 1} depuis la droite (onglet suivant), {@code -1} depuis la gauche. */
+    /** Arrival side: {@code 1} from the right (next tab), {@code -1} from the left. */
     private int pageDirection;
-    /** Début du glissement de l'onglet qui arrive. */
+    /** Start of the arriving tab's slide. */
     private long pageStart;
 
     /**
-     * @param model    le contenu à afficher
-     * @param onShown  appelé chaque fois que l'écran devient l'écran courant (à l'ouverture, ou au
-     *                 retour depuis un écran ouvert par-dessus)
-     * @param onHidden appelé chaque fois que l'écran cesse d'être l'écran courant (Échap, bouton de
-     *                 fermeture, autre écran qui le remplace). Ces deux rappels permettent de
-     *                 prévenir la fenêtre sans que ce package dépende de {@code api}.
+     * @param model    the content to show
+     * @param onShown  called every time the screen becomes the current one (on open, or back from
+     *                 a screen opened on top)
+     * @param onHidden called every time the screen stops being the current one (Escape, close
+     *                 button, another screen replacing it). Both callbacks notify the window
+     *                 without this package depending on {@code api}.
      */
     public WindowScreen(WindowModel model, Consumer<WindowScreen> onShown, Consumer<WindowScreen> onHidden) {
         super(GaldurNarration.ours("window"));
@@ -79,8 +79,8 @@ public class WindowScreen extends Screen {
     }
 
     /**
-     * {@return ce que le narrateur lit à l'ouverture : le premier titre de la fenêtre
-     * ({@code addTitle}), ou « Fenêtre Galdur » s'il n'y en a pas}
+     * {@return what the narrator reads on open: the window's first title ({@code addTitle}), or
+     * "Galdur window" if there is none}
      */
     @Override
     public Component getNarrationMessage() {
@@ -93,21 +93,21 @@ public class WindowScreen extends Screen {
     }
 
     /**
-     * Retient l'écran auquel revenir à la fermeture. À appeler juste avant de l'afficher.
+     * Remembers the screen to go back to on close. Call just before showing it.
      *
-     * @param previous l'écran affiché jusqu'ici, ou {@code null} si aucun (en jeu)
+     * @param previous the screen shown until now, or {@code null} if none (in game)
      */
     public void setPrevious(@Nullable Screen previous) {
         this.previous = previous;
     }
 
     /**
-     * Reconstruit les widgets à partir du modèle, par exemple après l'ajout d'un élément alors que
-     * l'écran est déjà affiché. À appeler sur le thread du client.
+     * Rebuilds the widgets from the model, for instance after an element was added while the
+     * screen is shown. Call on the client thread.
      *
-     * <p>Le focus est rendu au widget de même rang : un joueur qui navigue au clavier dans une
-     * liste ne le perd pas quand sa sélection change l'état d'un autre élément. Si un élément
-     * apparaît ou disparaît avant lui, le focus peut glisser d'un widget.</p>
+     * <p>Focus goes back to the widget of the same rank: a player navigating a list with the
+     * keyboard keeps it when the selection changes another element's state. If an element appears
+     * or disappears before it, focus may shift by one widget.</p>
      */
     public void rebuild() {
         int focusedIndex = children().indexOf(getFocused());
@@ -117,7 +117,7 @@ public class WindowScreen extends Screen {
         }
     }
 
-    /** Appelée par Minecraft quand l'écran devient l'écran courant. */
+    /** Called by Minecraft when the screen becomes the current one. */
     @Override
     public void added() {
         super.added();
@@ -127,7 +127,7 @@ public class WindowScreen extends Screen {
         onShown.accept(this);
     }
 
-    /** {@return le décalage vertical de la fenêtre pendant son ouverture, en pixels} */
+    /** {@return the vertical offset of the window while it opens, in pixels} */
     private float openOffset() {
         if (openStart < 0) {
             return 0;
@@ -136,15 +136,15 @@ public class WindowScreen extends Screen {
         return (float) (OPEN_RISE * (1 - GaldurEasing.OUT_CUBIC.applyAsDouble(t)));
     }
 
-    /** {@return le décalage horizontal du contenu de l'onglet qui arrive, en pixels} */
+    /** {@return the horizontal offset of the arriving tab content, in pixels} */
     private float pageOffset() {
         double t = GaldurAnimations.progress(pageStart, GaldurAnimations.PAGE_MS);
         return (float) (pageDirection * PAGE_SLIDE * (1 - GaldurEasing.OUT_CUBIC.applyAsDouble(t)));
     }
 
     /**
-     * Dessine l'écran : la fenêtre monte légèrement à l'ouverture. Les zones de clic ne bougent
-     * pas ; l'animation est trop courte pour que ça se remarque.
+     * Draws the screen: the window rises slightly on open. Click areas do not move; the animation
+     * is too short to notice.
      */
     @Override
     public void render(GuiGraphics guiGraphics, int mouseX, int mouseY, float partialTick) {
@@ -153,7 +153,7 @@ public class WindowScreen extends Screen {
                 () -> super.render(guiGraphics, mouseX, mouseY - Math.round(offset), partialTick));
     }
 
-    /** Le fond (flou, voile) ne suit pas la montée de la fenêtre : il couvre tout l'écran. */
+    /** The background (blur, dim) does not follow the window rising: it covers the whole screen. */
     @Override
     public void renderBackground(GuiGraphics guiGraphics, int mouseX, int mouseY, float partialTick) {
         float offset = openOffset();
@@ -162,10 +162,10 @@ public class WindowScreen extends Screen {
     }
 
     /**
-     * Prévient la fenêtre que l'écran n'est plus affiché.
+     * Tells the window the screen is no longer shown.
      *
-     * <p>Minecraft appelle cette méthode à chaque changement d'écran, mais pas lors d'un simple
-     * redimensionnement (qui ne fait que rappeler {@link #init()}).</p>
+     * <p>Minecraft calls this on every screen change, but not on a plain resize (which only calls
+     * {@link #init()} again).</p>
      */
     @Override
     public void removed() {
@@ -174,8 +174,8 @@ public class WindowScreen extends Screen {
     }
 
     /**
-     * Ferme l'écran en revenant au précédent. Appelée par Échap et par
-     * {@code GaldurWindow.close()} : les deux se comportent donc de la même façon.
+     * Closes the screen and goes back to the previous one. Called by Escape and by
+     * {@code GaldurWindow.close()}, so both behave the same.
      */
     @Override
     public void onClose() {
@@ -185,15 +185,15 @@ public class WindowScreen extends Screen {
     }
 
     /**
-     * Construit le widget d'un élément avec l'état hérité de ce qui le contient.
+     * Builds an element's widget with the state inherited from what contains it.
      *
-     * <p>Un élément est actif seulement si lui et sa ligne le sont ; sans infobulle à lui, il
-     * prend celle de sa ligne.</p>
+     * <p>An element is enabled only if it and its row are; without a tooltip of its own, it takes
+     * its row's.</p>
      *
-     * @param element       l'élément à construire
-     * @param parentEnabled {@code false} si ce qui contient l'élément est désactivé
-     * @param parentTooltip l'infobulle de ce qui contient l'élément, ou {@code null}
-     * @return le widget, ou {@code null} si l'élément est caché et ne prend donc aucune place
+     * @param element       the element to build
+     * @param parentEnabled {@code false} if what contains the element is disabled
+     * @param parentTooltip the tooltip of what contains the element, or {@code null}
+     * @return the widget, or {@code null} if the element is hidden and takes no space
      */
     @Nullable
     private LayoutElement build(WindowElement element, boolean parentEnabled, @Nullable Component parentTooltip) {
@@ -217,9 +217,9 @@ public class WindowScreen extends Screen {
     }
 
     /**
-     * Construit une ligne : ses éléments visibles côte à côte, centrés verticalement entre eux.
+     * Builds a row: its visible elements side by side, centred vertically on each other.
      *
-     * @return la ligne, ou {@code null} si aucun de ses éléments n'est visible
+     * @return the row, or {@code null} if none of its elements is visible
      */
     @Nullable
     private LayoutElement buildRow(RowElement row, boolean enabled, @Nullable Component tooltip) {
@@ -236,17 +236,17 @@ public class WindowScreen extends Screen {
     }
 
     /**
-     * Construit une rangée d'onglets : les onglets, puis dessous le contenu de l'onglet actif.
+     * Builds a tab row: the tabs, then below them the content of the active tab.
      *
-     * <p>Le contenu de chaque onglet est construit puis mesuré, et la zone de contenu prend la
-     * taille du plus grand : la fenêtre ne change pas de taille quand on change d'onglet. Seuls
-     * les widgets de l'onglet actif sont placés dans la mise en page, donc ajoutés à l'écran ; les
-     * autres ne servent qu'à mesurer et sont abandonnés.</p>
+     * <p>Each tab's content is built then measured, and the content area takes the size of the
+     * largest: the window does not resize when switching tabs. Only the active tab's widgets are
+     * placed in the layout, and so added to the screen; the others are only measured and
+     * dropped.</p>
      *
-     * <p>L'infobulle de la rangée ne s'applique qu'aux onglets, pas au contenu ; l'état
-     * désactivé, lui, s'applique aux deux.</p>
+     * <p>The row's tooltip only applies to the tabs, not to the content; the disabled state
+     * applies to both.</p>
      *
-     * @return la rangée et son contenu, ou {@code null} s'il n'y a encore aucun onglet
+     * @return the row and its content, or {@code null} if there is no tab yet
      */
     @Nullable
     private LayoutElement buildTabs(TabsElement element, boolean enabled, @Nullable Component tooltip) {
@@ -278,7 +278,7 @@ public class WindowScreen extends Screen {
         if (shown != null) {
             area.addChild(shown);
             if (before != null && before != selected) {
-                // Le joueur vient de changer d'onglet : le nouveau contenu glisse depuis son côté.
+                // The player just switched tab: the new content slides in from its side.
                 arrivingPage = shown;
                 pageDirection = selected > before ? 1 : -1;
                 pageStart = GaldurAnimations.now();
@@ -292,11 +292,11 @@ public class WindowScreen extends Screen {
     }
 
     /**
-     * Construit des éléments empilés de haut en bas, comme le contenu de la fenêtre.
+     * Builds elements stacked top to bottom, like the window content.
      *
-     * @param model   les éléments, dans l'ordre
-     * @param enabled {@code false} si ce qui les contient est désactivé
-     * @return la colonne, vide si aucun élément n'est visible
+     * @param model   the elements, in order
+     * @param enabled {@code false} if what contains them is disabled
+     * @return the column, empty if no element is visible
      */
     private LinearLayout buildColumn(WindowModel model, boolean enabled) {
         LinearLayout column = LinearLayout.vertical().spacing(GaldurTheme.gap());
@@ -310,12 +310,12 @@ public class WindowScreen extends Screen {
     }
 
     /**
-     * Applique au widget l'état désactivé et l'infobulle.
+     * Applies the disabled state and the tooltip to the widget.
      *
-     * <p>Les libellés sont toujours inactifs ({@code active = false}, comme {@code StringWidget}) :
-     * leur état désactivé se voit à la couleur, choisie par l'élément lui-même. L'infobulle
-     * s'affiche au survol, que le widget soit actif ou non. Sans infobulle donnée par le mod, le
-     * widget garde la sienne (un bouton icône affiche son libellé).</p>
+     * <p>Labels are always inactive ({@code active = false}, like {@code StringWidget}): their
+     * disabled state shows through the colour, chosen by the element itself. The tooltip shows on
+     * hover, whether the widget is active or not. Without a tooltip from the mod, the widget keeps
+     * its own (an icon button shows its label).</p>
      */
     private static void applyState(AbstractWidget widget, boolean enabled, @Nullable Component tooltip) {
         if (!enabled) {
@@ -344,8 +344,8 @@ public class WindowScreen extends Screen {
                 addRenderableWidget(widget);
                 return;
             }
-            // Widget de l'onglet qui arrive : il reçoit clics et clavier normalement, mais il
-            // est dessiné décalé tant que le glissement dure.
+            // Widget of the arriving tab: it gets clicks and keys as usual, but is drawn offset
+            // while the slide lasts.
             addWidget(widget);
             addRenderableOnly((guiGraphics, mouseX, mouseY, partialTick) -> {
                 float offset = pageOffset();

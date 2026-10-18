@@ -15,19 +15,19 @@ import java.util.ArrayList;
 import java.util.List;
 import org.junit.jupiter.api.Test;
 
-/** Chaque clé exposée par {@link GaldurTheme} doit exister dans le {@code theme.json} livré. */
+/** Every key exposed by {@link GaldurTheme} must exist in the shipped {@code theme.json}. */
 class GaldurThemeKeysTest {
     @Test
-    void chaque_constante_de_cle_existe_dans_theme_json() throws Exception {
+    void everyKeyConstantExistsInThemeJson() throws Exception {
         List<String> warnings = new ArrayList<>();
         ThemeParser.Theme theme;
         try (InputStream stream = GaldurThemeKeysTest.class.getResourceAsStream("/assets/galdurui/theme.json")) {
-            assertNotNull(stream, "theme.json absent du classpath");
+            assertNotNull(stream, "theme.json missing from the classpath");
             try (Reader reader = new InputStreamReader(stream, StandardCharsets.UTF_8)) {
                 theme = ThemeParser.parse(reader, warnings::add);
             }
         }
-        assertTrue(warnings.isEmpty(), () -> "theme.json produit des avertissements : " + warnings);
+        assertTrue(warnings.isEmpty(), () -> "theme.json produces warnings: " + warnings);
 
         List<String> keys = new ArrayList<>();
         List<String> missing = new ArrayList<>();
@@ -42,7 +42,7 @@ class GaldurThemeKeysTest {
                 missing.add(field.getName() + " = \"" + key + "\"");
             }
         }
-        assertFalse(keys.isEmpty(), "aucune constante de clé trouvée dans GaldurTheme");
-        assertTrue(missing.isEmpty(), () -> "clés absentes de theme.json : " + missing);
+        assertFalse(keys.isEmpty(), "no key constant found in GaldurTheme");
+        assertTrue(missing.isEmpty(), () -> "keys missing from theme.json: " + missing);
     }
 }

@@ -10,71 +10,66 @@ import net.minecraft.world.item.ItemStack;
 import org.jetbrains.annotations.Nullable;
 
 /**
- * Base d'un menu à slots (côté logique, client <strong>et</strong> serveur) prêt à être affiché
- * par un {@link com.galdurstudio.galdurui.api.screen.GaldurContainerScreen}.
- *
- * <p>Elle évite le code répété de chaque menu : placer une grille de slots, placer l'inventaire
- * du joueur, et gérer le Maj+clic (déplacement rapide) entre les deux.</p>
+ * Base of a slot menu (logic side, client <strong>and</strong> server), ready to be shown by a
+ * {@link com.galdurstudio.galdurui.api.screen.GaldurContainerScreen}. It places slot grids and
+ * the player inventory, and handles Shift-click between them.
  *
  * <pre>{@code
- * public class CoffreMenu extends GaldurMenu {
- *     private final Container coffre;
+ * public class ChestMenu extends GaldurMenu {
+ *     private final Container chest;
  *
- *     public CoffreMenu(int id, Inventory joueur, Container coffre) {
- *         super(MES_MENUS.COFFRE.get(), id);
- *         this.coffre = coffre;
- *         addSlotGrid(coffre, 0, 9, 3, 8, 18);   // 27 cases
- *         addPlayerInventory(joueur, 8, 84);     // toujours en dernier
+ *     public ChestMenu(int id, Inventory player, Container chest) {
+ *         super(MY_MENUS.CHEST.get(), id);
+ *         this.chest = chest;
+ *         addSlotGrid(chest, 0, 9, 3, 8, 18);   // 27 slots
+ *         addPlayerInventory(player, 8, 84);    // always last
  *     }
  *
  *     public boolean stillValid(Player player) {
- *         return coffre.stillValid(player);
+ *         return chest.stillValid(player);
  *     }
  * }
  * }</pre>
  *
- * <p><strong>Règle</strong> : les slots du conteneur s'ajoutent d'abord ({@link #addSlotGrid} ou
- * {@code addSlot}), l'inventaire du joueur ensuite ({@link #addPlayerInventory}). Tout slot
- * ajouté avant l'inventaire du joueur compte comme un slot du conteneur pour le Maj+clic.</p>
+ * <p><strong>Rule</strong>: add the container slots first ({@link #addSlotGrid} or
+ * {@code addSlot}), then the player inventory ({@link #addPlayerInventory}). Every slot added
+ * before the player inventory counts as a container slot for Shift-click.</p>
  *
- * <p>Les coordonnées sont celles de Minecraft : en pixels d'interface depuis le coin haut gauche
- * de l'écran du menu, et désignent le coin haut gauche de l'objet (16 × 16), le cadre du slot
- * débordant d'un pixel autour.</p>
+ * <p>Coordinates are Minecraft's: GUI pixels from the top-left corner of the menu panel, pointing
+ * at the top-left corner of the 16 × 16 item; the slot frame extends one pixel around it.</p>
  */
 public abstract class GaldurMenu extends AbstractContainerMenu {
-    /** Pas entre deux slots voisins, en pixels : 16 pour l'objet et 2 pour les cadres. */
+    /** Distance between two neighbouring slots: 16 for the item and 2 for the frames. */
     public static final int SLOT_SIZE = 18;
-    /** Écart vertical entre les 3 rangées de l'inventaire du joueur et sa barre d'action. */
+    /** Vertical gap between the three inventory rows and the hotbar. */
     public static final int HOTBAR_GAP = 4;
 
-    /** Nombre de slots du conteneur : tous ceux ajoutés avant l'inventaire du joueur. */
     private int containerSlots = -1;
-    /** Premier et dernier (exclu) index des slots de l'inventaire du joueur. */
     private int playerStart = -1;
     private int playerEnd = -1;
 
     /**
-     * @param type        le type de menu, enregistré par le mod
-     * @param containerId l'identifiant de fenêtre donné par Minecraft
+     * @param type        the menu type, registered by the mod
+     * @param containerId the window id given by Minecraft
      */
     protected GaldurMenu(@Nullable MenuType<?> type, int containerId) {
         super(type, containerId);
     }
 
     /**
-     * Ajoute une grille de slots, rangée par rangée, de gauche à droite.
+     * Adds a grid of slots, row by row, left to right.
      *
-     * @param container  le conteneur dont les cases sont affichées
-     * @param firstIndex index, dans le conteneur, de la première case de la grille
-     * @param columns    nombre de colonnes
-     * @param rows       nombre de rangées
-     * @param x          abscisse du premier slot (coin haut gauche de l'objet)
-     * @param y          ordonnée du premier slot
-     * @throws IllegalStateException si l'inventaire du joueur a déjà été ajouté
+     * @param container  the container whose slots are shown
+     * @param firstIndex container index of the first grid slot
+     * @param columns    number of columns
+     * @param rows       number of rows
+     * @param x          x of the first slot (top-left of the item)
+     * @param y          y of the first slot
+     * @throws IllegalStateException if the player inventory was already added
      */
     protected void addSlotGrid(Container container, int firstIndex, int columns, int rows, int x, int y) {
         if (playerStart >= 0) {
-            throw new IllegalStateException("Ajouter les slots du conteneur avant addPlayerInventory.");
+            throw new IllegalStateException("Add the container slots before addPlayerInventory.");
         }
         for (int row = 0; row < rows; row++) {
             for (int column = 0; column < columns; column++) {
@@ -85,18 +80,17 @@ public abstract class GaldurMenu extends AbstractContainerMenu {
     }
 
     /**
-     * Ajoute l'inventaire du joueur : 3 rangées de 9, puis la barre d'action
-     * {@value #HOTBAR_GAP} pixels plus bas. À appeler une seule fois, après les slots du conteneur.
+     * Adds the player inventory: three rows of nine, then the hotbar {@value #HOTBAR_GAP} pixels
+     * lower. Call once, after the container slots.
      *
-     * @param inventory l'inventaire du joueur
-     * @param x         abscisse du premier slot (coin haut gauche de l'objet)
-     * @param y         ordonnée de la première rangée ; la barre d'action est à
-     *                  {@code y + 3 * 18 + 4}
-     * @throws IllegalStateException si l'inventaire du joueur a déjà été ajouté
+     * @param inventory the player inventory
+     * @param x         x of the first slot (top-left of the item)
+     * @param y         y of the first row; the hotbar is at {@code y + 3 * 18 + 4}
+     * @throws IllegalStateException if the player inventory was already added
      */
     protected void addPlayerInventory(Inventory inventory, int x, int y) {
         if (playerStart >= 0) {
-            throw new IllegalStateException("L'inventaire du joueur est déjà dans ce menu.");
+            throw new IllegalStateException("The player inventory is already in this menu.");
         }
         containerSlots = slots.size();
         playerStart = slots.size();
@@ -112,15 +106,15 @@ public abstract class GaldurMenu extends AbstractContainerMenu {
         playerEnd = slots.size();
     }
 
-    /** {@return le nombre de slots du conteneur, ou {@code -1} tant que l'inventaire du joueur n'est pas ajouté} */
+    /** {@return the number of container slots, or {@code -1} until the player inventory is added} */
     public int getContainerSlotCount() {
         return containerSlots;
     }
 
     /**
-     * Maj+clic : envoie l'objet du conteneur vers l'inventaire du joueur (en commençant par la
-     * barre d'action), ou de l'inventaire du joueur vers le conteneur. Même comportement qu'un
-     * coffre vanilla. Sans inventaire du joueur dans le menu, ne déplace rien.
+     * Shift-click: moves the stack from the container to the player inventory (hotbar first), or
+     * from the player inventory to the container, like a vanilla chest. Moves nothing if the menu
+     * has no player inventory.
      */
     @Override
     public ItemStack quickMoveStack(Player player, int index) {

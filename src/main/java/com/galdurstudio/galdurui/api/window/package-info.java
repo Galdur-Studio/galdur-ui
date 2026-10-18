@@ -1,32 +1,22 @@
 /**
- * Fenêtres de Galdur UI : décrire un écran en quelques lignes, sans coordonnées ni
- * {@code Screen} à écrire.
+ * Declarative windows: describe a screen in a few lines, without coordinates or a {@code Screen}
+ * subclass.
  *
- * <p>API publique, stable dans une même version majeure. On obtient une
- * {@link com.galdurstudio.galdurui.api.window.GaldurWindow} avec
- * {@link com.galdurstudio.galdurui.api.GaldurLib#createWindow()}, on y ajoute des éléments,
- * puis on l'ouvre. La mise en page, le thème et le rendu sont pris en charge par la
- * bibliothèque.</p>
+ * <p>Get a {@link com.galdurstudio.galdurui.api.window.GaldurWindow} from
+ * {@link com.galdurstudio.galdurui.api.GaldurLib#createWindow()}, add elements, then open it.
+ * Layout, theme and rendering are handled by the library. Every {@code add...} method returns a
+ * handle that keeps the element state, before and after opening:</p>
+ * <ul>
+ *   <li>{@link com.galdurstudio.galdurui.api.window.ElementHandle}: enabled, visible, tooltip;</li>
+ *   <li>{@link com.galdurstudio.galdurui.api.window.CheckboxHandle}: plus the checked state;</li>
+ *   <li>{@link com.galdurstudio.galdurui.api.window.RowHandle}: elements side by side;</li>
+ *   <li>{@link com.galdurstudio.galdurui.api.window.ListHandle}: lines and selection of a list;</li>
+ *   <li>{@link com.galdurstudio.galdurui.api.window.SearchHandle}: text of a search field;</li>
+ *   <li>{@link com.galdurstudio.galdurui.api.window.TabsHandle} and
+ *       {@link com.galdurstudio.galdurui.api.window.TabHandle}: tabs, each filled like a window;</li>
+ *   <li>{@link com.galdurstudio.galdurui.api.window.ProgressHandle}: progress and label of a bar.</li>
+ * </ul>
  *
- * <p>Chaque {@code add...(...)} renvoie une poignée qui garde l'état de l'élément, avant comme
- * après l'ouverture : {@link com.galdurstudio.galdurui.api.window.ElementHandle} pour le
- * désactiver, le cacher ou lui donner une infobulle, et
- * {@link com.galdurstudio.galdurui.api.window.CheckboxHandle} qui y ajoute l'état coché.
- * {@code addRow()} renvoie une {@link com.galdurstudio.galdurui.api.window.RowHandle}, qui place
- * ses propres éléments côte à côte, et {@code addList(...)} une
- * {@link com.galdurstudio.galdurui.api.window.ListHandle}, qui porte les lignes et la sélection
- * d'une liste défilante. {@code addSearch(...)} renvoie une
- * {@link com.galdurstudio.galdurui.api.window.SearchHandle}, qui porte le texte d'un champ de
- * recherche. {@code addTabs()} renvoie une
- * {@link com.galdurstudio.galdurui.api.window.TabsHandle}, qui porte l'onglet actif ; chacun de
- * ses onglets est une {@link com.galdurstudio.galdurui.api.window.TabHandle}, qu'on remplit comme
- * une fenêtre (les deux héritent de
- * {@link com.galdurstudio.galdurui.api.window.ElementContainer}). {@code addProgress(...)} renvoie
- * une {@link com.galdurstudio.galdurui.api.window.ProgressHandle}, qui porte l'avancement et le
- * texte d'une barre de progression. {@code addIconButton(...)} ajoute un bouton sans texte qui
- * affiche un objet ou un sprite, son libellé servant d'infobulle.</p>
- *
- * <p><strong>Règle pour nos mods</strong> : ne jamais dépendre de
- * {@code com.galdurstudio.galdurui.internal}.</p>
+ * <p>Public API, stable within a major version.</p>
  */
 package com.galdurstudio.galdurui.api.window;

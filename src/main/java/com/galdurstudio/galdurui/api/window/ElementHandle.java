@@ -5,32 +5,32 @@ import net.minecraft.network.chat.Component;
 import org.jetbrains.annotations.Nullable;
 
 /**
- * Poignée vers un élément d'une {@link GaldurWindow} : permet de le désactiver, de le cacher ou de
- * lui donner une infobulle, avant comme après l'ouverture de la fenêtre.
+ * Handle to an element of a {@link GaldurWindow}: disable it, hide it or give it a tooltip,
+ * before or after the window opens.
  *
- * <p>On l'obtient en retour de chaque {@code GaldurWindow.add...(...)}. Comme pour
- * {@link CheckboxHandle}, l'état vit ici et non dans le widget affiché : Minecraft recrée les
- * widgets à chaque redimensionnement, et ils relisent cet état.</p>
+ * <p>Returned by every {@code GaldurWindow.add...(...)}. As with {@link CheckboxHandle}, the state
+ * lives here, not in the shown widget: Minecraft rebuilds widgets on every resize, and they read
+ * this state back.</p>
  *
  * <pre>{@code
- * ElementHandle valider = window.addButton(Component.literal("Valider"), this::valider);
- * valider.setEnabled(false);
- * valider.setTooltip(Component.literal("Remplis d'abord le formulaire"));
+ * ElementHandle confirm = window.addButton(Component.literal("Confirm"), this::confirm);
+ * confirm.setEnabled(false);
+ * confirm.setTooltip(Component.literal("Fill in the form first"));
  *
- * ElementHandle detail = window.addText(Component.literal("Détail..."));
- * detail.setVisible(false);   // l'élément disparaît et libère sa place
+ * ElementHandle details = window.addText(Component.literal("Details..."));
+ * details.setVisible(false);   // the element disappears and frees its space
  * }</pre>
  *
  * <ul>
- *   <li><strong>Désactivé</strong> : affiché en couleur atténuée, ne réagit ni à la souris ni au
- *       clavier. L'infobulle reste visible au survol, pour expliquer pourquoi.</li>
- *   <li><strong>Caché</strong> : n'est pas affiché et <strong>libère sa place</strong> ; la fenêtre
- *       se remet en page sans lui.</li>
- *   <li><strong>Infobulle</strong> : texte affiché au survol de l'élément.</li>
+ *   <li><strong>Disabled</strong>: drawn in a muted colour, ignores mouse and keyboard. The
+ *       tooltip still shows on hover, to explain why.</li>
+ *   <li><strong>Hidden</strong>: not drawn and <strong>frees its space</strong>; the window lays
+ *       itself out again without it.</li>
+ *   <li><strong>Tooltip</strong>: text shown when the element is hovered.</li>
  * </ul>
  *
- * <p>Un changement fait alors que la fenêtre est affichée est visible à l'image suivante. À appeler
- * sur le thread du client.</p>
+ * <p>A change made while the window is shown is visible on the next frame. Call on the client
+ * thread.</p>
  */
 public class ElementHandle {
     private boolean enabled = true;
@@ -38,27 +38,27 @@ public class ElementHandle {
     @Nullable
     private Component tooltip;
 
-    /** Prévient la fenêtre qu'un état a changé ; posé par {@link GaldurWindow}. */
+    /** Tells the window a state changed; set by {@link GaldurWindow}. */
     private Runnable onChange = () -> {};
 
-    /** Non publique : seules {@link GaldurWindow} et {@link RowHandle} créent des poignées. */
+    /** Package-private: only {@link GaldurWindow} and {@link RowHandle} create handles. */
     ElementHandle() {
     }
 
-    /** Branche la fenêtre (ou la ligne) qui doit se mettre à jour quand l'état change. */
+    /** Wires the window (or row) to update when the state changes. */
     void setChangeListener(Runnable onChange) {
         this.onChange = onChange;
     }
 
-    /** Prévient la fenêtre que l'élément a changé et qu'elle doit se reconstruire. */
+    /** Tells the window the element changed and it must rebuild. */
     void changed() {
         onChange.run();
     }
 
     /**
-     * Active ou désactive l'élément. Sans effet si l'élément est déjà dans cet état.
+     * Enables or disables the element. No effect if it is already in that state.
      *
-     * @param enabled {@code false} pour le désactiver
+     * @param enabled {@code false} to disable it
      */
     public void setEnabled(boolean enabled) {
         if (enabled != this.enabled) {
@@ -67,16 +67,16 @@ public class ElementHandle {
         }
     }
 
-    /** {@return {@code true} si l'élément est actif (par défaut)} */
+    /** {@return {@code true} if the element is enabled (the default)} */
     public boolean isEnabled() {
         return enabled;
     }
 
     /**
-     * Affiche ou cache l'élément. Caché, il libère sa place dans la fenêtre. Sans effet si
-     * l'élément est déjà dans cet état.
+     * Shows or hides the element. Hidden, it frees its space in the window. No effect if it is
+     * already in that state.
      *
-     * @param visible {@code false} pour le cacher
+     * @param visible {@code false} to hide it
      */
     public void setVisible(boolean visible) {
         if (visible != this.visible) {
@@ -85,15 +85,15 @@ public class ElementHandle {
         }
     }
 
-    /** {@return {@code true} si l'élément est affiché (par défaut)} */
+    /** {@return {@code true} if the element is shown (the default)} */
     public boolean isVisible() {
         return visible;
     }
 
     /**
-     * Définit le texte affiché au survol de l'élément.
+     * Sets the text shown when the element is hovered.
      *
-     * @param tooltip le texte de l'infobulle, ou {@code null} pour la retirer
+     * @param tooltip the tooltip text, or {@code null} to remove it
      */
     public void setTooltip(@Nullable Component tooltip) {
         if (!Objects.equals(tooltip, this.tooltip)) {
@@ -102,7 +102,7 @@ public class ElementHandle {
         }
     }
 
-    /** {@return le texte de l'infobulle, ou {@code null} s'il n'y en a pas} */
+    /** {@return the tooltip text, or {@code null} if none} */
     @Nullable
     public Component getTooltip() {
         return tooltip;

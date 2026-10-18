@@ -5,25 +5,25 @@ import net.minecraft.client.gui.layouts.LayoutElement;
 import net.minecraft.client.gui.layouts.LayoutSettings;
 
 /**
- * Élément de fenêtre qui place ses enfants côte à côte, de gauche à droite.
+ * Window element that places its children side by side, left to right.
  *
- * <p>Ses enfants ne sont pas construits ici mais par {@link WindowScreen}, qui leur transmet
- * l'état de la ligne (désactivée, infobulle) et saute ceux qui sont cachés.</p>
+ * <p>Its children are not built here but by {@link WindowScreen}, which passes them the row state
+ * (disabled, tooltip) and skips the hidden ones.</p>
  *
- * @param children les éléments de la ligne, dans l'ordre d'ajout
- * @param centered {@code true} pour centrer la ligne dans la fenêtre, {@code false} pour l'aligner à gauche
- * @param handle   l'état commun de la ligne, partagé avec le mod
+ * @param children the row's elements, in insertion order
+ * @param centered {@code true} to centre the row in the window, {@code false} to align it left
+ * @param handle   the row's common state, shared with the mod
  */
 public record RowElement(WindowModel children, boolean centered, RowHandle handle) implements WindowElement {
     /**
-     * Non utilisée : une ligne est construite par {@link WindowScreen}, qui a besoin de
-     * construire ses enfants avec l'état de la ligne.
+     * Unused: a row is built by {@link WindowScreen}, which needs to build its children with the
+     * row state.
      *
-     * @throws UnsupportedOperationException toujours
+     * @throws UnsupportedOperationException always
      */
     @Override
     public LayoutElement createWidget(boolean enabled) {
-        throw new UnsupportedOperationException("Une ligne est construite par WindowScreen.");
+        throw new UnsupportedOperationException("A row is built by WindowScreen.");
     }
 
     @Override

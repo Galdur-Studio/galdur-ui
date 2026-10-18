@@ -3,14 +3,14 @@ package com.galdurstudio.galdurui.internal.config;
 import net.neoforged.neoforge.common.ModConfigSpec;
 
 /**
- * Réglages côté client de Galdur UI, dans {@code config/galdurui-client.toml} et dans l'écran de
- * configuration du mod (menu Mods → Galdur UI → Configurer).
+ * Client settings of Galdur UI, in {@code config/galdurui-client.toml} and in the mod config
+ * screen (Mods menu → Galdur UI → Config).
  *
- * <p>Réglages du <strong>joueur</strong>, pas des mods qui utilisent la bibliothèque : ils
- * s'appliquent à toutes les interfaces Galdur UI à la fois.</p>
+ * <p>These are <strong>player</strong> settings, not settings of the mods using the library:
+ * they apply to every Galdur UI interface at once.</p>
  */
 public final class GaldurConfig {
-    /** Description des réglages, enregistrée par le point d'entrée client. */
+    /** Settings spec, registered by the client entry point. */
     public static final ModConfigSpec SPEC;
 
     private static final ModConfigSpec.BooleanValue ANIMATIONS;
@@ -29,10 +29,9 @@ public final class GaldurConfig {
     }
 
     /**
-     * {@return {@code true} si les animations sont activées}
+     * {@return {@code true} if animations are enabled}
      *
-     * <p>Avant le chargement du fichier (tout début du démarrage), renvoie la valeur par
-     * défaut.</p>
+     * <p>Before the file is loaded (very early in startup), returns the default value.</p>
      */
     public static boolean animations() {
         return !SPEC.isLoaded() || ANIMATIONS.get();

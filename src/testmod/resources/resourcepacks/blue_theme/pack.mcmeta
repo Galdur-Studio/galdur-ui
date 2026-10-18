@@ -1,0 +1,6 @@
+{
+  "pack": {
+    "pack_format": 34,
+    "description": "Galdur UI test mod: partial blue theme, to check that a resource pack overrides the theme"
+  }
+}

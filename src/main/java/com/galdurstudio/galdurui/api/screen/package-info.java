@@ -1,11 +1,9 @@
 /**
- * Écrans de menus à slots aux couleurs de Galdur UI (côté client uniquement).
+ * Themed slot menu screens (client only):
+ * {@link com.galdurstudio.galdurui.api.screen.GaldurContainerScreen} displays any
+ * {@code AbstractContainerMenu}, in particular a {@link com.galdurstudio.galdurui.api.menu.GaldurMenu}.
+ * Never reference this package from code loaded on a dedicated server.
  *
- * <p>{@link com.galdurstudio.galdurui.api.screen.GaldurContainerScreen} affiche n'importe quel
- * {@code AbstractContainerMenu}, en particulier un
- * {@link com.galdurstudio.galdurui.api.menu.GaldurMenu}. Ne jamais référencer ce package depuis
- * du code chargé sur un serveur dédié.</p>
- *
- * <p>API publique, stable dans une même version majeure.</p>
+ * <p>Public API, stable within a major version.</p>
  */
 package com.galdurstudio.galdurui.api.screen;

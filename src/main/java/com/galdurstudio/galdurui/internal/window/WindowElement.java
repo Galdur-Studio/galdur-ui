@@ -5,48 +5,46 @@ import net.minecraft.client.gui.layouts.LayoutElement;
 import net.minecraft.client.gui.layouts.LayoutSettings;
 
 /**
- * Description d'un élément de fenêtre (texte, bouton, case à cocher...).
+ * Description of a window element (text, button, checkbox...).
  *
- * <p>Un élément ne contient <strong>pas</strong> de widget : il décrit seulement ce qu'il faut
- * afficher. Minecraft rappelle {@code Screen.init()} à chaque redimensionnement de la fenêtre du
- * jeu et les widgets sont alors recréés. {@link WindowScreen} reconstruit donc les widgets à
- * partir de ces descriptions, qui, elles, survivent.</p>
+ * <p>An element does <strong>not</strong> hold a widget: it only describes what to show.
+ * Minecraft calls {@code Screen.init()} again on every game window resize and widgets are then
+ * rebuilt, so {@link WindowScreen} rebuilds them from these descriptions, which survive.</p>
  *
- * <p>Interne à Galdur UI : les mods n'utilisent pas ce type, ils passent par
+ * <p>Internal to Galdur UI: mods do not use this type, they go through
  * {@link com.galdurstudio.galdurui.api.window.GaldurWindow}.</p>
  */
 public interface WindowElement {
     /**
-     * {@return l'état commun de l'élément (désactivé, caché, infobulle), partagé avec le mod}
+     * {@return the element's common state (disabled, hidden, tooltip), shared with the mod}
      *
-     * <p>{@link WindowScreen} le lit à chaque construction : un élément caché n'est pas placé
-     * dans la mise en page, et l'état désactivé et l'infobulle sont appliqués au widget créé.</p>
+     * <p>{@link WindowScreen} reads it on every build: a hidden element is left out of the
+     * layout, and the disabled state and tooltip are applied to the created widget.</p>
      */
     ElementHandle handle();
 
     /**
-     * Crée un widget neuf à partir de cette description.
+     * Creates a new widget from this description.
      *
-     * <p>Appelée à chaque {@code init()} de l'écran : elle doit renvoyer une nouvelle instance
-     * à chaque appel, sans réutiliser un widget déjà donné à l'écran.</p>
+     * <p>Called on every screen {@code init()}: it must return a new instance on every call,
+     * never a widget already given to the screen.</p>
      *
-     * <p>L'état actif est fourni par {@link WindowScreen} plutôt que lu dans {@link #handle()} :
-     * un élément placé dans une ligne désactivée est désactivé lui aussi, même si sa propre
-     * poignée est active.</p>
+     * <p>The enabled state comes from {@link WindowScreen} instead of {@link #handle()}: an
+     * element in a disabled row is disabled too, even when its own handle is enabled.</p>
      *
-     * @param enabled {@code true} si l'élément et tout ce qui le contient sont actifs
-     * @return le widget prêt à être placé dans une mise en page
+     * @param enabled {@code true} if the element and everything containing it are enabled
+     * @return the widget, ready to be placed in a layout
      */
     LayoutElement createWidget(boolean enabled);
 
     /**
-     * Règle la façon dont l'élément est placé dans la mise en page (alignement, marges...).
+     * Sets how the element is placed in the layout (alignment, padding...).
      *
-     * <p>{@link WindowScreen} appelle cette méthode pour chaque élément, au moment de l'ajouter
-     * au layout, en lui donnant ses réglages. Par défaut elle n'en change aucun : l'élément garde
-     * les réglages de Minecraft. Un élément ne redéfinit que les réglages qui le concernent.</p>
+     * <p>{@link WindowScreen} calls this for each element when adding it to the layout, with its
+     * settings. By default it changes nothing: the element keeps Minecraft's settings. An element
+     * only overrides the settings it cares about.</p>
      *
-     * @param settings les réglages de cet élément dans le layout, à modifier directement
+     * @param settings this element's layout settings, to modify directly
      */
     default void adjustSettings(LayoutSettings settings) {}
 }

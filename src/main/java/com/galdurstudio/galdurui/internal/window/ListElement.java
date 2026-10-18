@@ -6,17 +6,17 @@ import net.minecraft.client.gui.layouts.LayoutElement;
 import net.minecraft.client.gui.layouts.LayoutSettings;
 
 /**
- * Élément de fenêtre qui affiche une liste défilante.
+ * Window element showing a scrolling list.
  *
- * <p>Les lignes, la sélection et le défilement vivent dans le {@link ListHandle} : le widget les
- * relit à chaque image, et le défilement est rétabli quand l'écran est reconstruit.</p>
+ * <p>Lines, selection and scroll offset live in the {@link ListHandle}: the widget reads them
+ * every frame, and the scroll offset is restored when the screen is rebuilt.</p>
  *
- * @param handle      l'état de la liste, partagé avec le mod
- * @param visibleRows nombre de lignes visibles à la fois
- * @param centered    {@code true} pour centrer la liste dans la fenêtre, {@code false} pour l'aligner à gauche
+ * @param handle      the list state, shared with the mod
+ * @param visibleRows number of lines visible at once
+ * @param centered    {@code true} to centre the list in the window, {@code false} to align it left
  */
 public record ListElement(ListHandle handle, int visibleRows, boolean centered) implements WindowElement {
-    /** Largeur minimale d'une liste, en pixels, même si ses lignes sont courtes ou absentes. */
+    /** Minimum list width, in pixels, even with short or no lines. */
     private static final int MIN_WIDTH = 100;
 
     @Override

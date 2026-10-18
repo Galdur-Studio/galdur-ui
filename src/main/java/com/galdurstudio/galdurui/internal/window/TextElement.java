@@ -7,11 +7,11 @@ import net.minecraft.client.gui.layouts.LayoutSettings;
 import net.minecraft.network.chat.Component;
 
 /**
- * Élément de fenêtre qui affiche une ligne de texte.
+ * Window element showing a line of text.
  *
- * @param text     le texte à afficher
- * @param centered {@code true} pour centrer le texte dans la fenêtre, {@code false} pour l'aligner à gauche
- * @param handle   l'état commun (désactivé, caché, infobulle), partagé avec le mod
+ * @param text     the text to show
+ * @param centered {@code true} to centre the text in the window, {@code false} to align it left
+ * @param handle   the common state (disabled, hidden, tooltip), shared with the mod
  */
 public record TextElement(Component text, boolean centered, ElementHandle handle) implements WindowElement {
     @Override
