@@ -147,7 +147,7 @@ publishing {
     }
     repositories {
         maven {
-            url "file://${project.projectDir}/repo"
+            url = file("repo").toURI()
         }
     }
 }
