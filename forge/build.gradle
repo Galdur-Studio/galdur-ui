@@ -1,0 +1,67 @@
+plugins {
+    id 'idea'
+    id 'net.minecraftforge.gradle' version '[7.0.3,8)'
+}
+
+minecraft {
+    // Mojang names, like NeoForge and Fabric, so the shared code compiles unchanged.
+    mappings channel: 'official', version: project.minecraft_version
+
+    runs {
+        configureEach {
+            workingDir = layout.projectDirectory.dir('run')
+        }
+
+        register('client')
+
+        register('server') {
+            args '--nogui'
+        }
+    }
+}
+
+repositories {
+    minecraft.mavenizer(it)
+    maven fg.forgeMaven
+    maven fg.minecraftLibsMaven
+}
+
+dependencies {
+    implementation minecraft.dependency("net.minecraftforge:forge:${minecraft_version}-${forge_version}")
+
+    // Optional JEI and EMI integrations (internal.compat): compiled against their API but neither
+    // in the jar nor passed on. Without them installed, their plugins are simply never loaded.
+    // EMI has no Forge version for 1.21.1: its API is the same in all loaders and uses vanilla
+    // classes only, so the NeoForge jar is enough to compile.
+    compileOnly "mezz.jei:jei-${minecraft_version}-common-api:${jei_version}"
+    compileOnly "mezz.jei:jei-${minecraft_version}-forge-api:${jei_version}"
+    runtimeOnly("mezz.jei:jei-${minecraft_version}-forge:${jei_version}") { transitive = false }
+    compileOnly "maven.modrinth:emi:${emi_version}+neoforge"
+}
+
+// Fills the ${...} placeholders of src/main/templates (mods.toml) from gradle.properties.
+// A missing property fails the build.
+var generateModMetadata = tasks.register("generateModMetadata", ProcessResources) {
+    var replaceProperties = [
+            minecraft_version_range: minecraft_version_range,
+            loader_version_range   : loader_version_range,
+            mod_id                 : mod_id,
+            mod_name               : mod_name,
+            mod_license            : mod_license,
+            mod_version            : mod_version,
+            mod_authors            : mod_authors,
+            mod_description        : mod_description,
+    ]
+    inputs.properties replaceProperties
+    expand replaceProperties
+    from "src/main/templates"
+    into "build/generated/sources/modMetadata"
+}
+sourceSets.main.resources.srcDir generateModMetadata
+
+idea {
+    module {
+        downloadSources = true
+        downloadJavadoc = true
+    }
+}
