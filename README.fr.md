@@ -103,7 +103,7 @@ le bus du mod :
 
 ```java
 modEventBus.addListener(RegisterMenuScreensEvent.class,
-        event -> event.register(MY_MENUS.CRATE.get(), GaldurContainerScreen.factory()));
+        event -> event.register(MY_MENUS.CRATE.get(), GaldurNeoForgeScreens.factory()));
 ```
 
 Shift-clic, glisser-déposer, panneau du thème et cadres des slots marchent sans autre code.

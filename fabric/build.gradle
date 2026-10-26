@@ -1,0 +1,83 @@
+plugins {
+    id 'idea'
+    id 'fabric-loom' version '1.19.3'
+}
+
+repositories {
+    maven {
+        // Parchment mappings
+        url = "https://maven.parchmentmc.org"
+        content { includeGroup "org.parchmentmc.data" }
+    }
+    maven {
+        // Mod Menu (settings screen in the Mods list)
+        url = "https://maven.terraformersmc.com/releases/"
+        content { includeGroup "com.terraformersmc" }
+    }
+}
+
+dependencies {
+    minecraft "com.mojang:minecraft:${minecraft_version}"
+    // Mojang names, like NeoForge, so the shared code compiles unchanged.
+    mappings loom.layered {
+        officialMojangMappings()
+        parchment("org.parchmentmc.data:parchment-${parchment_minecraft_version}:${parchment_mappings_version}@zip")
+    }
+
+    modImplementation "net.fabricmc:fabric-loader:${fabric_loader_version}"
+    // The theme is a client resource reload listener: Fabric API Resource Loader.
+    modImplementation "net.fabricmc.fabric-api:fabric-api:${fabric_api_version}"
+
+    // Optional integrations (Mod Menu, JEI, EMI): compiled against their API but neither in the
+    // jar nor passed on. Without them installed, their entrypoints are simply never loaded.
+    modCompileOnly "com.terraformersmc:modmenu:${modmenu_version}"
+    modLocalRuntime "com.terraformersmc:modmenu:${modmenu_version}"
+    modCompileOnly "mezz.jei:jei-${minecraft_version}-common-api:${jei_version}"
+    modCompileOnly "mezz.jei:jei-${minecraft_version}-fabric-api:${jei_version}"
+    modLocalRuntime "mezz.jei:jei-${minecraft_version}-fabric:${jei_version}"
+    modCompileOnly "maven.modrinth:emi:${emi_version}+fabric"
+    modLocalRuntime "maven.modrinth:emi:${emi_version}+fabric"
+
+    // Spark profiler (/sparkc): dev only.
+    modLocalRuntime "maven.modrinth:spark:${spark_version}-fabric"
+}
+
+loom {
+    runs {
+        client {
+            client()
+            ideConfigGenerated(true)
+            runDir "run"
+        }
+        server {
+            server()
+            runDir "run-server"
+        }
+    }
+}
+
+// Fills the ${...} placeholders of fabric.mod.json from gradle.properties. A missing property
+// fails the build.
+processResources {
+    var replaceProperties = [
+            minecraft_version     : minecraft_version,
+            fabric_loader_version : fabric_loader_version,
+            mod_id                : mod_id,
+            mod_name              : mod_name,
+            mod_license           : mod_license,
+            mod_version           : mod_version,
+            mod_authors           : mod_authors,
+            mod_description       : mod_description,
+    ]
+    inputs.properties replaceProperties
+    filesMatching('fabric.mod.json') {
+        expand replaceProperties
+    }
+}
+
+idea {
+    module {
+        downloadSources = true
+        downloadJavadoc = true
+    }
+}

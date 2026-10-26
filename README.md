@@ -100,7 +100,7 @@ then its screen, client side on the mod bus:
 
 ```java
 modEventBus.addListener(RegisterMenuScreensEvent.class,
-        event -> event.register(MY_MENUS.CRATE.get(), GaldurContainerScreen.factory()));
+        event -> event.register(MY_MENUS.CRATE.get(), GaldurNeoForgeScreens.factory()));
 ```
 
 Shift-click, drag and drop, the theme panel and the slot frames work without more code.

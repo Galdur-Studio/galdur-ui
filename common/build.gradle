@@ -1,0 +1,55 @@
+// Shared code and assets of Galdur UI. Compiled against vanilla Minecraft only (NeoForm, no
+// loader): a class using a NeoForge, Forge or Fabric API does not compile here. The loader
+// modules compile these sources again into their own jar; this module runs the unit tests and
+// the Javadoc, and holds the sprite generator.
+plugins {
+    id 'idea'
+    id 'net.neoforged.moddev' version '2.0.148'
+}
+
+base {
+    archivesName = "${mod_id}-common"
+}
+
+sourceSets {
+    // Dev tools (sprite generator): compiled on demand only, never in the jar.
+    tools {
+        java.srcDirs = ['tools']
+        resources.srcDirs = []
+    }
+}
+
+neoForge {
+    neoFormVersion = project.neoform_version
+
+    parchment {
+        mappingsVersion = project.parchment_mappings_version
+        minecraftVersion = project.parchment_minecraft_version
+    }
+}
+
+dependencies {
+    // Optional JEI and EMI integrations (internal.compat): compiled against their API but neither
+    // in the jar nor passed on. EMI only publishes loader jars: its API is the same in all of them
+    // and uses vanilla classes only, so the NeoForge jar is enough to compile the shared code.
+    compileOnly "mezz.jei:jei-${minecraft_version}-common-api:${jei_version}"
+    compileOnly "maven.modrinth:emi:${emi_version}+neoforge"
+}
+
+// Regenerates the grayscale 9-slice sprites (colour comes from the theme at render time).
+// Run by hand; CI checks that the committed PNGs are up to date.
+tasks.register('generateSprites', JavaExec) {
+    group = 'galdur'
+    description = 'Generates the grayscale 9-slice sprites (PNG + .mcmeta), tinted by the theme at render time.'
+    classpath = sourceSets.tools.runtimeClasspath
+    mainClass = 'GenerateSprites'
+    workingDir = projectDir
+    javaLauncher = javaToolchains.launcherFor { languageVersion = JavaLanguageVersion.of(21) }
+}
+
+idea {
+    module {
+        downloadSources = true
+        downloadJavadoc = true
+    }
+}

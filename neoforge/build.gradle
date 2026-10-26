@@ -1,0 +1,101 @@
+plugins {
+    id 'idea'
+    id 'net.neoforged.moddev' version '2.0.148'
+}
+
+sourceSets {
+    // Test mod (demo screens, test blocks, dev commands): loaded by the dev runs only, never in the jar.
+    testmod {
+        compileClasspath += sourceSets.main.output
+        runtimeClasspath += sourceSets.main.output
+    }
+}
+
+// localRuntime: present when running in dev, but not passed on to mods that depend on Galdur UI.
+configurations {
+    runtimeClasspath.extendsFrom localRuntime
+    testmodRuntimeClasspath.extendsFrom localRuntime
+}
+
+neoForge {
+    version = project.neo_version
+
+    parchment {
+        mappingsVersion = project.parchment_mappings_version
+        minecraftVersion = project.parchment_minecraft_version
+    }
+
+    mods {
+        "${mod_id}" {
+            sourceSet(sourceSets.main)
+        }
+        galduruitest {
+            sourceSet(sourceSets.testmod)
+        }
+    }
+
+    runs {
+        client {
+            client()
+        }
+
+        server {
+            server()
+            programArgument '--nogui'
+        }
+
+        configureEach {
+            // Every dev run loads the library and the test mod.
+            sourceSet = sourceSets.testmod
+            loadedMods = [mods."${mod_id}", mods.galduruitest]
+
+            systemProperty 'forge.logging.markers', 'REGISTRIES'
+            logLevel = org.slf4j.event.Level.DEBUG
+        }
+    }
+}
+
+neoForge.addModdingDependenciesTo(sourceSets.testmod)
+
+dependencies {
+    // Spark profiler (/sparkc): dev only.
+    localRuntime "maven.modrinth:spark:1.10.124-neoforge-1.21.1"
+
+    // Optional JEI and EMI integrations (internal.compat): compiled against their API but neither
+    // in the jar nor passed on. Without them installed, their plugins are simply never loaded.
+    compileOnly "mezz.jei:jei-${minecraft_version}-common-api:${jei_version}"
+    compileOnly "mezz.jei:jei-${minecraft_version}-neoforge-api:${jei_version}"
+    localRuntime "mezz.jei:jei-${minecraft_version}-neoforge:${jei_version}"
+    compileOnly "maven.modrinth:emi:${emi_version}+neoforge"
+    localRuntime "maven.modrinth:emi:${emi_version}+neoforge"
+}
+
+// Fills the ${...} placeholders of src/main/templates (neoforge.mods.toml) from gradle.properties.
+// A missing property fails the build.
+var generateModMetadata = tasks.register("generateModMetadata", ProcessResources) {
+    var replaceProperties = [
+            minecraft_version      : minecraft_version,
+            minecraft_version_range: minecraft_version_range,
+            neo_version            : neo_version,
+            loader_version_range   : loader_version_range,
+            mod_id                 : mod_id,
+            mod_name               : mod_name,
+            mod_license            : mod_license,
+            mod_version            : mod_version,
+            mod_authors            : mod_authors,
+            mod_description        : mod_description,
+    ]
+    inputs.properties replaceProperties
+    expand replaceProperties
+    from "src/main/templates"
+    into "build/generated/sources/modMetadata"
+}
+sourceSets.main.resources.srcDir generateModMetadata
+neoForge.ideSyncTask generateModMetadata
+
+idea {
+    module {
+        downloadSources = true
+        downloadJavadoc = true
+    }
+}

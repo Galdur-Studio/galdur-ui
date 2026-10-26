@@ -1,9 +1,15 @@
 pluginManagement {
     repositories {
         gradlePluginPortal()
+        maven { url = 'https://maven.neoforged.net/releases' }
     }
 }
 
 plugins {
     id 'org.gradle.toolchains.foojay-resolver-convention' version '1.0.0'
 }
+
+// common: the code and assets shared by every loader (vanilla Minecraft only, no loader API).
+// The loader modules compile the sources of common into their own jar.
+include 'common'
+include 'neoforge'
