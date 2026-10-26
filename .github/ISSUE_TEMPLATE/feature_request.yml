@@ -1,0 +1,14 @@
+name: Feature request
+description: An idea for a widget, a screen or the API
+labels: [enhancement]
+body:
+  - type: textarea
+    id: need
+    attributes:
+      label: What do you want to build, and what is missing?
+    validations:
+      required: true
+  - type: textarea
+    id: idea
+    attributes:
+      label: How could Galdur UI help?

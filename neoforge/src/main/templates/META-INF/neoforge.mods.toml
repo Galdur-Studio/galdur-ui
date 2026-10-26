@@ -6,6 +6,8 @@ loaderVersion="${loader_version_range}"
 
 license="${mod_license}"
 
+issueTrackerURL="https://github.com/Galdur-Studio/galdur-ui/issues"
+
 [[mods]]
 
 modId="${mod_id}"
@@ -17,6 +19,10 @@ displayName="${mod_name}"
 authors="${mod_authors}"
 
 description='''${mod_description}'''
+
+displayURL="https://galdurstudio.com/mods/galdur-ui"
+
+logoFile="galdurui.png"
 
 [[dependencies.${mod_id}]]
     modId="neoforge"
