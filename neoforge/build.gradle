@@ -8,6 +8,8 @@ sourceSets {
     testmod {
         compileClasspath += sourceSets.main.output
         runtimeClasspath += sourceSets.main.output
+        // Demo screens shared by every loader's test mod.
+        java.srcDir rootProject.file('testmod-shared/java')
     }
 }
 

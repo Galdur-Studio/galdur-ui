@@ -158,8 +158,10 @@ Gradle doit tourner sous Java 21 (`gradle/gradle-daemon-jvm.properties` le deman
 
 Les écrans de démo, les blocs de test et les outils de debug vivent dans un source set séparé,
 `neoforge/src/testmod`, sous la forme d'un second mod (`galduruitest`). Les lancements de développement du
-module NeoForge le chargent à côté de Galdur UI ; il n'est **jamais** dans le jar de la bibliothèque. Fabric et
-Forge n'ont pas encore de mod de test.
+module NeoForge le chargent à côté de Galdur UI ; il n'est **jamais** dans le jar de la bibliothèque. Le module
+Fabric a aussi un petit mod de test (`fabric/src/testmod` : `/galdurui test` et `/galdurui window` seulement), bâti
+sur les écrans de démo de `testmod-shared/`. Forge n'en a pas : utiliser le client NeoForge ou Fabric pour voir les
+widgets.
 
 | Commande | Effet |
 |---|---|

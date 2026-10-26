@@ -3,6 +3,16 @@ plugins {
     id 'fabric-loom' version '1.15.5'
 }
 
+sourceSets {
+    // Test mod (demo screens): loaded by the dev runs only, never in the jar.
+    testmod {
+        compileClasspath += sourceSets.main.compileClasspath + sourceSets.main.output
+        runtimeClasspath += sourceSets.main.runtimeClasspath + sourceSets.main.output
+        // Demo screens shared by every loader's test mod.
+        java.srcDir rootProject.file('testmod-shared/java')
+    }
+}
+
 repositories {
     maven {
         // Parchment mappings
@@ -40,11 +50,21 @@ dependencies {
 }
 
 loom {
+    mods {
+        galdurui {
+            sourceSet sourceSets.main
+        }
+        galduruitest {
+            sourceSet sourceSets.testmod
+        }
+    }
     accessWidenerPath = file("src/main/resources/galdurui.accesswidener")
 
     runs {
         client {
             client()
+            // Every dev run loads the library and the test mod.
+            source sourceSets.testmod
             ideConfigGenerated(true)
             runDir "run"
         }

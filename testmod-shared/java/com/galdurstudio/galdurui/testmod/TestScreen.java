@@ -93,7 +93,7 @@ public class TestScreen extends Screen {
 
         LinearLayout footer = column.addChild(LinearLayout.horizontal().spacing(GaldurTheme.gap()));
         footer.addChild(GaldurButton.of(Component.literal("Open a Galdur window"),
-                button -> TestCommands.openDemoWindow()));
+                button -> DemoWindow.open()));
         footer.addChild(GaldurButton.of(Component.literal("Reload theme"),
                 button -> Minecraft.getInstance().reloadResourcePacks()));
 
@@ -134,9 +134,9 @@ public class TestScreen extends Screen {
 
         LinearLayout icons = content.addChild(LinearLayout.horizontal().spacing(GaldurTheme.gap()));
         icons.addChild(GaldurIconButton.ofItem(new ItemStack(Items.HOPPER), Component.literal("Sort"),
-                button -> GaldurUITest.LOGGER.info("Icon: sort")));
+                button -> TestLog.LOGGER.info("Icon: sort")));
         icons.addChild(GaldurIconButton.ofItem(new ItemStack(Items.COMPASS), Component.literal("Locate"),
-                button -> GaldurUITest.LOGGER.info("Icon: locate")));
+                button -> TestLog.LOGGER.info("Icon: locate")));
         icons.addChild(disabled(GaldurIconButton.ofItem(new ItemStack(Items.CRAFTING_TABLE),
                 Component.literal("Request (disabled)"), button -> {
                 })));
@@ -166,7 +166,7 @@ public class TestScreen extends Screen {
         GaldurScrollList list = GaldurScrollList.of(140, 5, this::filteredOres,
                 () -> selectedOre, index -> {
                     selectedOre = index;
-                    GaldurUITest.LOGGER.info("Ore: {}", filteredOres().get(index).getString());
+                    TestLog.LOGGER.info("Ore: {}", filteredOres().get(index).getString());
                 });
         list.setScroll(oreScroll);
         content.addChild(list.onScroll(scroll -> oreScroll = scroll));
@@ -217,7 +217,7 @@ public class TestScreen extends Screen {
                 }));
 
         GaldurItemGrid grid = GaldurItemGrid.of(9, 6, () -> gridShown)
-                .onClick((index, entry, button, shift) -> GaldurUITest.LOGGER.info("Grid: {} x {}, {} click{}",
+                .onClick((index, entry, button, shift) -> TestLog.LOGGER.info("Grid: {} x {}, {} click{}",
                         entry.stack().getHoverName().getString(), entry.amount(),
                         button == 0 ? "left" : "right", shift ? " + Shift" : ""));
         grid.setScrollRow(gridScroll);
@@ -302,7 +302,7 @@ public class TestScreen extends Screen {
 
     private static GaldurItemSlot slotWithAmount(Item item, long amount) {
         return GaldurItemSlot.of(() -> new ItemStack(item), () -> amount)
-                .onPress(button -> GaldurUITest.LOGGER.info("Slot {}: {} click", item, button == 0 ? "left" : "right"));
+                .onPress(button -> TestLog.LOGGER.info("Slot {}: {} click", item, button == 0 ? "left" : "right"));
     }
 
     private static ItemStack damagedSword() {

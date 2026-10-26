@@ -1,0 +1,16 @@
+{
+  "schemaVersion": 1,
+  "id": "galduruitest",
+  "version": "0.0.0",
+  "name": "Galdur UI Test Mod",
+  "description": "Demo screens for Galdur UI. Development only.",
+  "authors": ["Galdur Studio"],
+  "license": "LGPL-3.0-only",
+  "environment": "client",
+  "entrypoints": {
+    "client": ["com.galdurstudio.galdurui.testmod.fabric.GaldurUITestFabric"]
+  },
+  "depends": {
+    "galdurui": "*"
+  }
+}
