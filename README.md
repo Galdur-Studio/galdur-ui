@@ -25,7 +25,7 @@ ModDevGradle, Fabric with Loom, Forge with ForgeGradle 7), and Java 21.
 ```
 
 This writes one artifact per loader in `galdur-ui/repo/`: `galdurui-neoforge`, `galdurui-fabric`
-and `galdurui-forge` (`com.galdurstudio.galdurui:<artifact>:0.1.0`). Your mod only needs the one
+and `galdurui-forge` (`com.galdurstudio.galdurui:<artifact>:1.0.0`). Your mod only needs the one
 for its loader. Until Galdur Studio has a Maven repository, this local folder is the repository.
 
 **Step 2. Add the dependency** in your mod's `build.gradle` (the path is relative to your mod's
@@ -38,10 +38,10 @@ repositories {
 
 dependencies {
     // NeoForge (ModDevGradle) or Forge (ForgeGradle):
-    implementation "com.galdurstudio.galdurui:galdurui-neoforge:0.1.0"   // or galdurui-forge
+    implementation "com.galdurstudio.galdurui:galdurui-neoforge:1.0.0"   // or galdurui-forge
 
     // Fabric (Loom): a mod dependency, remapped by Loom
-    modImplementation "com.galdurstudio.galdurui:galdurui-fabric:0.1.0"
+    modImplementation "com.galdurstudio.galdurui:galdurui-fabric:1.0.0"
 }
 ```
 
@@ -54,18 +54,18 @@ without Galdur UI instead of crashing later (replace `mymod` with your mod id):
 |---|---|---|
 | NeoForge | `src/main/resources/META-INF/neoforge.mods.toml` | the block below |
 | Forge | `src/main/resources/META-INF/mods.toml` | the same block, with `mandatory = true` instead of `type = "required"` |
-| Fabric | `src/main/resources/fabric.mod.json` | `"depends": { "galdurui": ">=0.1.0" }` |
+| Fabric | `src/main/resources/fabric.mod.json` | `"depends": { "galdurui": ">=1.0.0" }` |
 
 ```toml
 [[dependencies.mymod]]
 modId = "galdurui"
 type = "required"
-versionRange = "[0.1,0.2)"
+versionRange = "[1.0,2.0)"
 ordering = "NONE"
 side = "BOTH"
 ```
 
-Galdur UI is a separate mod: players install the jar of their loader (`galdurui-<loader>-0.1.0.jar`,
+Galdur UI is a separate mod: players install the jar of their loader (`galdurui-<loader>-1.0.0.jar`,
 in `<module>/build/libs`) next to yours; it is not bundled in your jar.
 
 **Step 4. Check that it works**: `.\gradlew.bat runClient` in your mod (`runClient` for
@@ -320,8 +320,8 @@ Galdur UI follows [Semantic Versioning](https://semver.org/): `MAJOR.MINOR.PATCH
 - **MAJOR**: incompatible change to `api.*`, including one forced by a Minecraft update (see
   above).
 
-Before 1.0.0, a MINOR may still break the API: depend on `[0.1,0.2)` rather than `[0.1,)`.
-`internal.*` is not covered. Changes are listed in [CHANGELOG.md](CHANGELOG.md).
+From 1.0.0, the `api.*` package is stable: depend on `[1.0,2.0)`. Versions before 1.0.0 could still break
+the API in a MINOR. `internal.*` is not covered. Changes are listed in [CHANGELOG.md](CHANGELOG.md).
 
 ## JEI and EMI integrations
 

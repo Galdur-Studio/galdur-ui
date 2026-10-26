@@ -5,6 +5,11 @@ and versions follow [Semantic Versioning](https://semver.org/) (see "Versioning"
 
 ## [Unreleased]
 
+## [1.0.0] - 2026-10-26
+
+First stable release, for Minecraft 1.21.1 on NeoForge 21.1, Fabric and Forge 52. From now on `api.*` follows
+Semantic Versioning strictly.
+
 ### Added
 
 - Fabric and Forge versions (`galdurui-fabric`, `galdurui-forge`), next to NeoForge. The code is shared in the

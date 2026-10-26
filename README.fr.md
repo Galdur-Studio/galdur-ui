@@ -25,7 +25,7 @@ Dans le dossier `galdur-ui` :
 ```
 
 Cela écrit un artefact par loader dans `galdur-ui/repo/` : `galdurui-neoforge`, `galdurui-fabric`
-et `galdurui-forge` (`com.galdurstudio.galdurui:<artefact>:0.1.0`). Un mod n'a besoin que de celui
+et `galdurui-forge` (`com.galdurstudio.galdurui:<artefact>:1.0.0`). Un mod n'a besoin que de celui
 de son loader. Tant que Galdur Studio n'a pas de dépôt Maven, ce dossier local fait office de dépôt.
 
 **Étape 2. Ajouter la dépendance** dans le `build.gradle` du mod (le chemin est relatif au dossier
@@ -38,10 +38,10 @@ repositories {
 
 dependencies {
     // NeoForge (ModDevGradle) ou Forge (ForgeGradle) :
-    implementation "com.galdurstudio.galdurui:galdurui-neoforge:0.1.0"   // ou galdurui-forge
+    implementation "com.galdurstudio.galdurui:galdurui-neoforge:1.0.0"   // ou galdurui-forge
 
     // Fabric (Loom) : dépendance de mod, remappée par Loom
-    modImplementation "com.galdurstudio.galdurui:galdurui-fabric:0.1.0"
+    modImplementation "com.galdurstudio.galdurui:galdurui-fabric:1.0.0"
 }
 ```
 
@@ -56,19 +56,19 @@ du mod) :
 |---|---|---|
 | NeoForge | `src/main/resources/META-INF/neoforge.mods.toml` | le bloc ci-dessous |
 | Forge | `src/main/resources/META-INF/mods.toml` | le même bloc, avec `mandatory = true` à la place de `type = "required"` |
-| Fabric | `src/main/resources/fabric.mod.json` | `"depends": { "galdurui": ">=0.1.0" }` |
+| Fabric | `src/main/resources/fabric.mod.json` | `"depends": { "galdurui": ">=1.0.0" }` |
 
 ```toml
 [[dependencies.mymod]]
 modId = "galdurui"
 type = "required"
-versionRange = "[0.1,0.2)"
+versionRange = "[1.0,2.0)"
 ordering = "NONE"
 side = "BOTH"
 ```
 
 Galdur UI est un mod à part : les joueurs installent le jar de leur loader
-(`galdurui-<loader>-0.1.0.jar`, dans `<module>/build/libs`) à côté du vôtre ; il n'est pas inclus
+(`galdurui-<loader>-1.0.0.jar`, dans `<module>/build/libs`) à côté du vôtre ; il n'est pas inclus
 dans votre jar.
 
 **Étape 4. Vérifier que ça marche** : `.\gradlew.bat runClient` dans le mod (aussi pour NeoForge
@@ -331,8 +331,8 @@ Galdur UI suit le [versionnage sémantique](https://semver.org/lang/fr/) : `MAJE
 - **MAJEUR** : changement incompatible de `api.*`, y compris imposé par une mise à jour de
   Minecraft (voir plus haut).
 
-Avant la 1.0.0, une MINEURE peut encore casser l'API : dépendre de `[0.1,0.2)` plutôt que de
-`[0.1,)`. `internal.*` n'est pas concerné. Les changements sont listés dans
+À partir de la 1.0.0, `api.*` est stable : dépendre de `[1.0,2.0)`. Avant la 1.0.0, une MINEURE
+pouvait encore casser l'API. `internal.*` n'est pas concerné. Les changements sont listés dans
 [CHANGELOG.md](CHANGELOG.md) (en anglais).
 
 ## Intégrations JEI et EMI
