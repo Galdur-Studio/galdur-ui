@@ -12,18 +12,24 @@ Galdur Studio's GUI library: theme, components and screens for our Minecraft mod
 
 ## Getting started
 
-### 1. Add the dependency
+### 1. Add Galdur UI to your mod
 
-Until Galdur Studio has a Maven repository, Galdur UI is published to a `repo/` folder next to
-its sources. In `galdur-ui`, run:
+Prerequisites: a mod project for Minecraft 1.21.1 on the loader you target (NeoForge with
+ModDevGradle, Fabric with Loom, Forge with ForgeGradle 7), and Java 21.
+
+**Step 1. Publish Galdur UI** (once, then again after each change to the library). In the
+`galdur-ui` folder:
 
 ```powershell
-.\gradlew.bat publish     # writes repo/com/galdurstudio/galdurui/galdurui-<loader>/<version>/
+.\gradlew.bat publish
 ```
 
-One artifact per loader: `galdurui-neoforge`, `galdurui-fabric` and `galdurui-forge`.
+This writes one artifact per loader in `galdur-ui/repo/`: `galdurui-neoforge`, `galdurui-fabric`
+and `galdurui-forge` (`com.galdurstudio.galdurui:<artifact>:0.1.0`). Your mod only needs the one
+for its loader. Until Galdur Studio has a Maven repository, this local folder is the repository.
 
-Then, in your mod's `build.gradle` (the path is relative to your mod's folder):
+**Step 2. Add the dependency** in your mod's `build.gradle` (the path is relative to your mod's
+folder; adjust it to where `galdur-ui` is):
 
 ```groovy
 repositories {
@@ -31,14 +37,24 @@ repositories {
 }
 
 dependencies {
+    // NeoForge (ModDevGradle) or Forge (ForgeGradle):
     implementation "com.galdurstudio.galdurui:galdurui-neoforge:0.1.0"   // or galdurui-forge
-    // Fabric (Loom): modImplementation "com.galdurstudio.galdurui:galdurui-fabric:0.1.0"
+
+    // Fabric (Loom): a mod dependency, remapped by Loom
+    modImplementation "com.galdurstudio.galdurui:galdurui-fabric:0.1.0"
 }
 ```
 
-And declare the dependency in your mod's metadata. NeoForge: `src/main/resources/META-INF/neoforge.mods.toml`
-(replace `mymod` with your mod id); Forge: the same block in `mods.toml`, with `mandatory = true` instead of
-`type = "required"`; Fabric: `"depends": { "galdurui": ">=0.1.0" }` in `fabric.mod.json`.
+Keep only the line of your loader. Fabric also needs Fabric API in your mod, as usual.
+
+**Step 3. Declare the dependency in your mod's metadata**, so the game refuses to start your mod
+without Galdur UI instead of crashing later (replace `mymod` with your mod id):
+
+| Loader | File | What to add |
+|---|---|---|
+| NeoForge | `src/main/resources/META-INF/neoforge.mods.toml` | the block below |
+| Forge | `src/main/resources/META-INF/mods.toml` | the same block, with `mandatory = true` instead of `type = "required"` |
+| Fabric | `src/main/resources/fabric.mod.json` | `"depends": { "galdurui": ">=0.1.0" }` |
 
 ```toml
 [[dependencies.mymod]]
@@ -49,7 +65,15 @@ ordering = "NONE"
 side = "BOTH"
 ```
 
-Galdur UI is a separate mod: players install it next to yours (it is not bundled in your jar).
+Galdur UI is a separate mod: players install the jar of their loader (`galdurui-<loader>-0.1.0.jar`,
+in `<module>/build/libs`) next to yours; it is not bundled in your jar.
+
+**Step 4. Check that it works**: `.\gradlew.bat runClient` in your mod (`runClient` for
+NeoForge and Fabric too), then open a screen built with the examples below. If the game says
+Galdur UI is missing, the dependency of step 2 is not on the run classpath.
+
+Then use only `com.galdurstudio.galdurui.api.*`, with the same code on every loader. The only
+thing that differs is how you register a menu screen (section 3).
 
 ### 2. A window, built in code (client)
 
@@ -101,7 +125,11 @@ public class CrateMenu extends GaldurMenu {
 ```
 
 Register the menu type as usual (`new MenuType<>(CrateMenu::new, FeatureFlags.DEFAULT_FLAGS)`),
-then its screen, client side on the mod bus:
+then its screen. This is the one line that differs per loader, because each loader registers
+screens its own way; the helper classes are in the artifact of the loader
+(`com.galdurstudio.galdurui.api.neoforge.GaldurNeoForgeScreens`, `...api.forge.GaldurForgeScreens`,
+`...api.fabric.GaldurFabricScreens`). A mod for several loaders keeps this line in its loader module.
+Client side only:
 
 ```java
 // NeoForge
@@ -118,7 +146,7 @@ GaldurFabricScreens.register(MY_MENUS.CRATE);
 
 Shift-click, drag and drop, the theme panel and the slot frames work without more code.
 `GaldurItemGrid` adds a scrolling grid of thousands of items without real slots (storage
-terminals); see `TestTerminalScreen` in the test mod.
+terminals); see `TestTerminalScreen` in the NeoForge test mod.
 
 ### Rules
 
