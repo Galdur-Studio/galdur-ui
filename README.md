@@ -7,7 +7,7 @@ Galdur Studio's GUI library: theme, components and screens for our Minecraft mod
 ## Versions
 
 - Minecraft 1.21.1
-- NeoForge 21.1.x
+- NeoForge 21.1.x, Fabric (Loader 0.16+, Fabric API) and Forge 52.x
 - Java 21
 
 ## Getting started
@@ -18,8 +18,10 @@ Until Galdur Studio has a Maven repository, Galdur UI is published to a `repo/` 
 its sources. In `galdur-ui`, run:
 
 ```powershell
-.\gradlew.bat publish     # writes repo/com/galdurstudio/galdurui/galdurui/<version>/
+.\gradlew.bat publish     # writes repo/com/galdurstudio/galdurui/galdurui-<loader>/<version>/
 ```
+
+One artifact per loader: `galdurui-neoforge`, `galdurui-fabric` and `galdurui-forge`.
 
 Then, in your mod's `build.gradle` (the path is relative to your mod's folder):
 
@@ -29,11 +31,14 @@ repositories {
 }
 
 dependencies {
-    implementation "com.galdurstudio.galdurui:galdurui:0.1.0"
+    implementation "com.galdurstudio.galdurui:galdurui-neoforge:0.1.0"   // or galdurui-forge
+    // Fabric (Loom): modImplementation "com.galdurstudio.galdurui:galdurui-fabric:0.1.0"
 }
 ```
 
-And in `src/main/resources/META-INF/neoforge.mods.toml` (replace `mymod` with your mod id):
+And declare the dependency in your mod's metadata. NeoForge: `src/main/resources/META-INF/neoforge.mods.toml`
+(replace `mymod` with your mod id); Forge: the same block in `mods.toml`, with `mandatory = true` instead of
+`type = "required"`; Fabric: `"depends": { "galdurui": ">=0.1.0" }` in `fabric.mod.json`.
 
 ```toml
 [[dependencies.mymod]]
@@ -99,8 +104,16 @@ Register the menu type as usual (`new MenuType<>(CrateMenu::new, FeatureFlags.DE
 then its screen, client side on the mod bus:
 
 ```java
+// NeoForge
 modEventBus.addListener(RegisterMenuScreensEvent.class,
         event -> event.register(MY_MENUS.CRATE.get(), GaldurNeoForgeScreens.factory()));
+
+// Forge
+modEventBus.addListener((FMLClientSetupEvent event) ->
+        GaldurForgeScreens.register(event, MY_MENUS.CRATE.get()));
+
+// Fabric (ClientModInitializer)
+GaldurFabricScreens.register(MY_MENUS.CRATE);
 ```
 
 Shift-click, drag and drop, the theme panel and the slot frames work without more code.
@@ -117,17 +130,32 @@ terminals); see `TestTerminalScreen` in the test mod.
 
 ## Development
 
+The project has one module per loader around a shared one:
+
+| Module | Content |
+|---|---|
+| `common` | all the code and assets (`api`, `internal`, sprites, theme, lang), compiled against vanilla Minecraft only: a NeoForge, Forge or Fabric API does not compile there. Holds the unit tests and `generateSprites` |
+| `neoforge` | NeoForge entry point, `ModConfigSpec` settings, `neoforge.mods.toml`, the test mod |
+| `fabric` | Fabric entry point, JSON settings, Mod Menu screen, `fabric.mod.json` |
+| `forge` | Forge entry point, `ForgeConfigSpec` settings, `mods.toml` |
+
+Each loader module compiles the sources of `common` into its own jar: a mod depends on a single
+`galdurui-<loader>` artifact. Code shared by all loaders goes in `common`; a loader module only holds what
+needs its API.
+
 ```powershell
-.\gradlew.bat runClient   # starts the development client (library + test mod)
-.\gradlew.bat build       # compiles, runs the tests and builds the jar in build/libs
-.\gradlew.bat test        # unit tests only (without starting Minecraft)
+.\gradlew.bat :neoforge:runClient   # development client (library + test mod); same with :fabric: or :forge:
+.\gradlew.bat build                 # compiles, runs the tests and builds one jar per loader (<module>/build/libs)
+.\gradlew.bat :common:test          # unit tests only (without starting Minecraft)
 ```
+
+Gradle must run on Java 21 (`gradle/gradle-daemon-jvm.properties` asks for it and downloads it when missing).
 
 ### Test mod
 
-Demo screens, test blocks and debug tools live in a separate source set, `src/testmod`, as a
-second mod (`galduruitest`). Development runs load it next to Galdur UI; it is **never** in the
-library jar.
+Demo screens, test blocks and debug tools live in a separate source set, `neoforge/src/testmod`, as a
+second mod (`galduruitest`). Development runs of the NeoForge module load it next to Galdur UI; it is
+**never** in the library jar. Fabric and Forge have no test mod yet.
 
 | Command | What it does |
 |---|---|
@@ -179,7 +207,7 @@ Sprites with the same pixels (`button`/`button_hover`/`button_disabled`, `field`
 .\gradlew.bat generateSprites
 ```
 
-The generator (`tools/GenerateSprites.java`) is compiled in its own source set: it does not run
+The generator (`common/tools/GenerateSprites.java`) is compiled in its own source set: it does not run
 during the build and is not in the mod jar. CI runs it again and fails if the committed PNGs no
 longer match its output.
 
@@ -188,7 +216,7 @@ longer match its output.
 Hover fades on buttons and tabs, a checkbox mark that grows, windows and menu screens that rise
 slightly on open, tab content sliding in from its side, smooth list scrolling. Short durations
 (90 to 180 ms) and the curves of `api.anim.GaldurEasing`. Players can turn everything off:
-Mods → Galdur UI → Config → Animations (`config/galdurui-client.toml`). A mod animating its own
+Mods → Galdur UI → Config → Animations (`config/galdurui-client.toml` on NeoForge and Forge, `config/galdurui-client.json` on Fabric, where the screen needs Mod Menu). A mod animating its own
 widgets uses `api.anim.AnimatedValue`, which respects this setting.
 
 ## Title font
@@ -282,7 +310,7 @@ development (versions in `gradle.properties`).
   `StringWidget`, so the screen's automatic narration does not read it, even though
   `updateWidgetNarration` returns its text. Same behaviour as vanilla, on purpose.
 - **Development tools outside the jar**: demo screens, test blocks and commands are in the
-  `galduruitest` test mod (`src/testmod`), loaded only by the development runs.
+  `galduruitest` test mod (`neoforge/src/testmod`), loaded only by the development runs.
 - **API methods unused internally**: `GaldurButton.withSprites`, `getPreferredWidth`, `isHeld`,
   `clearHeld`, `GaldurLabel.getText`, `GaldurPanelLayout.withSprite`, `getChild`, etc. are not
   called in this repository but are kept on purpose: they are part of the API offered to our
@@ -298,5 +326,5 @@ Galdur UI is distributed under the GNU LGPL v3 only (`LGPL-3.0-only`). See [LICE
 (LGPL v3) and [COPYING](COPYING) (GPL v3, which the LGPL refers to).
 
 The title font, Fredoka (Milena Brandão, Hafontia), is under the SIL Open Font License 1.1: see
-`src/main/resources/assets/galdurui/font/fredoka_ofl.txt`. The bundled file is a SemiBold
+`common/src/main/resources/assets/galdurui/font/fredoka_ofl.txt`. The bundled file is a SemiBold
 instance of the variable font, reduced to Latin alphabets.

@@ -27,33 +27,37 @@ jobs:
       - name: Setup Gradle
         uses: gradle/actions/setup-gradle@v6
 
+      # Builds common (vanilla only), NeoForge, Fabric and Forge: one jar per loader.
       - name: Build with Gradle
         run: ./gradlew build javadoc --no-daemon
 
-      # The test mod (src/testmod) and the dev tools must never end up in the library jar.
-      - name: Check the jar holds no test mod
+      # The test mod (neoforge/src/testmod) and the dev tools must never end up in a library jar.
+      - name: Check the jars hold no test mod
         run: |
-          if for jar in build/libs/*.jar; do unzip -l "$jar"; done | grep -E "testmod|galduruitest|resourcepacks/"; then
-            echo "Test mod files found in the jar."
+          if for jar in neoforge/build/libs/*.jar fabric/build/libs/*.jar forge/build/libs/*.jar; do unzip -l "$jar"; done | grep -E "testmod|galduruitest|resourcepacks/"; then
+            echo "Test mod files found in a jar."
             exit 1
           fi
 
-      # The committed PNGs must be exactly what tools/GenerateSprites.java produces.
+      # The committed PNGs must be exactly what common/tools/GenerateSprites.java produces.
       # git status (not git diff) also sees new, untracked files.
       - name: Check sprites are up to date
         run: |
-          ./gradlew generateSprites --no-daemon
-          changes=$(git status --porcelain -- src/main/resources/assets/galdurui/textures)
+          ./gradlew :common:generateSprites --no-daemon
+          changes=$(git status --porcelain -- common/src/main/resources/assets/galdurui/textures)
           if [ -n "$changes" ]; then
-            echo "Sprites out of date (run ./gradlew generateSprites and commit):"
+            echo "Sprites out of date (run ./gradlew :common:generateSprites and commit):"
             echo "$changes"
-            git diff --stat -- src/main/resources/assets/galdurui/textures
+            git diff --stat -- common/src/main/resources/assets/galdurui/textures
             exit 1
           fi
 
-      - name: Upload jar
+      - name: Upload jars
         uses: actions/upload-artifact@v7
         with:
-          name: galdur-ui-jar
-          path: build/libs/*.jar
+          name: galdur-ui-jars
+          path: |
+            neoforge/build/libs/*.jar
+            fabric/build/libs/*.jar
+            forge/build/libs/*.jar
           if-no-files-found: error

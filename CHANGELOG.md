@@ -5,6 +5,24 @@ and versions follow [Semantic Versioning](https://semver.org/) (see "Versioning"
 
 ## [Unreleased]
 
+### Added
+
+- Fabric and Forge versions (`galdurui-fabric`, `galdurui-forge`), next to NeoForge. The code is shared in the
+  `common` module; each loader module only holds its entry point, settings and metadata.
+- Settings screen for Fabric (through Mod Menu) and Forge; Fabric settings are in `config/galdurui-client.json`.
+- Registration helpers for `GaldurContainerScreen`: `GaldurNeoForgeScreens`, `GaldurForgeScreens`,
+  `GaldurFabricScreens`.
+
+### Changed
+
+- **Breaking**: the artifact is now one per loader (`galdurui-neoforge` instead of `galdurui`).
+- **Breaking**: `GaldurContainerScreen.factory()` is replaced by `GaldurNeoForgeScreens.factory()` (NeoForge).
+- Widgets override the vanilla `onClick(double, double)` instead of NeoForge's 3-argument one (same behaviour
+  on NeoForge, which calls it).
+- On Fabric, the hovered slot of a `GaldurContainerScreen` gets the vanilla white veil (the accent veil needs a
+  NeoForge or Forge hook); the accent outline stays.
+- The font licence file is now `fredoka_ofl.txt` (Fabric rejects upper case in resource paths).
+
 ## [0.1.0]
 
 First version, for Minecraft 1.21.1 and NeoForge 21.1.
