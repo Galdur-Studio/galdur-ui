@@ -75,13 +75,13 @@ jobs:
           fi
 
       - name: Publish NeoForge
+        if: env.DRY_RUN != 'true'
         uses: Kir-Antipov/mc-publish@v3.3
         with:
           modrinth-id: ${{ vars.MODRINTH_ID }}
           modrinth-token: ${{ secrets.MODRINTH_TOKEN }}
           curseforge-id: ${{ vars.CURSEFORGE_ID }}
           curseforge-token: ${{ secrets.CURSEFORGE_TOKEN }}
-          dry-run: ${{ env.DRY_RUN }}
           files: neoforge/build/libs/galdurui-neoforge-${{ steps.meta.outputs.version }}.jar
           name: Galdur UI ${{ steps.meta.outputs.version }} (NeoForge)
           version: ${{ steps.meta.outputs.version }}+neoforge
@@ -95,13 +95,13 @@ jobs:
             emi(optional)
 
       - name: Publish Fabric
+        if: env.DRY_RUN != 'true'
         uses: Kir-Antipov/mc-publish@v3.3
         with:
           modrinth-id: ${{ vars.MODRINTH_ID }}
           modrinth-token: ${{ secrets.MODRINTH_TOKEN }}
           curseforge-id: ${{ vars.CURSEFORGE_ID }}
           curseforge-token: ${{ secrets.CURSEFORGE_TOKEN }}
-          dry-run: ${{ env.DRY_RUN }}
           files: fabric/build/libs/galdurui-fabric-${{ steps.meta.outputs.version }}.jar
           name: Galdur UI ${{ steps.meta.outputs.version }} (Fabric)
           version: ${{ steps.meta.outputs.version }}+fabric
@@ -117,13 +117,13 @@ jobs:
             emi(optional)
 
       - name: Publish Forge
+        if: env.DRY_RUN != 'true'
         uses: Kir-Antipov/mc-publish@v3.3
         with:
           modrinth-id: ${{ vars.MODRINTH_ID }}
           modrinth-token: ${{ secrets.MODRINTH_TOKEN }}
           curseforge-id: ${{ vars.CURSEFORGE_ID }}
           curseforge-token: ${{ secrets.CURSEFORGE_TOKEN }}
-          dry-run: ${{ env.DRY_RUN }}
           files: forge/build/libs/galdurui-forge-${{ steps.meta.outputs.version }}.jar
           name: Galdur UI ${{ steps.meta.outputs.version }} (Forge)
           version: ${{ steps.meta.outputs.version }}+forge
@@ -135,6 +135,12 @@ jobs:
           dependencies: |
             jei(optional)
             emi(optional)
+
+      - name: Dry run summary
+        if: env.DRY_RUN == 'true'
+        run: |
+          echo "Dry run: nothing published. Would publish version ${{ steps.meta.outputs.version }} (NeoForge, Fabric, Forge)."
+          cat release-notes.md
 
       # One GitHub release with the three jars.
       - name: GitHub release
