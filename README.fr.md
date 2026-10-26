@@ -4,6 +4,8 @@
 
 Bibliothèque d'interface de Galdur Studio : thème, composants et écrans pour nos mods Minecraft.
 
+[Site](https://galdurstudio.com/mods/galdur-ui) · [Documentation](https://docs.galdurstudio.com) · [Wiki](https://wiki.galdurstudio.com) · [GitHub](https://github.com/Galdur-Studio/galdur-ui) · [Issues](https://github.com/Galdur-Studio/galdur-ui/issues)
+
 ## Versions
 
 - Minecraft 1.21.1
@@ -365,9 +367,13 @@ les deux sont lancés (versions dans `gradle.properties`).
 
 ## Licence
 
+Copyright © 2026 Galdur Studio.
+
 Galdur UI est distribué sous licence GNU LGPL v3 uniquement (`LGPL-3.0-only`). Voir
 [LICENSE](LICENSE) (LGPL v3) et [COPYING](COPYING) (GPL v3, à laquelle la LGPL se réfère).
 
 La police des titres, Fredoka (Milena Brandão, Hafontia), est sous licence SIL Open Font
 License 1.1 : voir `common/src/main/resources/assets/galdurui/font/fredoka_ofl.txt`. Le fichier inclus
 est une instance SemiBold de la police variable, réduite aux alphabets latins.
+
+Le logo Galdur et le nom « Galdur » appartiennent à Galdur Studio : la LGPL couvre le code, pas l'identité visuelle.
