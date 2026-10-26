@@ -1,6 +1,7 @@
 // Galdur UI is a multi-loader project:
 //   common/    shared code and assets, compiled against vanilla Minecraft only
 //   neoforge/  NeoForge entry point and metadata
+//   fabric/    Fabric entry point and metadata
 // Each loader module compiles the sources of common into its own jar, so a mod depends on a single
 // artifact (galdurui-<loader>) and never on common.
 

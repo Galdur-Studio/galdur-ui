@@ -2,6 +2,7 @@ pluginManagement {
     repositories {
         gradlePluginPortal()
         maven { url = 'https://maven.neoforged.net/releases' }
+        maven { url = 'https://maven.fabricmc.net/' }
     }
 }
 
@@ -13,3 +14,4 @@ plugins {
 // The loader modules compile the sources of common into their own jar.
 include 'common'
 include 'neoforge'
+include 'fabric'

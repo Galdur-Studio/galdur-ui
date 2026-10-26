@@ -1,0 +1,5 @@
+accessWidener v2 named
+
+# MenuScreens.register takes a ScreenConstructor, which vanilla keeps package-private
+# (NeoForge and Forge make it public). Used by GaldurFabricScreens.
+accessible class net/minecraft/client/gui/screens/MenuScreens$ScreenConstructor

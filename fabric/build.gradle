@@ -1,6 +1,6 @@
 plugins {
     id 'idea'
-    id 'fabric-loom' version '1.19.3'
+    id 'fabric-loom' version '1.15.5'
 }
 
 repositories {
@@ -32,17 +32,16 @@ dependencies {
     // jar nor passed on. Without them installed, their entrypoints are simply never loaded.
     modCompileOnly "com.terraformersmc:modmenu:${modmenu_version}"
     modLocalRuntime "com.terraformersmc:modmenu:${modmenu_version}"
-    modCompileOnly "mezz.jei:jei-${minecraft_version}-common-api:${jei_version}"
-    modCompileOnly "mezz.jei:jei-${minecraft_version}-fabric-api:${jei_version}"
-    modLocalRuntime "mezz.jei:jei-${minecraft_version}-fabric:${jei_version}"
+    modCompileOnly "mezz.jei:jei-${minecraft_version}-common-api:${jei_fabric_version}"
+    modCompileOnly "mezz.jei:jei-${minecraft_version}-fabric-api:${jei_fabric_version}"
+    modLocalRuntime "mezz.jei:jei-${minecraft_version}-fabric:${jei_fabric_version}"
     modCompileOnly "maven.modrinth:emi:${emi_version}+fabric"
     modLocalRuntime "maven.modrinth:emi:${emi_version}+fabric"
-
-    // Spark profiler (/sparkc): dev only.
-    modLocalRuntime "maven.modrinth:spark:${spark_version}-fabric"
 }
 
 loom {
+    accessWidenerPath = file("src/main/resources/galdurui.accesswidener")
+
     runs {
         client {
             client()
@@ -61,7 +60,6 @@ loom {
 processResources {
     var replaceProperties = [
             minecraft_version     : minecraft_version,
-            fabric_loader_version : fabric_loader_version,
             mod_id                : mod_id,
             mod_name              : mod_name,
             mod_license           : mod_license,

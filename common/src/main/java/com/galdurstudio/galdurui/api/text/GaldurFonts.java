@@ -9,7 +9,7 @@ import net.minecraft.resources.ResourceLocation;
  * Brand fonts, applied to a text through its style.
  *
  * <p>{@link #TITLE} is the title font: Fredoka SemiBold, round and bold like the Galdur logo,
- * under the SIL Open Font License 1.1 ({@code assets/galdurui/font/fredoka_OFL.txt}). It is
+ * under the SIL Open Font License 1.1 ({@code assets/galdurui/font/fredoka_ofl.txt}). It is
  * described by {@code assets/galdurui/font/title.json}, so a resource pack can replace it.
  * Characters missing from it (emoji, non-Latin scripts...) come from the Minecraft font.</p>
  *

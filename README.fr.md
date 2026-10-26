@@ -310,5 +310,5 @@ Galdur UI est distribué sous licence GNU LGPL v3 uniquement (`LGPL-3.0-only`). 
 [LICENSE](LICENSE) (LGPL v3) et [COPYING](COPYING) (GPL v3, à laquelle la LGPL se réfère).
 
 La police des titres, Fredoka (Milena Brandão, Hafontia), est sous licence SIL Open Font
-License 1.1 : voir `src/main/resources/assets/galdurui/font/fredoka_OFL.txt`. Le fichier inclus
+License 1.1 : voir `src/main/resources/assets/galdurui/font/fredoka_ofl.txt`. Le fichier inclus
 est une instance SemiBold de la police variable, réduite aux alphabets latins.

@@ -298,5 +298,5 @@ Galdur UI is distributed under the GNU LGPL v3 only (`LGPL-3.0-only`). See [LICE
 (LGPL v3) and [COPYING](COPYING) (GPL v3, which the LGPL refers to).
 
 The title font, Fredoka (Milena Brandão, Hafontia), is under the SIL Open Font License 1.1: see
-`src/main/resources/assets/galdurui/font/fredoka_OFL.txt`. The bundled file is a SemiBold
+`src/main/resources/assets/galdurui/font/fredoka_ofl.txt`. The bundled file is a SemiBold
 instance of the variable font, reduced to Latin alphabets.
