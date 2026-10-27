@@ -4,7 +4,7 @@
 
 Bibliothèque d'interface de Galdur Studio : thème, composants et écrans pour nos mods Minecraft.
 
-[Site](https://galdurstudio.com/mods/galdur-ui) · [Documentation](https://docs.galdurstudio.com) · [Wiki](https://wiki.galdurstudio.com) · [GitHub](https://github.com/Galdur-Studio/galdur-ui) · [Issues](https://github.com/Galdur-Studio/galdur-ui/issues)
+[Site](https://galdurstudio.com/mods/galdur-ui) · [Documentation](https://docs.galdurstudio.com) · [Wiki](https://wiki.galdurstudio.com) · [GitHub](https://github.com/Galdur-Studio/galdur-ui) · [CurseForge](https://www.curseforge.com/minecraft/mc-mods/galdur-ui) · [Issues](https://github.com/Galdur-Studio/galdur-ui/issues)
 
 ## Versions
 
