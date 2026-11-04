@@ -70,8 +70,8 @@ side = "BOTH"
 Galdur UI is a separate mod: players install the jar of their loader (`galdurui-<loader>-1.0.0.jar`,
 in `<module>/build/libs`) next to yours; it is not bundled in your jar.
 
-**Step 4. Check that it works**: `.\gradlew.bat runClient` in your mod (`runClient` for
-NeoForge and Fabric too), then open a screen built with the examples below. If the game says
+**Step 4. Check that it works**: run `.\gradlew.bat runClient` in your mod (the task has the
+same name on all three loaders), then open a screen built with the examples below. If the game says
 Galdur UI is missing, the dependency of step 2 is not on the run classpath.
 
 Then use only `com.galdurstudio.galdurui.api.*`, with the same code on every loader. The only
@@ -99,8 +99,8 @@ window.open();
 
 Also available: `addText`, `addButton`, `addIconButton`, `addCheckbox`, `addProgress` and
 `addTabs` (each tab is a container with the same methods). Every `add...` returns a handle to
-read or change the element later (`setVisible`, `setEnabled`, `setProgress`...). Javadoc of
-`api.window` for the details.
+read or change the element later (`setVisible`, `setEnabled`, `setProgress`...). See the
+Javadoc of `api.window` for the details.
 
 ### 3. A menu with slots (client and server)
 
@@ -185,7 +185,7 @@ Gradle must run on Java 21 (`gradle/gradle-daemon-jvm.properties` asks for it an
 
 Demo screens, test blocks and debug tools live in a separate source set, `neoforge/src/testmod`, as a
 second mod (`galduruitest`). Development runs of the NeoForge module load it next to Galdur UI; it is
-**never** in the library jar. The Fabric module has a small test mod too (`fabric/src/testmod`: `/galdurui test` and
+never in the library jar. The Fabric module has a small test mod too (`fabric/src/testmod`: `/galdurui test` and
 `/galdurui window` only), built from the demo screens in `testmod-shared/`. Forge has none: use the NeoForge or
 Fabric client to look at the widgets.
 
@@ -198,7 +198,7 @@ Fabric client to look at the widgets.
 | `/galduruidev chest` | gives a test chest (placeable block, also in the "Functional Blocks" creative tab) that opens in a `GaldurContainerScreen` |
 | `/galduruidev terminal` | opens a test terminal: a grid of every item in the game above the inventory |
 
-The test mod also adds a **blue theme** resource pack (Options → Resource Packs). It overrides
+The test mod also adds a blue theme resource pack (Options → Resource Packs). It overrides
 only part of `theme.json`, to check that a pack can change the theme and that missing keys fall
 back to the defaults.
 
@@ -220,7 +220,7 @@ from the theme and is applied at render time (a white pixel takes exactly the th
 Changing the colours in `theme.json` therefore needs no new images; only the shape (corners,
 relief) is described by the generator. Minecraft 1.21.1 does not stretch the edges and centre of
 a 9-slice, it repeats them in tiles (sprite − 2 × border). `GaldurRender` sends all tiles of a
-sprite in a single draw call, but large sprites still keep the tile count low. Edges and centre
+sprite in a single draw call, but the sprites are still made large to keep the tile count low. Edges and centre
 must stay uniform, or the repetition shows.
 
 | Sprite | Size, border | Relief | Used by (tint) |
@@ -306,20 +306,20 @@ fit into the game's screens and layouts.
 Their render methods take a `GuiGraphics` and their mouse and keyboard methods follow the
 `AbstractWidget` signatures. When Mojang changes these classes (rendering in 1.21.6 or input in
 1.21.9, for instance), the Galdur UI API changes with them: such an update may require a
-**major version** of Galdur UI, even though `GaldurRender` absorbs most of the work.
+major version of Galdur UI, even though `GaldurRender` absorbs most of the work.
 
-**Rule for our mods**: only call the Galdur API (`api.*`) to draw and build screens, never
-`GuiGraphics` directly, and never depend on `internal.*`. The more a mod goes through the API,
+In our own mods, we only call the Galdur API (`api.*`) to draw and build screens, never
+`GuiGraphics` directly, and we never depend on `internal.*`. The more a mod goes through the API,
 the less code it has to rework for each Minecraft version.
 
 ## Versioning
 
 Galdur UI follows [Semantic Versioning](https://semver.org/): `MAJOR.MINOR.PATCH`.
 
-- **PATCH**: bug fixes, no API change.
-- **MINOR**: new features; code written against an earlier minor of the same major still
+- PATCH: bug fixes, no API change.
+- MINOR: new features; code written against an earlier minor of the same major still
   compiles and works.
-- **MAJOR**: incompatible change to `api.*`, including one forced by a Minecraft update (see
+- MAJOR: incompatible change to `api.*`, including one forced by a Minecraft update (see
   above).
 
 From 1.0.0, the `api.*` package is stable: depend on `[1.0,2.0)`. Versions before 1.0.0 could still break
@@ -332,22 +332,22 @@ bundled in the jar and never loaded when the matching mod is not installed. Both
 development (versions in `gradle.properties`).
 
 - The item list avoids the panel of a `GaldurContainerScreen` and its `getExclusionZones()`.
-- Hovering an item of a `GaldurItemGrid` and pressing R or U shows its recipes, **in a menu
-  screen** (`GaldurContainerScreen`): JEI and EMI are not active on plain screens such as
-  `/galdurui test`. To try it: `/galduruidev terminal`.
+- Hovering an item of a `GaldurItemGrid` and pressing R or U shows its recipes. This only works
+  in a menu screen (`GaldurContainerScreen`), because JEI and EMI are not active on plain screens
+  such as `/galdurui test`. To try it: `/galduruidev terminal`.
 
 ## Decisions
 
-- **`GaldurLabel` narration**: a label is inactive (`active = false`), like vanilla's
-  `StringWidget`, so the screen's automatic narration does not read it, even though
-  `updateWidgetNarration` returns its text. Same behaviour as vanilla, on purpose.
-- **Development tools outside the jar**: demo screens, test blocks and commands are in the
-  `galduruitest` test mod (`neoforge/src/testmod`), loaded only by the development runs.
-- **API methods unused internally**: `GaldurButton.withSprites`, `getPreferredWidth`, `isHeld`,
-  `clearHeld`, `GaldurLabel.getText`, `GaldurPanelLayout.withSprite`, `getChild`, etc. are not
-  called in this repository but are kept on purpose: they are part of the API offered to our
-  mods.
-- **Separate sprites, even with identical pixels**: `panel`, `button`, `button_hover` and
+- A `GaldurLabel` is inactive (`active = false`), like vanilla's `StringWidget`, so the
+  screen's automatic narration does not read it, even though `updateWidgetNarration` returns
+  its text. We kept the vanilla behaviour on purpose.
+- Demo screens, test blocks and commands are in the `galduruitest` test mod
+  (`neoforge/src/testmod`), loaded only by the development runs, so they never end up in the jar.
+- Some API methods are not called anywhere in this repository (`GaldurButton.withSprites`,
+  `getPreferredWidth`, `isHeld`, `clearHeld`, `GaldurLabel.getText`,
+  `GaldurPanelLayout.withSprite`, `getChild`, etc.). They are kept on purpose because they are
+  part of the API offered to our mods.
+- Sprites stay separate even when their pixels are identical. `button`, `button_hover` and
   `button_disabled` currently have the same pixels, as do `field` and `slot`, or `tab` and
   `tab_selected` (only the theme tint tells them apart). They stay separate so a resource pack
   can redraw each state independently.

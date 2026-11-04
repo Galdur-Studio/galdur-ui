@@ -28,7 +28,7 @@ Dans le dossier `galdur-ui` :
 
 Cela écrit un artefact par loader dans `galdur-ui/repo/` : `galdurui-neoforge`, `galdurui-fabric`
 et `galdurui-forge` (`com.galdurstudio.galdurui:<artefact>:1.0.0`). Un mod n'a besoin que de celui
-de son loader. Tant que Galdur Studio n'a pas de dépôt Maven, ce dossier local fait office de dépôt.
+de son loader. Tant que Galdur Studio n'a pas de dépôt Maven, ce dossier local sert de dépôt.
 
 **Étape 2. Ajouter la dépendance** dans le `build.gradle` du mod (le chemin est relatif au dossier
 du mod ; l'adapter à l'emplacement de `galdur-ui`) :
@@ -70,11 +70,11 @@ side = "BOTH"
 ```
 
 Galdur UI est un mod à part : les joueurs installent le jar de leur loader
-(`galdurui-<loader>-1.0.0.jar`, dans `<module>/build/libs`) à côté du vôtre ; il n'est pas inclus
-dans votre jar.
+(`galdurui-<loader>-1.0.0.jar`, dans `<module>/build/libs`) à côté de celui du mod ; Galdur UI
+n'est pas inclus dans le jar du mod.
 
-**Étape 4. Vérifier que ça marche** : `.\gradlew.bat runClient` dans le mod (aussi pour NeoForge
-et Fabric), puis ouvrir un écran construit avec les exemples ci-dessous. Si le jeu dit que Galdur UI
+**Étape 4. Vérifier que ça marche** : lancer `.\gradlew.bat runClient` dans le mod (la tâche a
+le même nom sur les trois loaders), puis ouvrir un écran construit avec les exemples ci-dessous. Si le jeu dit que Galdur UI
 manque, la dépendance de l'étape 2 n'est pas sur le classpath du lancement.
 
 Ensuite, n'utiliser que `com.galdurstudio.galdurui.api.*`, avec le même code sur tous les loaders.
@@ -187,9 +187,9 @@ Gradle doit tourner sous Java 21 (`gradle/gradle-daemon-jvm.properties` le deman
 
 ### Mod de test
 
-Les écrans de démo, les blocs de test et les outils de debug vivent dans un source set séparé,
+Les écrans de démo, les blocs de test et les outils de debug sont dans un source set séparé,
 `neoforge/src/testmod`, sous la forme d'un second mod (`galduruitest`). Les lancements de développement du
-module NeoForge le chargent à côté de Galdur UI ; il n'est **jamais** dans le jar de la bibliothèque. Le module
+module NeoForge le chargent à côté de Galdur UI ; il n'est jamais dans le jar de la bibliothèque. Le module
 Fabric a aussi un petit mod de test (`fabric/src/testmod` : `/galdurui test` et `/galdurui window` seulement), bâti
 sur les écrans de démo de `testmod-shared/`. Forge n'en a pas : utiliser le client NeoForge ou Fabric pour voir les
 widgets.
@@ -203,7 +203,7 @@ widgets.
 | `/galduruidev chest` | donne un coffre de test (bloc posable, aussi dans l'onglet créatif « Blocs fonctionnels ») qui s'ouvre dans un `GaldurContainerScreen` |
 | `/galduruidev terminal` | ouvre un terminal de test : une grille de tous les objets du jeu au-dessus de l'inventaire |
 
-Le mod de test ajoute aussi un pack de ressources **thème bleu** (Options → Packs de
+Le mod de test ajoute aussi un pack de ressources de thème bleu (Options → Packs de
 ressources). Il ne remplace qu'une partie de `theme.json`, pour vérifier qu'un pack peut changer
 le thème et que les clés absentes reprennent les valeurs par défaut.
 
@@ -226,8 +226,8 @@ couleur vient du thème et est appliquée au rendu (un pixel blanc prend exactem
 thème). Modifier les couleurs de `theme.json` ne demande donc pas de régénérer les images ; seule
 la forme (coins, relief) est décrite par le générateur. Minecraft 1.21.1 n'étire pas les bords
 et le centre d'un 9-slice, il les répète par tuiles (sprite − 2 × bordure). `GaldurRender` envoie
-toutes les tuiles d'un sprite en un seul appel de dessin, mais des sprites grands limitent
-quand même le nombre de tuiles. Bords et centre doivent rester uniformes, sinon la répétition se
+toutes les tuiles d'un sprite en un seul appel de dessin, mais on garde quand même des sprites
+grands pour limiter le nombre de tuiles. Bords et centre doivent rester uniformes, sinon la répétition se
 voit.
 
 | Sprite | Taille, bordure | Relief | Utilisé par (teinte) |
@@ -255,7 +255,7 @@ PNG commités ne correspondent plus à ce qu'il produit.
 
 Survol des boutons et des onglets en fondu, case qui se coche en grandissant, fenêtres et écrans
 de menu qui montent légèrement à l'ouverture, contenu d'onglet qui glisse depuis son côté,
-défilement fluide des listes. Durées courtes (90 à 180 ms) et courbes de `api.anim.GaldurEasing`.
+listes qui défilent en douceur. Durées courtes (90 à 180 ms) et courbes de `api.anim.GaldurEasing`.
 Le joueur peut tout couper : Mods → Galdur UI → Configurer → Animations
 (`config/galdurui-client.toml` sur NeoForge et Forge, `config/galdurui-client.json` sur Fabric, où l'écran demande Mod Menu). Un mod qui anime ses propres widgets utilise
 `api.anim.AnimatedValue`, qui respecte ce réglage.
@@ -316,21 +316,21 @@ vanilla pour s'intégrer aux écrans et aux layouts du jeu.
 Leurs méthodes de rendu reçoivent un `GuiGraphics` et celles de souris et de clavier suivent
 les signatures d'`AbstractWidget`. Quand Mojang change ces classes (par exemple le rendu en
 1.21.6 ou les entrées en 1.21.9), l'API de Galdur UI change avec elles : une telle montée de
-version peut imposer une **version majeure** de Galdur UI, même si `GaldurRender` absorbe la
+version peut imposer une version majeure de Galdur UI, même si `GaldurRender` absorbe la
 plus grande partie du travail.
 
-**Règle pour nos mods** : n'appeler que l'API Galdur (`api.*`) pour dessiner et construire les
-écrans, jamais `GuiGraphics` directement, et ne jamais dépendre de `internal.*`. Plus un mod
+Dans nos mods, on n'appelle que l'API Galdur (`api.*`) pour dessiner et construire les écrans,
+jamais `GuiGraphics` directement, et on ne dépend jamais de `internal.*`. Plus un mod
 passe par l'API, moins il a de code à reprendre à chaque version de Minecraft.
 
 ## Versions de Galdur UI
 
 Galdur UI suit le [versionnage sémantique](https://semver.org/lang/fr/) : `MAJEUR.MINEUR.CORRECTIF`.
 
-- **CORRECTIF** : corrections de bugs, aucune modification de l'API.
-- **MINEUR** : nouveautés ; le code écrit pour une mineure précédente de la même majeure compile
+- CORRECTIF : corrections de bugs, aucune modification de l'API.
+- MINEUR : nouveautés ; le code écrit pour une mineure précédente de la même majeure compile
   et fonctionne toujours.
-- **MAJEUR** : changement incompatible de `api.*`, y compris imposé par une mise à jour de
+- MAJEUR : changement incompatible de `api.*`, y compris imposé par une mise à jour de
   Minecraft (voir plus haut).
 
 À partir de la 1.0.0, `api.*` est stable : dépendre de `[1.0,2.0)`. Avant la 1.0.0, une MINEURE
@@ -344,23 +344,23 @@ absentes du jar et jamais chargées si le mod correspondant n'est pas installé.
 les deux sont lancés (versions dans `gradle.properties`).
 
 - La liste d'objets évite le panneau d'un `GaldurContainerScreen` et ses `getExclusionZones()`.
-- Survoler un objet d'une `GaldurItemGrid` puis appuyer sur R ou U montre ses recettes,
-  **dans un écran de menu** (`GaldurContainerScreen`) : JEI et EMI ne sont pas actifs sur les
-  écrans simples comme `/galdurui test`. Pour tester : `/galduruidev terminal`.
+- Survoler un objet d'une `GaldurItemGrid` puis appuyer sur R ou U montre ses recettes. Ça ne
+  marche que dans un écran de menu (`GaldurContainerScreen`), parce que JEI et EMI ne sont pas
+  actifs sur les écrans simples comme `/galdurui test`. Pour tester : `/galduruidev terminal`.
 
 ## Décisions
 
-- **Narration des `GaldurLabel`** : un libellé est inactif (`active = false`), comme
-  `StringWidget` en vanilla ; la narration automatique de l'écran ne le lit donc pas, même si
-  `updateWidgetNarration` renvoie son texte. Comportement identique à vanilla, assumé.
-- **Outils de développement hors du jar** : écrans de démo, blocs et commandes de test sont dans
-  le mod de test `galduruitest` (`neoforge/src/testmod`), chargé seulement par les lancements de
-  développement.
-- **Méthodes d'API non utilisées en interne** : `GaldurButton.withSprites`, `getPreferredWidth`,
-  `isHeld`, `clearHeld`, `GaldurLabel.getText`, `GaldurPanelLayout.withSprite`, `getChild`, etc.
-  ne sont pas appelés dans ce dépôt mais sont gardés volontairement : ils font partie de l'API
-  offerte à nos mods.
-- **Sprites distincts, même aux pixels identiques** : `panel`, `button`, `button_hover` et
+- Un `GaldurLabel` est inactif (`active = false`), comme `StringWidget` en vanilla ; la
+  narration automatique de l'écran ne le lit donc pas, même si `updateWidgetNarration` renvoie
+  son texte. On a gardé exprès le comportement de vanilla.
+- Les écrans de démo, les blocs et les commandes de test sont dans le mod de test
+  `galduruitest` (`neoforge/src/testmod`), chargé seulement par les lancements de développement,
+  et n'arrivent donc jamais dans le jar.
+- Certaines méthodes de l'API ne sont appelées nulle part dans ce dépôt (`GaldurButton.withSprites`,
+  `getPreferredWidth`, `isHeld`, `clearHeld`, `GaldurLabel.getText`,
+  `GaldurPanelLayout.withSprite`, `getChild`, etc.). On les garde exprès parce qu'elles font
+  partie de l'API offerte à nos mods.
+- Les sprites restent séparés même quand leurs pixels sont identiques. `button`, `button_hover` et
   `button_disabled` ont aujourd'hui les mêmes pixels, comme `field` et `slot`, ou `tab` et
   `tab_selected` (seule la teinte du thème les distingue). Ils restent séparés pour qu'un pack de
   ressources puisse redessiner chaque état indépendamment.

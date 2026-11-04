@@ -1,6 +1,6 @@
 # Contributing to Galdur UI
 
-Thanks for your interest! Bug reports, ideas and pull requests are welcome.
+Thanks for taking a look. Bug reports, ideas and pull requests are all welcome.
 
 ## Before you start
 
@@ -18,12 +18,12 @@ Java 21 is required.
 ./gradlew build
 ```
 
-Run the checks of the CI before opening a pull request: `./gradlew build javadoc`, and, if you changed
-sprites, `./gradlew :common:generateSprites` and commit the PNGs it produces.
+Before opening a pull request, run the same checks as the CI with `./gradlew build javadoc`. If you
+changed sprites, also run `./gradlew :common:generateSprites` and commit the PNGs it produces.
 
 ## Pull requests
 
-- One topic per pull request, with a short description of the why.
+- One topic per pull request, with a short note on why you made the change.
 - Commit messages follow [Conventional Commits](https://www.conventionalcommits.org/) (`feat:`, `fix:`,
   `docs:`...).
 - Add a line to the `[Unreleased]` section of [CHANGELOG.md](CHANGELOG.md) for any visible change.

@@ -20,7 +20,7 @@ Semantic Versioning strictly.
 
 ### Changed
 
-- **Breaking**: the artifact is now one per loader (`galdurui-neoforge` instead of `galdurui`).
+- **Breaking**: there is now one artifact per loader (`galdurui-neoforge` instead of `galdurui`).
 - **Breaking**: `GaldurContainerScreen.factory()` is replaced by `GaldurNeoForgeScreens.factory()` (NeoForge).
 - Widgets override the vanilla `onClick(double, double)` instead of NeoForge's 3-argument one (same behaviour
   on NeoForge, which calls it).
