@@ -29,7 +29,7 @@ Dans le dossier `galdur-ui` :
 ```
 
 Cela écrit dans `galdur-ui/repo/` un artefact par loader et par version de Minecraft :
-`galdurui-neoforge`, `galdurui-fabric` et `galdurui-forge` (`com.galdurstudio.galdurui:<artefact>:1.0.0+1.21.1`).
+`galdurui-neoforge`, `galdurui-fabric` et `galdurui-forge` (`com.galdurstudio.galdurui:<artefact>:1.1.0+1.21.1`).
 Un mod n'a besoin que de celui de son loader. Tant que Galdur Studio n'a pas de dépôt Maven, ce dossier local sert de dépôt.
 
 **Étape 2. Ajouter la dépendance** dans le `build.gradle` du mod (le chemin est relatif au dossier
@@ -42,10 +42,10 @@ repositories {
 
 dependencies {
     // NeoForge (ModDevGradle) ou Forge (ForgeGradle) :
-    implementation "com.galdurstudio.galdurui:galdurui-neoforge:1.0.0+1.21.1"   // ou galdurui-forge
+    implementation "com.galdurstudio.galdurui:galdurui-neoforge:1.1.0+1.21.1"   // ou galdurui-forge
 
     // Fabric (Loom) : dépendance de mod, remappée par Loom
-    modImplementation "com.galdurstudio.galdurui:galdurui-fabric:1.0.0+1.21.1"
+    modImplementation "com.galdurstudio.galdurui:galdurui-fabric:1.1.0+1.21.1"
 }
 ```
 
@@ -72,7 +72,7 @@ side = "BOTH"
 ```
 
 Galdur UI est un mod à part, qui n'est pas inclus dans le jar du mod : les joueurs installent le jar
-de leur loader et de leur version de Minecraft (`galdurui-<loader>-1.0.0+1.21.1.jar`) à côté. Un build
+de leur loader et de leur version de Minecraft (`galdurui-<loader>-1.1.0+1.21.1.jar`) à côté. Un build
 local le met dans `versions/<minecraft>-<loader>/build/libs`.
 
 **Étape 4. Vérifier que ça marche** : lancer `.\gradlew.bat runClient` dans le mod (la tâche a

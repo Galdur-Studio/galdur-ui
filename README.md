@@ -29,7 +29,7 @@ ModDevGradle, Fabric with Loom, Forge with ForgeGradle 7), with the Java version
 ```
 
 This writes one artifact per loader and Minecraft version in `galdur-ui/repo/`: `galdurui-neoforge`,
-`galdurui-fabric` and `galdurui-forge` (`com.galdurstudio.galdurui:<artifact>:1.0.0+1.21.1`). Your mod
+`galdurui-fabric` and `galdurui-forge` (`com.galdurstudio.galdurui:<artifact>:1.1.0+1.21.1`). Your mod
 only needs the one for its loader. Until Galdur Studio has a Maven repository, this local folder is the repository.
 
 **Step 2. Add the dependency** in your mod's `build.gradle` (the path is relative to your mod's
@@ -42,10 +42,10 @@ repositories {
 
 dependencies {
     // NeoForge (ModDevGradle) or Forge (ForgeGradle):
-    implementation "com.galdurstudio.galdurui:galdurui-neoforge:1.0.0+1.21.1"   // or galdurui-forge
+    implementation "com.galdurstudio.galdurui:galdurui-neoforge:1.1.0+1.21.1"   // or galdurui-forge
 
     // Fabric (Loom): a mod dependency, remapped by Loom
-    modImplementation "com.galdurstudio.galdurui:galdurui-fabric:1.0.0+1.21.1"
+    modImplementation "com.galdurstudio.galdurui:galdurui-fabric:1.1.0+1.21.1"
 }
 ```
 
@@ -70,7 +70,7 @@ side = "BOTH"
 ```
 
 Galdur UI is a separate mod, not bundled in your jar: players install the jar for their loader and
-Minecraft version (`galdurui-<loader>-1.0.0+1.21.1.jar`) next to yours. A local build puts it in
+Minecraft version (`galdurui-<loader>-1.1.0+1.21.1.jar`) next to yours. A local build puts it in
 `versions/<minecraft>-<loader>/build/libs`.
 
 **Step 4. Check that it works**: run `.\gradlew.bat runClient` in your mod (the task has the

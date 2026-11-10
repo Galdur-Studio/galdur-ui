@@ -9,7 +9,7 @@ mod.license = "LGPL-3.0-only"
 mod.authors = "Galdur Studio"
 mod.description = "Galdur Studio's GUI library: theme, components and screens for Minecraft mods."
 # https://semver.org/ ; the jars are named <mod.version>+<minecraft>.
-mod.version = "1.0.0"
+mod.version = "1.1.0"
 mod.group = "com.galdurstudio.galdurui"
 # Fabric Loom, for every version (loom-back-compat picks the variant).
 loomx.loom_version = "1.19.4"
