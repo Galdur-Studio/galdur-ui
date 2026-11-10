@@ -1,0 +1,100 @@
+# Versions of Minecraft, of the loaders and of every dependency, for each build of Galdur UI.
+# The tables apply by Minecraft version ["1.21.1"] and by loader and version [fabric."1.21.1"].
+# To add a Minecraft version: copy its tables here, then add it in settings.gradle.kts.
+
+mod.id = "galdurui"
+mod.name = "Galdur UI"
+# SPDX identifier. Full texts: LICENSE (LGPL v3) and COPYING (GPL v3).
+mod.license = "LGPL-3.0-only"
+mod.authors = "Galdur Studio"
+mod.description = "Galdur Studio's GUI library: theme, components and screens for Minecraft mods."
+# https://semver.org/ ; the jars are named <mod.version>+<minecraft>.
+mod.version = "1.0.0"
+mod.group = "com.galdurstudio.galdurui"
+# Fabric Loom, for every version (loom-back-compat picks the variant).
+loomx.loom_version = "1.19.4"
+
+
+["1.20.1"]
+mc.java = "17"
+mc.range = "[1.20.1]"
+mc.fabric_range = "1.20.1"
+mc.releases = ["1.20.1"]
+parchment.minecraft = "1.20.1"
+parchment.mappings = "2023.09.03"
+deps.jei = "15.74.0.234"
+deps.emi = "1.1.24+1.20.1"
+# JEI 15.74 needs the mezz_config mod at runtime, but its Maven file does not say so (Fabric dev runs).
+deps.mezz_config = "0.7.1"
+
+[fabric."1.20.1"]
+deps.fabric_loader = "0.20.1"
+deps.fabric_api = "0.92.12+1.20.1"
+deps.modmenu = "7.2.2"
+deps.jei_fabric = "15.74.0.234"
+
+[forge."1.20.1"]
+deps.forge = "47.4.29"
+deps.forge_range = "[47,)"
+deps.emi_forge_variant = "forge"
+# pack.mcmeta of the jar: https://minecraft.wiki/w/Pack_format
+resource.pack_format = "15"
+
+
+["1.21.1"]
+mc.java = "21"
+# Versions accepted in neoforge.mods.toml / mods.toml, and in fabric.mod.json.
+mc.range = "[1.21.1]"
+mc.fabric_range = "1.21.1"
+# Game versions ticked on Modrinth and CurseForge (release workflow).
+mc.releases = ["1.21.1"]
+# Parchment: real parameter names and Javadoc in Minecraft code. https://parchmentmc.org/docs/getting-started
+parchment.minecraft = "1.21.1"
+parchment.mappings = "2024.11.17"
+# Optional integrations (compileOnly, launched in dev only).
+# JEI: https://maven.blamejared.com/mezz/jei/ ; EMI: https://modrinth.com/mod/emi/versions
+deps.jei = "19.64.0.454"
+deps.emi = "1.1.24+1.21.1"
+
+[neoforge."1.21.1"]
+# https://projects.neoforged.net/neoforged/neoforge
+deps.neoforge = "21.1.256"
+# Spark profiler, dev only.
+deps.spark = "1.10.124-neoforge-1.21.1"
+
+[fabric."1.21.1"]
+# https://fabricmc.net/develop
+deps.fabric_loader = "0.20.1"
+deps.fabric_api = "0.116.17+1.21.1"
+# Mod Menu: https://modrinth.com/mod/modmenu/versions
+deps.modmenu = "11.0.4"
+# JEI on Fabric: last version built with a Loom that Gradle 9.3 can read.
+deps.jei_fabric = "19.50.0.414"
+
+[forge."1.21.1"]
+# https://files.minecraftforge.net
+deps.forge = "52.1.20"
+deps.forge_range = "[52,)"
+# EMI has no Forge build for 1.21.1: its NeoForge jar is enough to compile.
+deps.emi_forge_variant = "neoforge"
+resource.pack_format = "34"
+
+
+["26.3"]
+mc.java = "25"
+mc.range = "[26.3,26.4)"
+mc.fabric_range = "~26.3"
+mc.releases = ["26.3"]
+# No Parchment and no EMI for 26.3 yet: Minecraft is no longer obfuscated (real names already),
+# and the EMI integration is left out of this build until EMI is released for it.
+deps.jei = "31.17.0.109"
+
+[neoforge."26.3"]
+deps.neoforge = "26.3.0.101"
+deps.spark = "1.10.187-neoforge"
+
+[fabric."26.3"]
+deps.fabric_loader = "0.20.1"
+deps.fabric_api = "0.166.0+26.3"
+deps.modmenu = "21.0.0"
+deps.jei_fabric = "31.17.0.109"

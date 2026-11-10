@@ -6,20 +6,25 @@ Thanks for taking a look. Bug reports, ideas and pull requests are all welcome.
 
 - Look at the [open issues](https://github.com/Galdur-Studio/galdur-ui/issues) first.
 - For a big change, open an issue to discuss it before writing code.
-- Code in `common/` must compile against vanilla Minecraft only: no loader API. Loader code goes in
-  `neoforge/`, `fabric/` or `forge/`.
+- Code in `api` and `internal` must only use vanilla Minecraft: no loader API. Loader code goes in
+  the `neoforge`, `fabric` or `forge` packages.
+- Code that differs between Minecraft versions goes in Stonecutter comments (`//? if >=1.21.6 {`),
+  in `internal` when possible: drawing in `GaldurRender`, client calls in `internal.client.Client`,
+  keys and buttons in `GaldurInput`. See the Development section of the README.
 - `api.*` follows [Semantic Versioning](https://semver.org/); `internal.*` can change at any time.
 
 ## Building
 
-Java 21 is required.
+Gradle runs on Java 25 and compiles Minecraft 1.21.1 with Java 21. It downloads both if they are
+missing; you only need Java 17 or newer to start `gradlew`.
 
 ```bash
 ./gradlew build
 ```
 
-Before opening a pull request, run the same checks as the CI with `./gradlew build javadoc`. If you
-changed sprites, also run `./gradlew :common:generateSprites` and commit the PNGs it produces.
+Before opening a pull request, run `./gradlew build javadoc compileTestmodJava`, then switch `src/` back
+to the committed version with the `Reset active project` task (CI fails otherwise). If you changed sprites, also
+run `./gradlew :tools:generateSprites` and commit the PNGs it produces.
 
 ## Pull requests
 

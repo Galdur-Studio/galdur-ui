@@ -1,0 +1,19 @@
+{
+  "required": true,
+  "minVersion": "0.8",
+  "package": "com.galdurstudio.galdurui.internal.mixin",
+  "compatibilityLevel": "JAVA_17",
+  "client": [
+    "AbstractButtonMixin",
+    "AbstractContainerScreenAccessor",
+    "AbstractContainerScreenMixin",
+    "AbstractSliderButtonMixin",
+    "CheckboxMixin",
+    "EditBoxMixin",
+    "GuiGraphicsMixin",
+    "ScreenMixin"
+  ],
+  "injectors": {
+    "defaultRequire": 1
+  }
+}
