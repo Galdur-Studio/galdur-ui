@@ -54,6 +54,8 @@ neoForge {
             if (providers.gradleProperty("galduruitest.screenshots").isPresent) {
                 systemProperty("galduruitest.screenshots", "true")
             }
+            // -Pgalduruitest.media=en_us (or fr_fr): captures the wiki's photos and clips (testmod/MediaSession).
+            providers.gradleProperty("galduruitest.media").orNull?.let { systemProperty("galduruitest.media", it) }
         }
         register("server") {
             server()
@@ -75,17 +77,19 @@ neoForge {
 neoForge.addModdingDependenciesTo(testmod)
 
 dependencies {
+    // Spark, JEI and EMI show up on screen: left out of the runs that capture the wiki's photos and clips.
+    val capturing = providers.gradleProperty("galduruitest.media").isPresent
     // Spark profiler (/sparkc): dev only.
-    localRuntime("maven.modrinth:spark:${prop("deps.spark")}")
+    if (!capturing) localRuntime("maven.modrinth:spark:${prop("deps.spark")}")
 
     // Optional JEI and EMI integrations (internal.compat): compiled against their API but neither
     // in the jar nor passed on. Without them installed, their plugins are simply never loaded.
     compileOnly("mezz.jei:jei-$mc-common-api:${prop("deps.jei")}")
     compileOnly("mezz.jei:jei-$mc-neoforge-api:${prop("deps.jei")}")
-    localRuntime("mezz.jei:jei-$mc-neoforge:${prop("deps.jei")}")
+    if (!capturing) localRuntime("mezz.jei:jei-$mc-neoforge:${prop("deps.jei")}")
     sc.properties.getOrNull("deps.emi")?.let {
         compileOnly("maven.modrinth:emi:$it+neoforge")
-        localRuntime("maven.modrinth:emi:$it+neoforge")
+        if (!capturing) localRuntime("maven.modrinth:emi:$it+neoforge")
     }
 }
 

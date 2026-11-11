@@ -3,6 +3,7 @@ package com.galdurstudio.galdurui.testmod.fabric;
 import com.galdurstudio.galdurui.internal.client.Client;
 import com.galdurstudio.galdurui.testmod.DemoWindow;
 import com.galdurstudio.galdurui.testmod.BridgeDemoScreen;
+import com.galdurstudio.galdurui.testmod.MediaSession;
 import com.galdurstudio.galdurui.testmod.ScreenshotTour;
 import com.galdurstudio.galdurui.testmod.TestScreen;
 import com.mojang.brigadier.Command;
@@ -27,6 +28,7 @@ public final class GaldurUITestFabric implements ClientModInitializer {
     @Override
     public void onInitializeClient() {
         ClientTickEvents.END_CLIENT_TICK.register(ScreenshotTour::tick);
+        ClientTickEvents.END_CLIENT_TICK.register(MediaSession::tick);
         BridgeDemoScreen.register();
         ClientCommandRegistrationCallback.EVENT.register((dispatcher, registryAccess) ->
                 dispatcher.register(literal("galdurui")
