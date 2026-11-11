@@ -2,7 +2,7 @@
 
 *[English version](README.md)*
 
-La bibliothèque d'interface de Galdur Studio. Tu décris une fenêtre ou un menu, Galdur UI le met en page avec le thème Galdur.
+Galdur UI change le style des menus de Minecraft. Les joueurs l'installent pour donner un nouveau look à leur jeu ; les moddeurs s'en servent pour les menus de leur mod ou de leur serveur.
 
 [Documentation](https://docs.galdurstudio.com) · [Wiki](https://wiki.galdurstudio.com) · [CurseForge](https://www.curseforge.com/minecraft/mc-mods/galdur-ui) · [Site](https://galdurstudio.com/mods/galdur-ui) · [Issues](https://github.com/Galdur-Studio/galdur-ui/issues)
 
