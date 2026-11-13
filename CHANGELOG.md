@@ -5,6 +5,11 @@ and versions follow [Semantic Versioning](https://semver.org/) (see "Versioning"
 
 ## [Unreleased]
 
+### Added
+
+- Furnaces, blast furnaces, smokers and the crafting table get the Galdur panel with "Galdur look on every menu".
+  The burning flame and the cooking arrow are drawn in the theme colours and still fill up as they cook.
+
 ## [1.1.0] - 2026-11-10
 
 Galdur UI now supports Minecraft 1.20.1 and 26.3, and players can apply the Galdur look to the whole game.

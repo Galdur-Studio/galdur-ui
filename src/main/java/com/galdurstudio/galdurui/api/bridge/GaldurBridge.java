@@ -128,6 +128,15 @@ public final class GaldurBridge {
      */
     private static final Set<Class<?>> PLAIN_CONTAINERS =
             Set.of(ContainerScreen.class, ShulkerBoxScreen.class, DispenserScreen.class, HopperScreen.class);
+    /**
+     * Vanilla screens with slots whose textures are swapped one by one (internal.bridge.InventoryPainter):
+     * the tabs, the player, the flame and the progress arrows stay.
+     */
+    private static final Set<Class<?>> PAINTED_CONTAINERS = Set.of(InventoryScreen.class,
+            CreativeModeInventoryScreen.class, net.minecraft.client.gui.screens.inventory.FurnaceScreen.class,
+            net.minecraft.client.gui.screens.inventory.BlastFurnaceScreen.class,
+            net.minecraft.client.gui.screens.inventory.SmokerScreen.class,
+            net.minecraft.client.gui.screens.inventory.CraftingScreen.class);
     /** Whether the player excluded each screen class; cleared when the exclusion list changes. */
     private static final Map<Class<?>, Boolean> EXCLUDED = new ConcurrentHashMap<>();
     /** Exclusion list {@link #EXCLUDED} was computed with. */
@@ -384,8 +393,7 @@ public final class GaldurBridge {
             GaldurUI.LOGGER.info("Galdur look given to {}.", type.getName());
         }
         // The player and creative inventories keep their tabs, bar and player: their textures are swapped one by one.
-        boolean replaced = PLAIN_CONTAINERS.contains(type) || type == InventoryScreen.class
-                || type == CreativeModeInventoryScreen.class;
+        boolean replaced = PLAIN_CONTAINERS.contains(type) || PAINTED_CONTAINERS.contains(type);
         return replaced ? Background.REPLACE : Background.KEEP;
     }
 

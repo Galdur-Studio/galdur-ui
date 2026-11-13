@@ -30,6 +30,7 @@ import net.minecraft.client.gui.screens.options.OptionsScreen;
 import net.minecraft.client.tutorial.TutorialSteps;
 import net.minecraft.network.chat.CommonComponents;
 import net.minecraft.network.chat.Component;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.Difficulty;
 import net.minecraft.world.level.GameRules;
 import net.minecraft.world.level.GameType;
@@ -316,11 +317,27 @@ public final class MediaSession {
                 add(openAndShoot("inventory-" + theme.name(), () -> new InventoryScreen(minecraft.player)));
             }
             add(run(() -> ThemeStore.setPlayerTheme(Map.of(), Map.of())));
+            // A furnace halfway through cooking (the flame and the arrow are drawn by Minecraft over the
+            // panel), then a crafting table.
+            add(run(() -> setLook(false, true)));
+            add(openAndShoot("furnace-vanilla", () -> furnace(minecraft)));
+            add(run(() -> setLook(true, true)));
+            add(openAndShoot("furnace-galdur", () -> furnace(minecraft)));
+            add(run(() -> setLook(false, true)));
+            add(openAndShoot("crafting-vanilla", () -> crafting(minecraft)));
+            add(run(() -> setLook(true, true)));
+            add(openAndShoot("crafting-galdur", () -> crafting(minecraft)));
             add(run(() -> minecraft.gameMode.setLocalMode(GameType.CREATIVE)));
             add(run(() -> setLook(false, true)));
             add(openAndShoot("creative-vanilla", () -> creative(minecraft)));
             add(run(() -> setLook(true, true)));
             add(openAndShoot("creative-galdur", () -> creative(minecraft)));
+            for (String tab : List.of("inventory", "search")) {
+                add(run(() -> setLook(false, true)));
+                add(openAndShoot("creative-" + tab + "-vanilla", () -> creative(minecraft, tab)));
+                add(run(() -> setLook(true, true)));
+                add(openAndShoot("creative-" + tab + "-galdur", () -> creative(minecraft, tab)));
+            }
             add(run(() -> Client.setScreen(null)));
         }
 
@@ -340,6 +357,44 @@ public final class MediaSession {
                 GaldurTheme.ACCENT_HOVER, GaldurPaint.solid(0xFFEBA43A),
                 GaldurTheme.PANEL, GaldurPaint.gradient(GaldurPaint.Direction.HORIZONTAL, 0xFF3A2147, 0xFF5A2A2A),
                 GaldurTheme.SLOT, GaldurPaint.solid(0xFF24142C))));
+
+        private static Screen furnace(Minecraft minecraft) {
+            var inventory = minecraft.player.getInventory();
+            var slots = new net.minecraft.world.SimpleContainer(3);
+            slots.setItem(0, new net.minecraft.world.item.ItemStack(net.minecraft.world.item.Items.RAW_IRON, 12));
+            slots.setItem(1, new net.minecraft.world.item.ItemStack(net.minecraft.world.item.Items.COAL, 5));
+            slots.setItem(2, new net.minecraft.world.item.ItemStack(net.minecraft.world.item.Items.IRON_INGOT, 3));
+            // Burning for half its fuel, halfway through the item.
+            var data = new net.minecraft.world.inventory.SimpleContainerData(4);
+            data.set(0, 800);
+            data.set(1, 1600);
+            data.set(2, 100);
+            data.set(3, 200);
+            return new net.minecraft.client.gui.screens.inventory.FurnaceScreen(
+                    new net.minecraft.world.inventory.FurnaceMenu(0, inventory, slots, data), inventory,
+                    Component.translatable("container.furnace"));
+        }
+
+        private static Screen crafting(Minecraft minecraft) {
+            var inventory = minecraft.player.getInventory();
+            return new net.minecraft.client.gui.screens.inventory.CraftingScreen(
+                    new net.minecraft.world.inventory.CraftingMenu(0, inventory), inventory,
+                    Component.translatable("container.crafting"));
+        }
+
+        /** The creative inventory opened on another tab ({@code inventory}, {@code search}). */
+        private static Screen creative(Minecraft minecraft, String tab) {
+            try {
+                var key = net.minecraft.resources.ResourceKey.create(net.minecraft.core.registries.Registries.CREATIVE_MODE_TAB,
+                        ResourceLocation.withDefaultNamespace(tab));
+                Field selected = CreativeModeInventoryScreen.class.getDeclaredField("selectedTab");
+                selected.setAccessible(true);
+                selected.set(null, net.minecraft.core.registries.BuiltInRegistries.CREATIVE_MODE_TAB.getOrThrow(key));
+            } catch (ReflectiveOperationException exception) {
+                throw new IllegalStateException("Creative tab " + tab, exception);
+            }
+            return creative(minecraft);
+        }
 
         private static Screen creative(Minecraft minecraft) {
             return new CreativeModeInventoryScreen(minecraft.player, minecraft.player.connection.enabledFeatures(), true);

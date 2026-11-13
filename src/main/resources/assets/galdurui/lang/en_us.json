@@ -121,7 +121,7 @@
   "galdurui.style.element.sliders": "Sliders",
   "galdurui.style.element.sliders.tooltip": "Sliders, like volume or FOV.",
   "galdurui.style.element.container_background": "Inventory look",
-  "galdurui.style.element.container_background.tooltip": "Chests, your inventory, the creative inventory and others get the Galdur panel and slots. On some screens (furnaces, for instance), arrows and gauges are lost.",
+  "galdurui.style.element.container_background.tooltip": "Chests, furnaces, the crafting table, your inventory and the creative inventory get the Galdur panel and slots. Forced on other screens, it can hide their arrows and gauges.",
   "galdurui.style.element.labels": "Inventory text",
   "galdurui.style.element.labels.tooltip": "Titles and texts of inventory screens, in the theme's text color.",
   "galdurui.style.element.player_theme": "My colors",

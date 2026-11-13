@@ -51,6 +51,16 @@ abstract class GuiGraphicsMixin {
             ci.cancel();
         }
     }
+
+    @Inject(method = "blitSprite(Lcom/mojang/renderpearl/api/pipeline/RenderPipeline;Lnet/minecraft/resources/ResourceLocation;IIIIIIII)V",
+            at = @At("HEAD"), cancellable = true)
+    private void galdurui$spritePart(com.mojang.renderpearl.api.pipeline.RenderPipeline pipeline, ResourceLocation id,
+                                     int spriteWidth, int spriteHeight, int u, int v, int x, int y, int width,
+                                     int height, CallbackInfo ci) {
+        if (InventoryPainter.spritePart((GuiGraphics) (Object) this, id, x, y, width, height)) {
+            ci.cancel();
+        }
+    }
     *///?} else {
     @Inject(method = "blit(Lnet/minecraft/resources/ResourceLocation;IIIIII)V", at = @At("HEAD"), cancellable = true)
     private void galdurui$texture(ResourceLocation id, int x, int y, int u, int v, int width, int height, CallbackInfo ci) {
@@ -63,6 +73,15 @@ abstract class GuiGraphicsMixin {
     @Inject(method = "blitSprite(Lnet/minecraft/resources/ResourceLocation;IIII)V", at = @At("HEAD"), cancellable = true)
     private void galdurui$sprite(ResourceLocation id, int x, int y, int width, int height, CallbackInfo ci) {
         if (InventoryPainter.sprite((GuiGraphics) (Object) this, id, x, y, width, height)) {
+            ci.cancel();
+        }
+    }
+
+    // Part of a sprite: the furnace flame and arrow while they fill up.
+    @Inject(method = "blitSprite(Lnet/minecraft/resources/ResourceLocation;IIIIIIII)V", at = @At("HEAD"), cancellable = true)
+    private void galdurui$spritePart(ResourceLocation id, int spriteWidth, int spriteHeight, int u, int v, int x, int y,
+                                     int width, int height, CallbackInfo ci) {
+        if (InventoryPainter.spritePart((GuiGraphics) (Object) this, id, x, y, width, height)) {
             ci.cancel();
         }
     }

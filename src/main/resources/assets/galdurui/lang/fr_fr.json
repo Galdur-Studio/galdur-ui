@@ -121,7 +121,7 @@
   "galdurui.style.element.sliders": "Curseurs",
   "galdurui.style.element.sliders.tooltip": "Les curseurs, comme le volume ou le champ de vision.",
   "galdurui.style.element.container_background": "Fond inventaire",
-  "galdurui.style.element.container_background.tooltip": "Coffres, inventaire, inventaire créatif et autres prennent le panneau et les cases Galdur. Sur certains écrans (fours, par exemple), les flèches et jauges disparaissent.",
+  "galdurui.style.element.container_background.tooltip": "Coffres, fours, établi, inventaire et inventaire créatif prennent le panneau et les cases Galdur. Forcé sur d’autres écrans, il peut cacher leurs flèches et jauges.",
   "galdurui.style.element.labels": "Texte inventaire",
   "galdurui.style.element.labels.tooltip": "Titres et textes des écrans d'inventaire, dans la couleur de texte du thème.",
   "galdurui.style.element.player_theme": "Mes couleurs",
