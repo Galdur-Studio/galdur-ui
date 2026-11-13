@@ -57,7 +57,8 @@ abstract class GuiGraphicsMixin {
     private void galdurui$spritePart(com.mojang.renderpearl.api.pipeline.RenderPipeline pipeline, ResourceLocation id,
                                      int spriteWidth, int spriteHeight, int u, int v, int x, int y, int width,
                                      int height, CallbackInfo ci) {
-        if (InventoryPainter.spritePart((GuiGraphics) (Object) this, id, x, y, width, height)) {
+        if (InventoryPainter.spritePart((GuiGraphics) (Object) this, id, spriteWidth, spriteHeight, u, v, x, y, width,
+                height)) {
             ci.cancel();
         }
     }
@@ -81,7 +82,8 @@ abstract class GuiGraphicsMixin {
     @Inject(method = "blitSprite(Lnet/minecraft/resources/ResourceLocation;IIIIIIII)V", at = @At("HEAD"), cancellable = true)
     private void galdurui$spritePart(ResourceLocation id, int spriteWidth, int spriteHeight, int u, int v, int x, int y,
                                      int width, int height, CallbackInfo ci) {
-        if (InventoryPainter.spritePart((GuiGraphics) (Object) this, id, x, y, width, height)) {
+        if (InventoryPainter.spritePart((GuiGraphics) (Object) this, id, spriteWidth, spriteHeight, u, v, x, y, width,
+                height)) {
             ci.cancel();
         }
     }

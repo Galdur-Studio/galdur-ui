@@ -54,6 +54,8 @@ public final class MediaSession {
     /** The language of the session ({@code en_us}, {@code fr_fr}), or {@code null} when not asked for. */
     public static final String LANGUAGE = System.getProperty("galduruitest.media");
     public static final boolean ENABLED = LANGUAGE != null;
+    /** {@code -Pgalduruitest.containers}: only the photos of the vanilla screens with slots. */
+    private static final boolean CONTAINERS_ONLY = Boolean.getBoolean("galduruitest.containers");
 
     private MediaSession() {
     }
@@ -212,6 +214,10 @@ public final class MediaSession {
         // ---- The script ---------------------------------------------------------------------
 
         private static void plan(Minecraft minecraft) {
+            if (CONTAINERS_ONLY) {
+                containers(minecraft);
+                return;
+            }
             // Photos: the same screen without and with the Galdur look.
             add(scale(3));
             add(run(() -> setLook(false, false)));
@@ -339,6 +345,52 @@ public final class MediaSession {
                 add(openAndShoot("creative-" + tab + "-galdur", () -> creative(minecraft, tab)));
             }
             add(run(() -> Client.setScreen(null)));
+        }
+
+        /** Each vanilla screen with slots, without and with the look, then in a dark theme. */
+        private static void containers(Minecraft minecraft) {
+            add(worldStep(minecraft));
+            add(scale(3));
+            add(run(() -> minecraft.gameMode.setLocalMode(GameType.SURVIVAL)));
+            Map<String, java.util.function.Supplier<Screen>> screens = new java.util.LinkedHashMap<>();
+            screens.put("brewing", () -> brewing(minecraft));
+            screens.put("anvil", () -> new net.minecraft.client.gui.screens.inventory.AnvilScreen(
+                    new net.minecraft.world.inventory.AnvilMenu(0, minecraft.player.getInventory()), minecraft.player.getInventory(), Component.translatable("container.repair")));
+            screens.put("smithing", () -> new net.minecraft.client.gui.screens.inventory.SmithingScreen(
+                    new net.minecraft.world.inventory.SmithingMenu(0, minecraft.player.getInventory()), minecraft.player.getInventory(), Component.translatable("container.upgrade")));
+            screens.put("grindstone", () -> new net.minecraft.client.gui.screens.inventory.GrindstoneScreen(
+                    new net.minecraft.world.inventory.GrindstoneMenu(0, minecraft.player.getInventory()), minecraft.player.getInventory(), Component.translatable("container.grindstone_title")));
+            screens.put("stonecutter", () -> new net.minecraft.client.gui.screens.inventory.StonecutterScreen(
+                    new net.minecraft.world.inventory.StonecutterMenu(0, minecraft.player.getInventory()), minecraft.player.getInventory(), Component.translatable("container.stonecutter")));
+            screens.put("cartography", () -> new net.minecraft.client.gui.screens.inventory.CartographyTableScreen(
+                    new net.minecraft.world.inventory.CartographyTableMenu(0, minecraft.player.getInventory()), minecraft.player.getInventory(), Component.translatable("container.cartography_table")));
+            screens.forEach((name, screen) -> {
+                add(run(() -> setLook(false, true)));
+                add(openAndShoot(name + "-vanilla", screen::get));
+                add(run(() -> setLook(true, true)));
+                add(openAndShoot(name + "-galdur", screen::get));
+                add(run(() -> ThemeStore.setPlayerTheme(THEMES.get(0).paints(), Map.of())));
+                add(openAndShoot(name + "-ocean", screen::get));
+                add(run(() -> ThemeStore.setPlayerTheme(Map.of(), Map.of())));
+            });
+            add(run(() -> Client.setScreen(null)));
+        }
+
+        private static Screen brewing(Minecraft minecraft) {
+            var inventory = minecraft.player.getInventory();
+            var slots = new net.minecraft.world.SimpleContainer(5);
+            slots.setItem(0, net.minecraft.world.item.alchemy.PotionContents.createItemStack(
+                    net.minecraft.world.item.Items.POTION, net.minecraft.world.item.alchemy.Potions.WATER));
+            slots.setItem(1, net.minecraft.world.item.alchemy.PotionContents.createItemStack(
+                    net.minecraft.world.item.Items.POTION, net.minecraft.world.item.alchemy.Potions.WATER));
+            slots.setItem(3, new net.minecraft.world.item.ItemStack(net.minecraft.world.item.Items.NETHER_WART, 8));
+            // Halfway through brewing, with some fuel left.
+            var data = new net.minecraft.world.inventory.SimpleContainerData(2);
+            data.set(0, 200);
+            data.set(1, 12);
+            return new net.minecraft.client.gui.screens.inventory.BrewingStandScreen(
+                    new net.minecraft.world.inventory.BrewingStandMenu(0, inventory, slots, data), inventory,
+                    Component.translatable("container.brewing"));
         }
 
         private record Theme(String name, Map<String, GaldurPaint> paints) {

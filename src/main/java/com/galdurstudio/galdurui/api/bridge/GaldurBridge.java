@@ -136,7 +136,13 @@ public final class GaldurBridge {
             CreativeModeInventoryScreen.class, net.minecraft.client.gui.screens.inventory.FurnaceScreen.class,
             net.minecraft.client.gui.screens.inventory.BlastFurnaceScreen.class,
             net.minecraft.client.gui.screens.inventory.SmokerScreen.class,
-            net.minecraft.client.gui.screens.inventory.CraftingScreen.class);
+            net.minecraft.client.gui.screens.inventory.CraftingScreen.class,
+            net.minecraft.client.gui.screens.inventory.BrewingStandScreen.class,
+            net.minecraft.client.gui.screens.inventory.AnvilScreen.class,
+            net.minecraft.client.gui.screens.inventory.SmithingScreen.class,
+            net.minecraft.client.gui.screens.inventory.GrindstoneScreen.class,
+            net.minecraft.client.gui.screens.inventory.StonecutterScreen.class,
+            net.minecraft.client.gui.screens.inventory.CartographyTableScreen.class);
     /** Whether the player excluded each screen class; cleared when the exclusion list changes. */
     private static final Map<Class<?>, Boolean> EXCLUDED = new ConcurrentHashMap<>();
     /** Exclusion list {@link #EXCLUDED} was computed with. */

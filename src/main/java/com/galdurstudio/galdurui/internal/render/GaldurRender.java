@@ -383,6 +383,23 @@ public final class GaldurRender {
     //?}
 
     /**
+     * Draws the {@code width} x {@code height} part of a whole texture at {@code u, v}, with transparency.
+     *
+     * @param textureWidth  width of the texture file, in pixels
+     * @param textureHeight height of the texture file, in pixels
+     */
+    public static void drawTexture(GuiGraphics graphics, ResourceLocation texture, int x, int y, int u, int v, int width,
+                                   int height, int textureWidth, int textureHeight) {
+        //? if >=26.1 {
+        /*graphics.blit(RenderPipelines.GUI_TEXTURED, texture, x, y, u, v, width, height, textureWidth, textureHeight);
+        *///?} else {
+        RenderSystem.enableBlend();
+        RenderSystem.defaultBlendFunc();
+        graphics.blit(texture, x, y, u, v, width, height, textureWidth, textureHeight);
+        //?}
+    }
+
+    /**
      * Draws the outline of a rectangle, without filling it.
      *
      * <p>The line is 1 GUI pixel wide and stays inside the given area: the outline never spills

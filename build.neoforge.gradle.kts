@@ -56,6 +56,7 @@ neoForge {
             }
             // -Pgalduruitest.media=en_us (or fr_fr): captures the wiki's photos and clips (testmod/MediaSession).
             providers.gradleProperty("galduruitest.media").orNull?.let { systemProperty("galduruitest.media", it) }
+            providers.gradleProperty("galduruitest.containers").orNull?.let { systemProperty("galduruitest.containers", it) }
         }
         register("server") {
             server()

@@ -26,6 +26,7 @@ public final class ThemeLoader implements ResourceManagerReloadListener {
     public void onResourceManagerReload(ResourceManager resourceManager) {
         // Sprites read by Galdur UI itself (Minecraft 1.20.1) must be read again from the new packs.
         GuiSprites.clearCache();
+        com.galdurstudio.galdurui.internal.bridge.TextureRecolor.clear();
         loadPackTheme(resourceManager);
         // The colours chosen in the theme editor go over the packs' theme.
         PlayerTheme.load();

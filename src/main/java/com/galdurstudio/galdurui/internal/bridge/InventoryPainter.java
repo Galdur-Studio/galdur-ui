@@ -10,6 +10,12 @@ import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
 import net.minecraft.client.gui.screens.inventory.AbstractFurnaceScreen;
+import net.minecraft.client.gui.screens.inventory.AnvilScreen;
+import net.minecraft.client.gui.screens.inventory.BrewingStandScreen;
+import net.minecraft.client.gui.screens.inventory.CartographyTableScreen;
+import net.minecraft.client.gui.screens.inventory.GrindstoneScreen;
+import net.minecraft.client.gui.screens.inventory.SmithingScreen;
+import net.minecraft.client.gui.screens.inventory.StonecutterScreen;
 import net.minecraft.client.gui.screens.inventory.CraftingScreen;
 import net.minecraft.client.gui.screens.inventory.CreativeModeInventoryScreen;
 import net.minecraft.client.gui.screens.inventory.InventoryScreen;
@@ -31,13 +37,23 @@ public final class InventoryPainter {
             "textures/gui/container/furnace.png", "textures/gui/container/blast_furnace.png",
             "textures/gui/container/smoker.png");
 
+    private static final String CONTAINER_TEXTURES = "textures/gui/container/";
+    /**
+     * Screens whose background texture becomes their decorations on a Galdur panel (TextureRecolor):
+     * the brewing stand tubes, the anvil, the arrows and crosses keep their exact shape.
+     */
+    private static final java.util.Set<Class<?>> RECOLORED = java.util.Set.of(BrewingStandScreen.class,
+            AnvilScreen.class, SmithingScreen.class, GrindstoneScreen.class, StonecutterScreen.class,
+            CartographyTableScreen.class);
+
     private InventoryPainter() {
     }
 
     /** {@return {@code true} for the screens whose textures are replaced one by one, not their whole background} */
     public static boolean paintsItself(Screen screen) {
         return screen instanceof CreativeModeInventoryScreen || screen instanceof InventoryScreen
-                || screen instanceof AbstractFurnaceScreen<?> || screen instanceof CraftingScreen;
+                || screen instanceof AbstractFurnaceScreen<?> || screen instanceof CraftingScreen
+                || RECOLORED.contains(screen.getClass());
     }
 
     private static AbstractContainerScreen<?> ownPanelScreen() {
@@ -73,6 +89,20 @@ public final class InventoryPainter {
                 return furnaceProgress(graphics, screen, v < 14, x, y, width, height);
             }
         }
+        if (RECOLORED.contains(screen.getClass()) && path.startsWith(CONTAINER_TEXTURES)) {
+            AbstractContainerScreenAccessor layout = (AbstractContainerScreenAccessor) screen;
+            var recolored = TextureRecolor.background(id, screen, layout.galdurui$imageWidth(), layout.galdurui$imageHeight());
+            if (recolored.isEmpty()) {
+                return false;
+            }
+            if (background && width == layout.galdurui$imageWidth() && height == layout.galdurui$imageHeight()) {
+                recoloredPanel(graphics, screen, layout, recolored.get());
+            }
+            // Before 1.20.2, the progress bars and buttons come from the same texture, further right.
+            GaldurRender.drawTexture(graphics, recolored.get().id(), x, y, u, v, width, height,
+                    recolored.get().textureWidth(), recolored.get().textureHeight());
+            return true;
+        }
         if (background && screen instanceof CraftingScreen && path.equals(CRAFTING_TEXTURE)) {
             craftingPanel(graphics, screen);
             return true;
@@ -106,10 +136,16 @@ public final class InventoryPainter {
      * @return {@code true} if a Galdur version was drawn instead
      */
     public static boolean sprite(GuiGraphics graphics, ResourceLocation id, int x, int y, int width, int height) {
-        if (!"minecraft".equals(id.getNamespace()) || !id.getPath().startsWith(CREATIVE_SPRITES)) {
+        if (!"minecraft".equals(id.getNamespace())) {
             return false;
         }
         AbstractContainerScreen<?> screen = ownPanelScreen();
+        if (screen != null && RECOLORED.contains(screen.getClass()) && id.getPath().startsWith("container/")) {
+            return screenSprite(graphics, id, x, y, width, height);
+        }
+        if (!id.getPath().startsWith(CREATIVE_SPRITES)) {
+            return false;
+        }
         if (!(screen instanceof CreativeModeInventoryScreen)) {
             return false;
         }
@@ -124,6 +160,37 @@ public final class InventoryPainter {
             return true;
         }
         return false;
+    }
+
+    /**
+     * A sprite of a recoloured screen: text fields, the stonecutter's recipe buttons and scroll bar in
+     * Galdur widgets, the rest recoloured like the background.
+     */
+    private static boolean screenSprite(GuiGraphics graphics, ResourceLocation id, int x, int y, int width, int height) {
+        String name = id.getPath().substring(id.getPath().lastIndexOf('/') + 1);
+        if (name.startsWith("text_field")) {
+            field(graphics, x, y, width, height);
+            return true;
+        }
+        if (name.startsWith("recipe")) {
+            boolean selected = name.equals("recipe_selected");
+            boolean hovered = name.equals("recipe_highlighted");
+            GaldurRender.drawNineSlice(graphics, hovered ? GaldurSprites.BUTTON_HOVER : GaldurSprites.BUTTON, x, y,
+                    width, height, GaldurTheme.paint(selected ? GaldurTheme.ACCENT
+                            : hovered ? GaldurTheme.BUTTON_HOVER : GaldurTheme.BUTTON));
+            return true;
+        }
+        if (name.startsWith("scroller")) {
+            GaldurRender.drawNineSlice(graphics, GaldurSprites.SCROLLBAR_THUMB, x, y, width, height,
+                    GaldurTheme.paint(name.contains("disabled") ? GaldurTheme.BUTTON_DISABLED : GaldurTheme.SCROLLBAR));
+            return true;
+        }
+        var recolored = TextureRecolor.sprite(id);
+        if (recolored.isEmpty() || recolored.get().textureWidth() != width || recolored.get().textureHeight() != height) {
+            return false;
+        }
+        GaldurRender.drawTexture(graphics, recolored.get().id(), x, y, 0, 0, width, height, width, height);
+        return true;
     }
 
     private static void creativePanel(GuiGraphics graphics, AbstractContainerScreen<?> screen, String name) {
@@ -160,6 +227,20 @@ public final class InventoryPainter {
         resultSlot(graphics, screen, left, top, 2);
     }
 
+    /** The Galdur panel and its slots, under the texture's own decorations. */
+    private static void recoloredPanel(GuiGraphics graphics, AbstractContainerScreen<?> screen,
+                                       AbstractContainerScreenAccessor layout, TextureRecolor.Result recolored) {
+        BridgePainter.containerBackground(graphics, screen, layout);
+        int left = layout.galdurui$leftPos();
+        int top = layout.galdurui$topPos();
+        for (int index : recolored.largeSlots()) {
+            resultSlot(graphics, screen, left, top, index);
+        }
+        for (int[] well : recolored.wells()) {
+            field(graphics, left + well[0], top + well[1], well[2], well[3]);
+        }
+    }
+
     private static void craftingPanel(GuiGraphics graphics, AbstractContainerScreen<?> screen) {
         AbstractContainerScreenAccessor layout = (AbstractContainerScreenAccessor) screen;
         BridgePainter.containerBackground(graphics, screen, layout);
@@ -173,11 +254,21 @@ public final class InventoryPainter {
      *
      * @return {@code true} if a Galdur version was drawn instead
      */
-    public static boolean spritePart(GuiGraphics graphics, ResourceLocation id, int x, int y, int width, int height) {
+    public static boolean spritePart(GuiGraphics graphics, ResourceLocation id, int spriteWidth, int spriteHeight, int u,
+                                     int v, int x, int y, int width, int height) {
         if (!"minecraft".equals(id.getNamespace())) {
             return false;
         }
         AbstractContainerScreen<?> screen = ownPanelScreen();
+        if (screen != null && RECOLORED.contains(screen.getClass()) && id.getPath().startsWith("container/")) {
+            var recolored = TextureRecolor.sprite(id);
+            if (recolored.isEmpty() || recolored.get().textureWidth() != spriteWidth
+                    || recolored.get().textureHeight() != spriteHeight) {
+                return false;
+            }
+            GaldurRender.drawTexture(graphics, recolored.get().id(), x, y, u, v, width, height, spriteWidth, spriteHeight);
+            return true;
+        }
         if (!(screen instanceof AbstractFurnaceScreen<?>)) {
             return false;
         }
