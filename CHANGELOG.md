@@ -9,8 +9,10 @@ and versions follow [Semantic Versioning](https://semver.org/) (see "Versioning"
 
 - Furnaces, blast furnaces, smokers and the crafting table get the Galdur panel with "Galdur look on every menu".
   The burning flame and the cooking arrow are drawn in the theme colours and still fill up as they cook.
-- Same for the brewing stand, anvil, smithing table, grindstone, stonecutter and cartography table. Their
-  arrows, tubes and icons come from the vanilla texture (or the resource pack's), recoloured to the theme.
+- Same for the brewing stand, anvil, smithing table, grindstone, stonecutter, cartography table, loom,
+  enchanting table, beacon and villager trades. Their arrows, tubes and icons come from the vanilla texture
+  (or the resource pack's), recoloured to the theme. Recipe, pattern, enchantment and beacon buttons are
+  Galdur buttons.
 
 ## [1.1.0] - 2026-11-10
 

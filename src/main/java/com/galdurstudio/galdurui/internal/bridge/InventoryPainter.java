@@ -11,6 +11,10 @@ import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
 import net.minecraft.client.gui.screens.inventory.AbstractFurnaceScreen;
 import net.minecraft.client.gui.screens.inventory.AnvilScreen;
+import net.minecraft.client.gui.screens.inventory.BeaconScreen;
+import net.minecraft.client.gui.screens.inventory.EnchantmentScreen;
+import net.minecraft.client.gui.screens.inventory.LoomScreen;
+import net.minecraft.client.gui.screens.inventory.MerchantScreen;
 import net.minecraft.client.gui.screens.inventory.BrewingStandScreen;
 import net.minecraft.client.gui.screens.inventory.CartographyTableScreen;
 import net.minecraft.client.gui.screens.inventory.GrindstoneScreen;
@@ -44,7 +48,8 @@ public final class InventoryPainter {
      */
     private static final java.util.Set<Class<?>> RECOLORED = java.util.Set.of(BrewingStandScreen.class,
             AnvilScreen.class, SmithingScreen.class, GrindstoneScreen.class, StonecutterScreen.class,
-            CartographyTableScreen.class);
+            CartographyTableScreen.class, LoomScreen.class, EnchantmentScreen.class, BeaconScreen.class,
+            MerchantScreen.class);
 
     private InventoryPainter() {
     }
@@ -130,6 +135,24 @@ public final class InventoryPainter {
         return false;
     }
 
+    /** The enchanting table's runes, enabled and disabled. */
+    private static final int RUNES = 0x685E4A;
+    private static final int RUNES_DISABLED = 0x342F25;
+
+    /** {@return the colour of a text drawn on a recoloured screen: dark vanilla colours become the theme's} */
+    public static int textColor(int argb) {
+        int rgb = argb & 0xFFFFFF;
+        if (rgb != RUNES && rgb != RUNES_DISABLED) {
+            return argb;
+        }
+        AbstractContainerScreen<?> screen = ownPanelScreen();
+        if (screen == null || !RECOLORED.contains(screen.getClass())) {
+            return argb;
+        }
+        int muted = GaldurTheme.textMuted();
+        return rgb == RUNES ? muted : (0x80 << 24) | (muted & 0xFFFFFF);
+    }
+
     /**
      * Answers a GUI sprite that Minecraft is about to draw.
      *
@@ -172,12 +195,17 @@ public final class InventoryPainter {
             field(graphics, x, y, width, height);
             return true;
         }
-        if (name.startsWith("recipe")) {
-            boolean selected = name.equals("recipe_selected");
-            boolean hovered = name.equals("recipe_highlighted");
+        // Buttons: the stonecutter's recipes, the loom's patterns, the enchantments, the beacon's powers.
+        String button = name.startsWith("recipe") || name.startsWith("enchantment_slot") || name.startsWith("button")
+                ? name : name.equals("pattern") || name.startsWith("pattern_") && !name.equals("pattern_slot")
+                ? name : null;
+        if (button != null) {
+            boolean hovered = button.endsWith("_highlighted");
+            String paint = button.endsWith("_selected") ? GaldurTheme.ACCENT
+                    : button.endsWith("_disabled") ? GaldurTheme.BUTTON_DISABLED
+                    : hovered ? GaldurTheme.BUTTON_HOVER : GaldurTheme.BUTTON;
             GaldurRender.drawNineSlice(graphics, hovered ? GaldurSprites.BUTTON_HOVER : GaldurSprites.BUTTON, x, y,
-                    width, height, GaldurTheme.paint(selected ? GaldurTheme.ACCENT
-                            : hovered ? GaldurTheme.BUTTON_HOVER : GaldurTheme.BUTTON));
+                    width, height, GaldurTheme.paint(paint));
             return true;
         }
         if (name.startsWith("scroller")) {
@@ -233,8 +261,11 @@ public final class InventoryPainter {
         BridgePainter.containerBackground(graphics, screen, layout);
         int left = layout.galdurui$leftPos();
         int top = layout.galdurui$topPos();
-        for (int index : recolored.largeSlots()) {
-            resultSlot(graphics, screen, left, top, index);
+        var slots = screen.getMenu().slots;
+        for (int[] frame : recolored.largeSlots()) {
+            var slot = slots.get(frame[0]);
+            GaldurRender.drawNineSlice(graphics, GaldurSprites.SLOT, left + slot.x + frame[1], top + slot.y + frame[2],
+                    26, 26, GaldurTheme.paint(GaldurTheme.SLOT));
         }
         for (int[] well : recolored.wells()) {
             field(graphics, left + well[0], top + well[1], well[2], well[3]);

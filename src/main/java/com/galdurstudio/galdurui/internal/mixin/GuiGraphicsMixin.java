@@ -32,6 +32,18 @@ abstract class GuiGraphicsMixin {
         return BridgePainter.labelColor(color);
     }
 
+    // Texts drawn in a screen's background (the enchanting table's runes), readable on a Galdur panel.
+    //? if >=26.1 {
+    /*@ModifyVariable(method = "text(Lnet/minecraft/client/gui/Font;Lnet/minecraft/util/FormattedCharSequence;IIIZ)V",
+            at = @At("HEAD"), argsOnly = true, ordinal = 2)
+    *///?} else {
+    @ModifyVariable(method = "drawString(Lnet/minecraft/client/gui/Font;Lnet/minecraft/util/FormattedCharSequence;IIIZ)I",
+            at = @At("HEAD"), argsOnly = true, ordinal = 2)
+    //?}
+    private int galdurui$backgroundTextColor(int color) {
+        return InventoryPainter.textColor(color);
+    }
+
     //? if >=26.1 {
     /*@Inject(method = "blit(Lcom/mojang/renderpearl/api/pipeline/RenderPipeline;Lnet/minecraft/resources/ResourceLocation;IIFFIIII)V",
             at = @At("HEAD"), cancellable = true)
@@ -66,6 +78,15 @@ abstract class GuiGraphicsMixin {
     @Inject(method = "blit(Lnet/minecraft/resources/ResourceLocation;IIIIII)V", at = @At("HEAD"), cancellable = true)
     private void galdurui$texture(ResourceLocation id, int x, int y, int u, int v, int width, int height, CallbackInfo ci) {
         if (InventoryPainter.texture((GuiGraphics) (Object) this, id, x, y, u, v, width, height)) {
+            ci.cancel();
+        }
+    }
+
+    // A texture larger than 256 x 256 (the villager's): same as above.
+    @Inject(method = "blit(Lnet/minecraft/resources/ResourceLocation;IIIFFIIII)V", at = @At("HEAD"), cancellable = true)
+    private void galdurui$largeTexture(ResourceLocation id, int x, int y, int blitOffset, float u, float v, int width,
+                                       int height, int textureWidth, int textureHeight, CallbackInfo ci) {
+        if (InventoryPainter.texture((GuiGraphics) (Object) this, id, x, y, (int) u, (int) v, width, height)) {
             ci.cancel();
         }
     }

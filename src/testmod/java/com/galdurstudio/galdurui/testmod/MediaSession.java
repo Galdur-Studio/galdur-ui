@@ -364,6 +364,10 @@ public final class MediaSession {
                     new net.minecraft.world.inventory.StonecutterMenu(0, minecraft.player.getInventory()), minecraft.player.getInventory(), Component.translatable("container.stonecutter")));
             screens.put("cartography", () -> new net.minecraft.client.gui.screens.inventory.CartographyTableScreen(
                     new net.minecraft.world.inventory.CartographyTableMenu(0, minecraft.player.getInventory()), minecraft.player.getInventory(), Component.translatable("container.cartography_table")));
+            screens.put("loom", () -> loom(minecraft));
+            screens.put("enchanting", () -> enchanting(minecraft));
+            screens.put("beacon", () -> beacon(minecraft));
+            screens.put("merchant", () -> merchant(minecraft));
             screens.forEach((name, screen) -> {
                 add(run(() -> setLook(false, true)));
                 add(openAndShoot(name + "-vanilla", screen::get));
@@ -374,6 +378,59 @@ public final class MediaSession {
                 add(run(() -> ThemeStore.setPlayerTheme(Map.of(), Map.of())));
             });
             add(run(() -> Client.setScreen(null)));
+        }
+
+        private static Screen loom(Minecraft minecraft) {
+            var inventory = minecraft.player.getInventory();
+            var menu = new net.minecraft.world.inventory.LoomMenu(0, inventory);
+            menu.getSlot(0).set(new net.minecraft.world.item.ItemStack(net.minecraft.world.item.Items.WHITE_BANNER));
+            menu.getSlot(1).set(new net.minecraft.world.item.ItemStack(net.minecraft.world.item.Items.RED_DYE, 4));
+            return new net.minecraft.client.gui.screens.inventory.LoomScreen(menu, inventory,
+                    Component.translatable("container.loom"));
+        }
+
+        private static Screen enchanting(Minecraft minecraft) {
+            var inventory = minecraft.player.getInventory();
+            minecraft.player.experienceLevel = 20;
+            var menu = new net.minecraft.world.inventory.EnchantmentMenu(0, inventory);
+            menu.getSlot(0).set(new net.minecraft.world.item.ItemStack(net.minecraft.world.item.Items.DIAMOND_SWORD));
+            menu.getSlot(1).set(new net.minecraft.world.item.ItemStack(net.minecraft.world.item.Items.LAPIS_LAZULI, 9));
+            menu.costs[0] = 5;
+            menu.costs[1] = 14;
+            menu.costs[2] = 30;
+            return new net.minecraft.client.gui.screens.inventory.EnchantmentScreen(menu, inventory,
+                    Component.translatable("container.enchant"));
+        }
+
+        private static Screen beacon(Minecraft minecraft) {
+            var inventory = minecraft.player.getInventory();
+            var data = new net.minecraft.world.inventory.SimpleContainerData(3);
+            data.set(0, 4);
+            var menu = new net.minecraft.world.inventory.BeaconMenu(0, inventory, data,
+                    net.minecraft.world.inventory.ContainerLevelAccess.NULL);
+            return new net.minecraft.client.gui.screens.inventory.BeaconScreen(menu, inventory,
+                    Component.translatable("container.beacon"));
+        }
+
+        private static Screen merchant(Minecraft minecraft) {
+            var inventory = minecraft.player.getInventory();
+            var menu = new net.minecraft.world.inventory.MerchantMenu(0, inventory);
+            var offers = new net.minecraft.world.item.trading.MerchantOffers();
+            offers.add(new net.minecraft.world.item.trading.MerchantOffer(
+                    new net.minecraft.world.item.trading.ItemCost(net.minecraft.world.item.Items.WHEAT, 20),
+                    new net.minecraft.world.item.ItemStack(net.minecraft.world.item.Items.EMERALD), 12, 2, 0.05F));
+            offers.add(new net.minecraft.world.item.trading.MerchantOffer(
+                    new net.minecraft.world.item.trading.ItemCost(net.minecraft.world.item.Items.EMERALD, 1),
+                    new net.minecraft.world.item.ItemStack(net.minecraft.world.item.Items.BREAD, 6), 12, 1, 0.05F));
+            offers.add(new net.minecraft.world.item.trading.MerchantOffer(
+                    new net.minecraft.world.item.trading.ItemCost(net.minecraft.world.item.Items.EMERALD, 3),
+                    new net.minecraft.world.item.ItemStack(net.minecraft.world.item.Items.CAKE), 12, 5, 0.05F));
+            menu.setOffers(offers);
+            menu.setMerchantLevel(2);
+            menu.setXp(25);
+            menu.setShowProgressBar(true);
+            return new net.minecraft.client.gui.screens.inventory.MerchantScreen(menu, inventory,
+                    Component.literal("Farmer"));
         }
 
         private static Screen brewing(Minecraft minecraft) {

@@ -142,7 +142,11 @@ public final class GaldurBridge {
             net.minecraft.client.gui.screens.inventory.SmithingScreen.class,
             net.minecraft.client.gui.screens.inventory.GrindstoneScreen.class,
             net.minecraft.client.gui.screens.inventory.StonecutterScreen.class,
-            net.minecraft.client.gui.screens.inventory.CartographyTableScreen.class);
+            net.minecraft.client.gui.screens.inventory.CartographyTableScreen.class,
+            net.minecraft.client.gui.screens.inventory.LoomScreen.class,
+            net.minecraft.client.gui.screens.inventory.EnchantmentScreen.class,
+            net.minecraft.client.gui.screens.inventory.BeaconScreen.class,
+            net.minecraft.client.gui.screens.inventory.MerchantScreen.class);
     /** Whether the player excluded each screen class; cleared when the exclusion list changes. */
     private static final Map<Class<?>, Boolean> EXCLUDED = new ConcurrentHashMap<>();
     /** Exclusion list {@link #EXCLUDED} was computed with. */

@@ -38,14 +38,16 @@ public final class TextureRecolor {
     private static final int FAINT = 0x60;
     /** Under the anvil's text field: never seen in game. */
     private static final int HIDDEN = 0xFFFF0000;
-    /** Smallest side of a well (a scroll bar groove, the stonecutter's recipe list). */
-    private static final int WELL_SIZE = 10;
+    /** Smallest sides of a well (a scroll bar groove, the stonecutter's recipe list, the trade list). */
+    private static final int WELL_SIDE = 5;
+    private static final int WELL_LENGTH = 10;
 
     /**
-     * A recoloured texture: where it is, its size, the slots drawn larger (result slots), and the wells
-     * to draw as Galdur fields ({@code x, y, width, height} in the texture).
+     * A recoloured texture: where it is, its size, the slots drawn larger (result slots: {@code index,
+     * x, y} of their 26 x 26 frame from the slot), and the wells to draw as Galdur fields ({@code x, y,
+     * width, height, colour} in the texture).
      */
-    record Result(ResourceLocation id, int textureWidth, int textureHeight, List<Integer> largeSlots,
+    record Result(ResourceLocation id, int textureWidth, int textureHeight, List<int[]> largeSlots,
                   List<int[]> wells) {
     }
 
@@ -107,21 +109,33 @@ public final class TextureRecolor {
             int textureWidth = image.getWidth();
             int textureHeight = image.getHeight();
             boolean[][] slotArea = new boolean[Math.max(width, 0)][Math.max(height, 0)];
-            List<Integer> largeSlots = new ArrayList<>();
+            List<int[]> largeSlots = new ArrayList<>();
             List<Slot> slots = screen == null ? List.of() : screen.getMenu().slots;
             for (int index = 0; index < slots.size(); index++) {
                 Slot slot = slots.get(index);
-                // A result slot: a 26 x 26 frame around the item, its corner in the slot edge colour.
-                boolean large = inside(slot.x - 5, slot.y - 5, width, height)
-                        && argb(image, slot.x - 5, slot.y - 5) == SLOT_EDGE
-                        && argb(image, slot.x - 1, slot.y - 1) != SLOT_EDGE;
-                if (large) {
-                    largeSlots.add(index);
+                // A result slot: a 26 x 26 frame around the item, its corner in the slot edge colour,
+                // 4 or 5 pixels away (the villager's is one pixel higher).
+                int[] frame = null;
+                if (!(inside(slot.x - 1, slot.y - 1, width, height) && argb(image, slot.x - 1, slot.y - 1) == SLOT_EDGE)) {
+                    for (int dy = -5; dy <= -4 && frame == null; dy++) {
+                        for (int dx = -5; dx <= -4 && frame == null; dx++) {
+                            if (inside(slot.x + dx, slot.y + dy, width, height)
+                                    && argb(image, slot.x + dx, slot.y + dy) == SLOT_EDGE
+                                    && inside(slot.x + dx + 1, slot.y + dy + 1, width, height)
+                                    && argb(image, slot.x + dx + 1, slot.y + dy + 1) == SLOT) {
+                                frame = new int[] {index, dx, dy};
+                            }
+                        }
+                    }
                 }
-                int margin = large ? 5 : 1;
-                int size = large ? 26 : 18;
-                for (int x = slot.x - margin; x < slot.x - margin + size; x++) {
-                    for (int y = slot.y - margin; y < slot.y - margin + size; y++) {
+                if (frame != null) {
+                    largeSlots.add(frame);
+                }
+                int frameX = frame == null ? slot.x - 1 : slot.x + frame[1];
+                int frameY = frame == null ? slot.y - 1 : slot.y + frame[2];
+                int size = frame == null ? 18 : 26;
+                for (int x = frameX; x < frameX + size; x++) {
+                    for (int y = frameY; y < frameY + size; y++) {
                         if (inside(x, y, width, height)) {
                             slotArea[x][y] = true;
                         }
@@ -129,24 +143,38 @@ public final class TextureRecolor {
                 }
             }
             List<int[]> wells = wells(image, slotArea, width, height);
-            boolean[][] wellArea = new boolean[Math.max(width, 0)][Math.max(height, 0)];
+            // The colour of the well at each pixel (0: none).
+            int[][] wellArea = new int[Math.max(width, 0)][Math.max(height, 0)];
             for (int[] well : wells) {
                 for (int x = well[0]; x < well[0] + well[2]; x++) {
                     for (int y = well[1]; y < well[1] + well[3]; y++) {
-                        wellArea[x][y] = true;
+                        wellArea[x][y] = well[4];
                     }
                 }
             }
+            // A sprite with transparent pixels is a shape (the trade arrow): its light grey is drawn.
+            boolean shape = false;
+            for (int x = 0; x < textureWidth && !shape && screen == null; x++) {
+                for (int y = 0; y < textureHeight && !shape; y++) {
+                    shape = (argb(image, x, y) >>> 24) == 0;
+                }
+            }
+            // The faded item in an empty slot (the loom's banner and dye): the slot itself vanishes.
+            boolean slotHint = screen == null && source.getPath().endsWith("_slot.png");
             NativeImage out = new NativeImage(textureWidth, textureHeight, true);
             for (int x = 0; x < textureWidth; x++) {
                 for (int y = 0; y < textureHeight; y++) {
                     int pixel = argb(image, x, y);
                     int color;
                     if (!inside(x, y, width, height)) {
-                        color = spriteColor(pixel, muted, accent);
-                    } else if (x < BORDER || y < BORDER || x >= width - BORDER || y >= height - BORDER
-                            || wellArea[x][y]) {
+                        // A shape keeps its colours, only its light grey follows the theme.
+                        color = slotHint && pixel == SLOT ? 0
+                                : shape ? (pixel == BACKGROUND ? muted : pixel) : spriteColor(pixel, muted, accent);
+                    } else if (x < BORDER || y < BORDER || x >= width - BORDER || y >= height - BORDER) {
                         color = 0;
+                    } else if (wellArea[x][y] != 0) {
+                        // In a well, only what is drawn on it stays (the beacon's pyramids).
+                        color = pixel == wellArea[x][y] || grey(pixel) ? 0 : pixel;
                     } else if (slotArea[x][y]) {
                         // Inside a slot, only the faded item shapes stay (the brewing stand's bottles...).
                         boolean bevel = grey(pixel) && ((pixel & 0xFF) >= 0x80 || pixel == SHADOW
@@ -172,8 +200,9 @@ public final class TextureRecolor {
     }
 
     /**
-     * The wells of a background: areas of one colour at least {@value #WELL_SIZE} pixels on each side
-     * that fill their bounding box, with their 1-pixel bevel around.
+     * The wells of a background: areas of one colour, at least {@value #WELL_SIDE} by {@value #WELL_LENGTH}
+     * pixels, that mostly fill their bounding box, with their 1-pixel bevel around. Each well is
+     * {@code x, y, width, height, colour}.
      */
     private static List<int[]> wells(NativeImage image, boolean[][] slotArea, int width, int height) {
         List<int[]> wells = new ArrayList<>();
@@ -212,10 +241,11 @@ public final class TextureRecolor {
                 }
                 int wellWidth = maxX - minX + 1;
                 int wellHeight = maxY - minY + 1;
-                if (wellWidth >= WELL_SIZE && wellHeight >= WELL_SIZE && count * 10 >= wellWidth * wellHeight * 9) {
+                if (Math.min(wellWidth, wellHeight) >= WELL_SIDE && Math.max(wellWidth, wellHeight) >= WELL_LENGTH
+                        && count * 4 >= wellWidth * wellHeight * 3) {
                     int x = Math.max(minX - 1, 0);
                     int y = Math.max(minY - 1, 0);
-                    wells.add(new int[] {x, y, Math.min(maxX + 2, width) - x, Math.min(maxY + 2, height) - y});
+                    wells.add(new int[] {x, y, Math.min(maxX + 2, width) - x, Math.min(maxY + 2, height) - y, color});
                 }
             }
         }
