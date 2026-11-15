@@ -19,13 +19,11 @@ import net.minecraft.client.gui.screens.options.OptionsScreen;
 //?} else {
 /*import net.minecraft.client.gui.screens.OptionsScreen;
 *///?}
-//? if >=26.1 {
-/*import net.minecraft.world.level.GameType;
+import net.minecraft.world.level.GameType;
 import net.minecraft.world.level.LevelSettings;
 import net.minecraft.world.level.WorldDataConfiguration;
 import net.minecraft.world.level.levelgen.WorldOptions;
 import net.minecraft.world.level.levelgen.presets.WorldPresets;
-*///?}
 
 /**
  * Screenshot tour, to check the widgets on each Minecraft version without clicking.
@@ -39,10 +37,16 @@ import net.minecraft.world.level.levelgen.presets.WorldPresets;
  * <p>Since 26.1 an item only exists once a world is loaded: the tour first opens the flat
  * creative world {@code galduruitest}, created again on each run. In a world, a loader's test mod
  * can add last steps with {@link #MENU_COMMANDS}, to show menu screens.</p>
+ *
+ * <p>With {@code galduruitest.containers} as well, the tour opens that world on every version and
+ * only shows the vanilla screens with slots, without then with the Galdur look:
+ * {@code run/screenshots/galduruitest-<screen>-vanilla.png} and {@code -galdur.png}.</p>
  */
 public final class ScreenshotTour {
     /** {@code true} when the tour was asked for. */
     public static final boolean ENABLED = Boolean.getBoolean("galduruitest.screenshots");
+    /** {@code true} to only show the vanilla screens with slots. */
+    private static final boolean CONTAINERS = Boolean.getBoolean("galduruitest.containers");
 
     /** Ticks to wait on each screen, so the opening animation is over (one second). */
     private static final int WAIT_TICKS = 20;
@@ -68,6 +72,8 @@ public final class ScreenshotTour {
 
     /** What each step shows; the screenshot is taken one wait later. */
     private static final List<Runnable> STEPS = new ArrayList<>();
+    /** The file name of each step's screenshot, {@code null} for a numbered one. */
+    private static final List<String> NAMES = new ArrayList<>();
 
     private ScreenshotTour() {
     }
@@ -89,7 +95,8 @@ public final class ScreenshotTour {
         }
         wait = 0;
         if (step < STEPS.size()) {
-            String name = "galduruitest-" + step + ".png";
+            String name = step < NAMES.size() && NAMES.get(step) != null ? NAMES.get(step)
+                    : "galduruitest-" + step + ".png";
             //? if >=26.1 {
             /*Screenshot.grab(minecraft.gameDirectory, name, minecraft.gameRenderer.mainRenderTarget(), 1,
                     message -> TestLog.LOGGER.info("Screenshot tour: {}", message.getString()));
@@ -113,6 +120,25 @@ public final class ScreenshotTour {
     /** The demo screen tabs, the demo window, the bridge demo, then the menus when in a world. */
     private static void planSteps(Minecraft minecraft) {
         STEPS.clear();
+        NAMES.clear();
+        if (CONTAINERS) {
+            restyleAllBefore = GaldurConfig.restyleAll();
+            // Survival, because in creative the inventory key opens the creative screen.
+            minecraft.gameMode.setLocalMode(GameType.SURVIVAL);
+            ContainerScreens.all(minecraft).forEach((name, screen) -> {
+                STEPS.add(() -> {
+                    GaldurConfig.setRestyleAll(false);
+                    Client.setScreen(screen.get());
+                });
+                NAMES.add("galduruitest-" + name + "-vanilla.png");
+                STEPS.add(() -> {
+                    GaldurConfig.setRestyleAll(true);
+                    Client.setScreen(screen.get());
+                });
+                NAMES.add("galduruitest-" + name + "-galdur.png");
+            });
+            return;
+        }
         STEPS.add(() -> {
             screen = new TestScreen();
             Client.setScreen(screen);
@@ -177,27 +203,27 @@ public final class ScreenshotTour {
     /** {@return {@code true} once the demo screen can be opened} */
     private static boolean ready(Minecraft minecraft) {
         //? if >=26.1 {
-        /*if (minecraft.gui.overlay() != null) {
+        /*boolean loading = minecraft.gui.overlay() != null;
+        boolean needsWorld = true;
+        *///?} else {
+        boolean loading = minecraft.getOverlay() != null;
+        boolean needsWorld = CONTAINERS;
+        //?}
+        if (loading) {
             return false;
+        }
+        if (!needsWorld) {
+            return Client.screen() instanceof TitleScreen;
         }
         if (minecraft.level == null) {
             if (!worldRequested && Client.screen() instanceof TitleScreen title) {
                 worldRequested = true;
-                // A new world every time: reopening this flat test world asks to confirm its
-                // "experimental settings", which would stop the tour.
-                if (minecraft.getLevelSource().levelExists(WORLD)) {
-                    try (var access = minecraft.getLevelSource().createAccess(WORLD)) {
-                        access.deleteLevel();
-                    } catch (java.io.IOException exception) {
-                        TestLog.LOGGER.warn("Screenshot tour: could not delete the old test world", exception);
-                    }
-                }
-                LevelSettings settings = new LevelSettings(WORLD, GameType.CREATIVE,
-                        LevelSettings.DifficultySettings.DEFAULT, true, WorldDataConfiguration.DEFAULT);
-                minecraft.createWorldOpenFlows().createFreshLevel(WORLD, settings, new WorldOptions(0L, false, false),
-                        WorldPresets::createTestWorldDimensions, title);
+                createWorld(minecraft, title);
             }
             return false;
+        }
+        if (Client.screen() instanceof net.minecraft.client.gui.screens.PauseScreen) {
+            Client.setScreen(null);
         }
         // In the world: give it a few seconds to settle (chunks, loading screen).
         if (Client.screen() != null || ++wait < WAIT_TICKS * 3) {
@@ -205,8 +231,38 @@ public final class ScreenshotTour {
         }
         wait = 0;
         return true;
+    }
+
+    /**
+     * Creates the flat test world and opens it. A new world every time: reopening it asks to
+     * confirm its "experimental settings" (26.1 and later), which would stop the tour.
+     */
+    private static void createWorld(Minecraft minecraft, TitleScreen title) {
+        if (minecraft.getLevelSource().levelExists(WORLD)) {
+            try (var access = minecraft.getLevelSource().createAccess(WORLD)) {
+                access.deleteLevel();
+            } catch (java.io.IOException exception) {
+                TestLog.LOGGER.warn("Screenshot tour: could not delete the old test world", exception);
+            }
+        }
+        minecraft.options.pauseOnLostFocus = false;
+        //? if >=26.1 {
+        /*LevelSettings settings = new LevelSettings(WORLD, GameType.CREATIVE,
+                LevelSettings.DifficultySettings.DEFAULT, true, WorldDataConfiguration.DEFAULT);
+        minecraft.createWorldOpenFlows().createFreshLevel(WORLD, settings, new WorldOptions(0L, false, false),
+                WorldPresets::createTestWorldDimensions, title);
         *///?} else {
-        return Client.screen() instanceof TitleScreen && minecraft.getOverlay() == null;
+        LevelSettings settings = new LevelSettings(WORLD, GameType.CREATIVE, false,
+                net.minecraft.world.Difficulty.PEACEFUL, true, new net.minecraft.world.level.GameRules(),
+                WorldDataConfiguration.DEFAULT);
+        java.util.function.Function<net.minecraft.core.RegistryAccess, net.minecraft.world.level.levelgen.WorldDimensions> flat =
+                access -> access.registryOrThrow(net.minecraft.core.registries.Registries.WORLD_PRESET)
+                        .getHolderOrThrow(WorldPresets.FLAT).value().createWorldDimensions();
+        //? if >=1.21 {
+        minecraft.createWorldOpenFlows().createFreshLevel(WORLD, settings, new WorldOptions(0L, false, false), flat, title);
+        //?} else {
+        /*minecraft.createWorldOpenFlows().createFreshLevel(WORLD, settings, new WorldOptions(0L, false, false), flat);
+        *///?}
         //?}
     }
 }

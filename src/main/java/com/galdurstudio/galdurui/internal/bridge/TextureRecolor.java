@@ -161,6 +161,7 @@ public final class TextureRecolor {
             }
             // The faded item in an empty slot (the loom's banner and dye): the slot itself vanishes.
             boolean slotHint = screen == null && source.getPath().endsWith("_slot.png");
+            boolean[][] greyShapes = screen == null ? null : greyShapes(image, width, height);
             NativeImage out = new NativeImage(textureWidth, textureHeight, true);
             for (int x = 0; x < textureWidth; x++) {
                 for (int y = 0; y < textureHeight; y++) {
@@ -169,7 +170,11 @@ public final class TextureRecolor {
                     if (!inside(x, y, width, height)) {
                         // A shape keeps its colours, only its light grey follows the theme.
                         color = slotHint && pixel == SLOT ? 0
-                                : shape ? (pixel == BACKGROUND ? muted : pixel) : spriteColor(pixel, muted, accent);
+                                : shape ? (pixel == BACKGROUND ? muted : pixel)
+                                // Before 1.20.2, a light grey shape on a transparent part of the texture
+                                // (the villager's trade arrow).
+                                : greyShapes != null && greyShapes[x][y] ? muted
+                                : spriteColor(pixel, muted, accent);
                     } else if (x < BORDER || y < BORDER || x >= width - BORDER || y >= height - BORDER) {
                         color = 0;
                     } else if (wellArea[x][y] != 0) {
@@ -272,6 +277,58 @@ public final class TextureRecolor {
             return accent;
         }
         return backgroundColor(argb, muted);
+    }
+
+    /**
+     * Light grey shapes outside the background (before 1.20.2, the villager's trade arrow): areas of
+     * light grey bordered only by transparent or coloured pixels. A light grey area next to other greys
+     * is the background of a progress bar.
+     */
+    private static boolean[][] greyShapes(NativeImage image, int width, int height) {
+        int textureWidth = image.getWidth();
+        int textureHeight = image.getHeight();
+        boolean[][] shapes = new boolean[textureWidth][textureHeight];
+        boolean[][] seen = new boolean[textureWidth][textureHeight];
+        int[] queue = new int[textureWidth * textureHeight];
+        for (int startX = 0; startX < textureWidth; startX++) {
+            for (int startY = 0; startY < textureHeight; startY++) {
+                if (seen[startX][startY] || inside(startX, startY, width, height)
+                        || argb(image, startX, startY) != BACKGROUND) {
+                    continue;
+                }
+                int head = 0;
+                int tail = 0;
+                queue[tail++] = startX * textureHeight + startY;
+                seen[startX][startY] = true;
+                boolean shape = true;
+                while (head < tail) {
+                    int cell = queue[head++];
+                    int x = cell / textureHeight;
+                    int y = cell % textureHeight;
+                    int[][] around = {{x + 1, y}, {x - 1, y}, {x, y + 1}, {x, y - 1}};
+                    for (int[] next : around) {
+                        int nx = next[0];
+                        int ny = next[1];
+                        if (nx < 0 || ny < 0 || nx >= textureWidth || ny >= textureHeight || seen[nx][ny]) {
+                            continue;
+                        }
+                        int color = argb(image, nx, ny);
+                        if (color == BACKGROUND && !inside(nx, ny, width, height)) {
+                            seen[nx][ny] = true;
+                            queue[tail++] = nx * textureHeight + ny;
+                        } else if ((color >>> 24) != 0 && grey(color)) {
+                            shape = false;
+                        }
+                    }
+                }
+                if (shape) {
+                    for (int index = 0; index < tail; index++) {
+                        shapes[queue[index] / textureHeight][queue[index] % textureHeight] = true;
+                    }
+                }
+            }
+        }
+        return shapes;
     }
 
     private static boolean grey(int argb) {

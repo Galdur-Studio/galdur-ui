@@ -104,6 +104,10 @@ public final class InventoryPainter {
                 recoloredPanel(graphics, screen, layout, recolored.get());
             }
             // Before 1.20.2, the progress bars and buttons come from the same texture, further right.
+            String widget = background ? null : legacyWidget(screen, u, v, width, height);
+            if (widget != null && widget(graphics, widget, x, y, width, height)) {
+                return true;
+            }
             GaldurRender.drawTexture(graphics, recolored.get().id(), x, y, u, v, width, height,
                     recolored.get().textureWidth(), recolored.get().textureHeight());
             return true;
@@ -191,19 +195,69 @@ public final class InventoryPainter {
      */
     private static boolean screenSprite(GuiGraphics graphics, ResourceLocation id, int x, int y, int width, int height) {
         String name = id.getPath().substring(id.getPath().lastIndexOf('/') + 1);
+        if (widget(graphics, name, x, y, width, height)) {
+            return true;
+        }
+        var recolored = TextureRecolor.sprite(id);
+        if (recolored.isEmpty() || recolored.get().textureWidth() != width || recolored.get().textureHeight() != height) {
+            return false;
+        }
+        GaldurRender.drawTexture(graphics, recolored.get().id(), x, y, 0, 0, width, height, width, height);
+        return true;
+    }
+
+    /**
+     * Before 1.20.2, the widgets of these screens come from their background texture: {@return the name
+     * the sprite has since 1.20.2 for this part of the texture, or {@code null}}
+     */
+    private static String legacyWidget(AbstractContainerScreen<?> screen, int u, int v, int width, int height) {
+        if (screen instanceof AnvilScreen && u == 0 && width == 110 && height == 16) {
+            return "text_field";
+        }
+        if (screen instanceof StonecutterScreen) {
+            if (u == 0 && width == 16 && height == 18) {
+                return v == 184 ? "recipe_selected" : v == 202 ? "recipe_highlighted" : "recipe";
+            }
+            if (v == 0 && width == 12 && height == 15) {
+                return u == 188 ? "scroller_disabled" : "scroller";
+            }
+        }
+        if (screen instanceof LoomScreen) {
+            if (u == 0 && width == 14 && height == 14) {
+                return v == 180 ? "pattern_selected" : v == 194 ? "pattern_highlighted" : "pattern";
+            }
+            if (v == 0 && width == 12 && height == 15) {
+                return u == 244 ? "scroller_disabled" : "scroller";
+            }
+        }
+        if (screen instanceof EnchantmentScreen && u == 0 && width == 108 && height == 19) {
+            return v == 185 ? "enchantment_slot_disabled" : v == 204 ? "enchantment_slot_highlighted" : "enchantment_slot";
+        }
+        if (screen instanceof BeaconScreen && v == 219 && width == 22 && height == 22) {
+            return u == 22 ? "button_selected" : u == 44 ? "button_disabled" : u == 66 ? "button_highlighted" : "button";
+        }
+        if (screen instanceof MerchantScreen && v == 199 && width == 6 && height == 27) {
+            return u == 6 ? "scroller_disabled" : "scroller";
+        }
+        return null;
+    }
+
+    /** {@return {@code true} if the sprite {@code name} was drawn as a Galdur widget} */
+    private static boolean widget(GuiGraphics graphics, String name, int x, int y, int width, int height) {
         if (name.startsWith("text_field")) {
             field(graphics, x, y, width, height);
             return true;
         }
-        // Buttons: the stonecutter's recipes, the loom's patterns, the enchantments, the beacon's powers.
+        // Choices: the stonecutter's recipes, the loom's patterns, the enchantments, the beacon's powers.
+        // Drawn like list rows, so only the chosen one has the action colour.
         String button = name.startsWith("recipe") || name.startsWith("enchantment_slot") || name.startsWith("button")
                 ? name : name.equals("pattern") || name.startsWith("pattern_") && !name.equals("pattern_slot")
                 ? name : null;
         if (button != null) {
             boolean hovered = button.endsWith("_highlighted");
-            String paint = button.endsWith("_selected") ? GaldurTheme.ACCENT
+            String paint = button.endsWith("_selected") ? GaldurTheme.LIST_SELECTED
                     : button.endsWith("_disabled") ? GaldurTheme.BUTTON_DISABLED
-                    : hovered ? GaldurTheme.BUTTON_HOVER : GaldurTheme.BUTTON;
+                    : hovered ? GaldurTheme.BUTTON_HOVER : GaldurTheme.LIST;
             GaldurRender.drawNineSlice(graphics, hovered ? GaldurSprites.BUTTON_HOVER : GaldurSprites.BUTTON, x, y,
                     width, height, GaldurTheme.paint(paint));
             return true;
@@ -213,12 +267,7 @@ public final class InventoryPainter {
                     GaldurTheme.paint(name.contains("disabled") ? GaldurTheme.BUTTON_DISABLED : GaldurTheme.SCROLLBAR));
             return true;
         }
-        var recolored = TextureRecolor.sprite(id);
-        if (recolored.isEmpty() || recolored.get().textureWidth() != width || recolored.get().textureHeight() != height) {
-            return false;
-        }
-        GaldurRender.drawTexture(graphics, recolored.get().id(), x, y, 0, 0, width, height, width, height);
-        return true;
+        return false;
     }
 
     private static void creativePanel(GuiGraphics graphics, AbstractContainerScreen<?> screen, String name) {

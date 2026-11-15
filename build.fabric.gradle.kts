@@ -76,6 +76,10 @@ loom {
             if (providers.gradleProperty("galduruitest.screenshots").isPresent) {
                 property("galduruitest.screenshots", "true")
             }
+            // -Pgalduruitest.containers (with the above): only the vanilla screens with slots.
+            if (providers.gradleProperty("galduruitest.containers").isPresent) {
+                property("galduruitest.containers", "true")
+            }
         }
         named("server") {
             server()

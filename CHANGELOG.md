@@ -11,8 +11,8 @@ and versions follow [Semantic Versioning](https://semver.org/) (see "Versioning"
   The burning flame and the cooking arrow are drawn in the theme colours and still fill up as they cook.
 - Same for the brewing stand, anvil, smithing table, grindstone, stonecutter, cartography table, loom,
   enchanting table, beacon and villager trades. Their arrows, tubes and icons come from the vanilla texture
-  (or the resource pack's), recoloured to the theme. Recipe, pattern, enchantment and beacon buttons are
-  Galdur buttons.
+  (or the resource pack's), recoloured to the theme. Recipes, patterns, enchantments and beacon powers are
+  drawn like list rows: only the chosen one takes the accent colour.
 
 ## [1.1.0] - 2026-11-10
 
