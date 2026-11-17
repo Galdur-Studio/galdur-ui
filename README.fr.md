@@ -31,7 +31,7 @@ repositories {
     maven { url = uri("../galdur-ui/repo") }   // après ./gradlew publish dans galdur-ui
 }
 dependencies {
-    implementation "com.galdurstudio.galdurui:galdurui-neoforge:1.1.0+1.21.1"   // ou -forge ; Fabric : modImplementation
+    implementation "com.galdurstudio.galdurui:galdurui-neoforge:1.2.0+1.21.1"   // ou -forge ; Fabric : modImplementation
 }
 ```
 
