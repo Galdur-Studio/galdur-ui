@@ -33,7 +33,9 @@ public class GaldurEmiPlugin implements EmiPlugin {
         });
         registry.addGenericStackProvider((screen, mouseX, mouseY) -> {
             GridLookup.Hit hit = GridLookup.find(screen, mouseX, mouseY);
-            return hit == null ? EmiStackInteraction.EMPTY : new EmiStackInteraction(EmiStack.of(hit.stack()));
+            // Not clickable: EMI keeps R and U but leaves the clicks to the grid (otherwise it takes
+            // them for its own drag and drop, and the item never reaches the screen).
+            return hit == null ? EmiStackInteraction.EMPTY : new EmiStackInteraction(EmiStack.of(hit.stack()), null, false);
         });
     }
 }

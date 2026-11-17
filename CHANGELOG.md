@@ -14,6 +14,10 @@ and versions follow [Semantic Versioning](https://semver.org/) (see "Versioning"
   (or the resource pack's), recoloured to the theme. Recipes, patterns, enchantments and beacon powers are
   drawn like list rows: only the chosen one takes the accent colour.
 
+### Fixed
+
+- With EMI installed, clicking an item in a `GaldurItemGrid` did nothing: EMI took the click for its drag and drop. R and U still show the item's recipes and uses.
+
 ## [1.1.0] - 2026-11-10
 
 Galdur UI now supports Minecraft 1.20.1 and 26.3, and players can apply the Galdur look to the whole game.
